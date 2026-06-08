@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第9讲 笔记：Prompt 工程与 Profile 系统 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/pipeline-demo.html">🎬 流程动画演示</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/19-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+</ul></li>
+
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="9-prompt-profile">第9讲 笔记：Prompt 工程与 Profile 系统<a class="headerlink" href="#9-prompt-profile" title="Permanent link">&para;</a></h1>
+<h2 id="_1">学习目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>能列出 8 种 Prompt Profile 及其适用场景</li>
+<li>能解释为什么用确定性选择而非让 LLM 自己判断模板</li>
+<li>能说出 System Prompt 编写的三个核心原则</li>
+</ul>
+<h2 id="_2">核心知识点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ol>
+<li>8 种 Prompt Profile：faq_answer / knowledge_answer / follow_up / pricing_guard / compliance_guard / troubleshooting_steps / source_bound_summary / default_answer</li>
+<li>Prompt Profile 选择逻辑：先按 question_category 找专用模板 → 再按 intent 找通用模板 → 都不命中用 default</li>
+<li>三个核心原则：身份（你是谁）→ 边界（你能做什么/不能做什么）→ 约束（回答格式和引用要求）</li>
+<li>确定性选择优于 LLM 判断：代码规则可测试、可回滚、可审计，让 LLM 再选一次模板会引入不稳定性</li>
+<li>场景变量注入：<code>{assistant_name}</code> <code>{business_domain}</code> <code>{support_contact}</code> 在运行时从 scenario.toml 填充</li>
+</ol>
+<h2 id="_3">关键概念<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prompt Profile</td>
+<td>一组预设的 System Prompt + User Prompt 模板，针对特定问题类型</td>
+</tr>
+<tr>
+<td>System Prompt</td>
+<td>定义 AI 身份和行为边界的指令，对整个对话生效</td>
+</tr>
+<tr>
+<td>Pricing Guard</td>
+<td>费用类专用模板，要求区分「已确认」和「未确认」信息</td>
+</tr>
+<tr>
+<td>Compliance Guard</td>
+<td>合规类专用模板，要求基于条款回答并标注依据</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">核心代码<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#__codelineno-0-26">26</a></span>
+<span class="normal"><a href="#__codelineno-0-27">27</a></span>
+<span class="normal"><a href="#__codelineno-0-28">28</a></span>
+<span class="normal"><a href="#__codelineno-0-29">29</a></span>
+<span class="normal"><a href="#__codelineno-0-30">30</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># qa_core/prompts/profiles.py — 8 种 Profile 注册</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">PROMPT_PROFILES</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="s2">&quot;FAQ_QUERY&quot;</span><span class="p">:</span> <span class="n">PromptProfile</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;faq_answer&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>        <span class="n">system_template</span><span class="o">=</span><span class="n">FAQ_ANSWER_SYSTEM_PROMPT</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>        <span class="n">user_template</span><span class="o">=</span><span class="n">FAQ_ANSWER_USER_TEMPLATE</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;FAQ 类问题优先复用标准答案，控制回答长度和业务口径。&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="p">),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>    <span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">:</span> <span class="n">PromptProfile</span><span class="p">(</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;knowledge_answer&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>        <span class="n">system_template</span><span class="o">=</span><span class="n">KNOWLEDGE_ANSWER_SYSTEM_PROMPT</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>        <span class="n">user_template</span><span class="o">=</span><span class="n">KNOWLEDGE_ANSWER_USER_TEMPLATE</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;业务知识咨询需要整合文档资料，允许结构化回答。&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>    <span class="p">),</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="p">}</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a><span class="n">CATEGORY_PROMPT_PROFILES</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>    <span class="s2">&quot;pricing&quot;</span><span class="p">:</span> <span class="n">PromptProfile</span><span class="p">(</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pricing_guard&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>        <span class="n">system_template</span><span class="o">=</span><span class="n">PRICING_ANSWER_SYSTEM_PROMPT</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>        <span class="n">user_template</span><span class="o">=</span><span class="n">RISK_CONTROL_USER_TEMPLATE</span><span class="p">,</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;费用、退款、发票等问题必须保守回答，区分已确认/未确认。&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="p">),</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="s2">&quot;compliance&quot;</span><span class="p">:</span> <span class="n">PromptProfile</span><span class="p">(</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;compliance_guard&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a>        <span class="n">system_template</span><span class="o">=</span><span class="n">COMPLIANCE_ANSWER_SYSTEM_PROMPT</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a>        <span class="n">user_template</span><span class="o">=</span><span class="n">RISK_CONTROL_USER_TEMPLATE</span><span class="p">,</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28"></a>        <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;合同、隐私、审计类问题必须基于条款回答，标注依据。&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29"></a>    <span class="p">),</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30"></a><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># qa_core/prompts/selector.py — 确定性选择</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_answer_prompt_profile</span><span class="p">(</span><span class="n">intent</span><span class="p">,</span> <span class="n">scenario</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">question_category</span> <span class="o">=</span> <span class="n">infer_question_category</span><span class="p">(</span><span class="n">query</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>    <span class="c1"># 优先按类别找专用模板（如 pricing_guard），再按意图找通用模板</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>    <span class="n">profile</span> <span class="o">=</span> <span class="p">(</span><span class="n">CATEGORY_PROMPT_PROFILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">question_category</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>               <span class="ow">or</span> <span class="n">PROMPT_PROFILES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">intent</span><span class="p">,</span> <span class="n">DEFAULT_PROMPT_PROFILE</span><span class="p">))</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>    <span class="n">context</span> <span class="o">=</span> <span class="n">_scenario_prompt_context</span><span class="p">(</span><span class="n">scenario</span><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>    <span class="k">return</span> <span class="n">PromptProfile</span><span class="p">(</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>        <span class="n">name</span><span class="o">=</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>        <span class="n">system_template</span><span class="o">=</span><span class="n">profile</span><span class="o">.</span><span class="n">system_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">),</span>  <span class="c1"># 注入场景变量</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>        <span class="n">user_template</span><span class="o">=</span><span class="n">profile</span><span class="o">.</span><span class="n">user_template</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>        <span class="n">reason</span><span class="o">=</span><span class="n">profile</span><span class="o">.</span><span class="n">reason</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="_5">练习题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>对比不同 Profile 的回答</strong>：分别提问一句费用类问题（「退款多久到账」）和一句知识咨询（「入职流程有哪些步骤」），通过 trace 查询确认使用了正确的 Prompt Profile。</li>
+<li><strong>阅读 summary Profile</strong>：在 <code>profiles.py</code> 中找到 <code>source_bound_summary</code>，说明它为什么属于“按问题类别优先”的模板，而不是普通知识问答模板。</li>
+</ol>
+<h2 id="_6">常见面试题<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：为什么不让 LLM 自己判断用哪个 Prompt 模板？</strong></p>
+<blockquote>
+<p>LLM 的选择不可靠且不可复现。同一个问题两次可能选出不同模板，回答口径不一致。代码规则的确定性选择可测试、可回归、可审计。</p>
+</blockquote>
+<p><strong>Q2：费用类和合规类的 Prompt 有什么关键区别？</strong></p>
+<blockquote>
+<p>费用类模板强调「区分已确认和未确认信息」，防止模型对退款金额、到账时间等做出未核实的承诺。合规类模板要求「基于条款回答并标注具体条款依据」，且阈值更高（0.86），因为合规判断涉及法律风险。</p>
+</blockquote>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/notes/08-rag-pipeline.html"><i class="fas fa-arrow-left"></i> 08 RAG Pipeline</a>
+        <a class="pager-link next" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

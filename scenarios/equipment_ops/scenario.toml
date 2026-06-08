@@ -1,0 +1,23 @@
+scenario_id = "equipment_ops"
+display_name = "设备运维知识助手"
+industry = "制造与设备运维"
+description = "面向设备巡检、告警处理和安全规范的运维知识问答场景。"
+assistant_name = "设备运维助手"
+business_domain = "设备巡检、告警处理和安全规范知识库"
+support_contact = "运维值班负责人"
+faq_collection = "equipment_faq_hybrid_v1"
+doc_collection = "equipment_doc_hybrid_v1"
+valid_sources = ["inspection", "alarm", "safety"]
+sample_questions = ["设备日检需要检查哪些项目？", "温度告警如何处理？", "维修前为什么要上锁挂牌？"]
+resume_project_name = "制造业设备运维知识助手"
+resume_keywords = ["制造业", "设备运维", "故障排查", "SOP", "RAG"]
+
+[source_labels]
+inspection = "巡检标准"
+alarm = "告警处理"
+safety = "安全规范"
+
+[source_patterns]
+inspection = "巡检|点检|日检|周检|检查|夜班|主管|值班|设备异常|异常等级"
+alarm = "告警|报警|温度|压力|异常|阈值"
+safety = "安全|停机|上锁|挂牌|防护|承包商|受限空间|作业票|气体检测|监护人|通风"

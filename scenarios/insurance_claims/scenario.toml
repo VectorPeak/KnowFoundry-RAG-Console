@@ -1,0 +1,27 @@
+scenario_id = "insurance_claims"
+display_name = "保险理赔审核助手"
+industry = "保险理赔与风控"
+description = "面向保单条款、理赔材料、责任认定、除外责任和赔付结算的知识问答场景。"
+assistant_name = "保险理赔审核助手"
+business_domain = "保单条款、理赔材料、保险责任、除外责任和赔付结算"
+support_contact = "理赔审核团队"
+faq_collection = "insurance_claims_faq_hybrid_v1"
+doc_collection = "insurance_claims_doc_hybrid_v1"
+valid_sources = ["policy", "claim_material", "exclusion", "liability", "settlement"]
+sample_questions = ["理赔申请需要哪些材料？", "哪些情况可能属于除外责任？", "赔付金额可以直接承诺吗？"]
+resume_project_name = "保险理赔材料审核与 RAG 知识问答助手"
+resume_keywords = ["保险理赔", "材料审核", "责任认定", "除外责任", "赔付结算", "RAG"]
+
+[source_labels]
+policy = "保单条款"
+claim_material = "理赔材料"
+liability = "责任认定"
+exclusion = "除外责任"
+settlement = "赔付结算"
+
+[source_patterns]
+policy = "保单|条款|保障|等待期|免赔额|保险期间|投保|被保险人|责任限额|团体险|在册|离职日期|保障终止|复效"
+claim_material = "理赔材料|材料|发票|病历|诊断证明|事故证明|申请书|身份证|银行卡|上传"
+liability = "责任|赔不赔|保险责任|事故原因|核责|认定|保障范围|责任范围"
+exclusion = "除外|免责|不赔|拒赔|酒驾|既往症|故意|违法|免除责任"
+settlement = "赔付|赔款|结算|金额|到账|打款|核赔|赔付比例|承诺|时效|收款账户|被保险人|公司账户|个人账户|授权文件"

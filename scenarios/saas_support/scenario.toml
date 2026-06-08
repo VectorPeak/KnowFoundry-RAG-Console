@@ -1,0 +1,23 @@
+scenario_id = "saas_support"
+display_name = "SaaS 客服知识助手"
+industry = "SaaS 客户服务"
+description = "面向 SaaS 产品账号、计费发票和开放集成的客服知识库场景。"
+assistant_name = "SaaS 客服助手"
+business_domain = "SaaS 产品账号登录、计费发票和开放集成知识库"
+support_contact = "在线客服或工单系统"
+faq_collection = "saas_faq_hybrid_v1"
+doc_collection = "saas_doc_hybrid_v1"
+valid_sources = ["account", "billing", "integration"]
+sample_questions = ["如何重置管理员密码？", "发票什么时候可以开？", "Webhook 调用失败怎么排查？"]
+resume_project_name = "SaaS 客服知识库智能助手"
+resume_keywords = ["SaaS客服", "产品文档问答", "工单降本", "FAQ直出", "混合检索"]
+
+[source_labels]
+account = "账号登录"
+billing = "计费发票"
+integration = "开放集成"
+
+[source_patterns]
+account = "登录|账号|密码|注册|重置|管理员"
+billing = "计费|账单|发票|套餐|续费|退款|合同客户|赠送额度|额度|客户成功|财务审批"
+integration = "API|Webhook|接口|集成|回调|Token"

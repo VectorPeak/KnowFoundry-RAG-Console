@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>当前项目状态 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="_1">当前项目状态<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>本文用于说明当前仓库的交付边界，避免把教学/演示型 RAG 平台误读为完整生产 SaaS。</p>
+<h2 id="_2">定位<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>KnowForge RAG Platform 当前定位是企业级多场景 RAG 教学与作品集项目。核心目标是展示：</p>
+<ul>
+<li>LangChain + Milvus Hybrid Search 的 RAG 主链路；</li>
+<li>多场景、多 source、知识库版本和数据隔离；</li>
+<li>FAQ 直出、文档 RAG、表格证据、Prompt Profile 和引用补强；</li>
+<li>入库质量、评测回归、性能基线、接口 smoke 和验收报告。</li>
+</ul>
+<h2 id="_3">已验证能力<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>当前本地快照已通过：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">compileall</span> <span class="n">app</span><span class="p">.</span><span class="n">py</span> <span class="n">qa_core</span> <span class="n">scripts</span> <span class="n">tests</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span> <span class="n">-q</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_project_guardrails</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_docs_consistency</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div></td></tr></table></div>
+<p>其中单元测试覆盖检索过滤、上下文构建、Prompt Profile、API 保护和场景/意图等纯逻辑能力。</p>
+<h2 id="_4">运行模式<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>项目支持两种运行方式：</p>
+<ul>
+<li>本机 API 模式：复制 <code>.env.local.example</code>，FastAPI 在宿主机运行，MySQL/Milvus 通过 localhost 端口访问。</li>
+<li>Compose API 模式：复制 <code>.env.compose.example</code>，FastAPI 在 compose 网络内运行，通过 <code>mysql</code>、<code>milvus</code> 等 service 名访问依赖。</li>
+</ul>
+<p>不要混用两套配置。<code>scripts/tools/check_local_runtime.py</code> 会识别当前 <code>.env</code> 属于哪种模式，并输出端口、容器和路径诊断。</p>
+<h2 id="_5">未覆盖边界<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>当前项目没有把以下能力做成生产级闭环：</p>
+<ul>
+<li>用户登录、JWT、租户身份可信注入；</li>
+<li>生产级 CI/CD 和多环境发布；</li>
+<li>高并发压测、容量自动扩缩和故障演练；</li>
+<li>企业权限系统、审计系统和密钥托管系统集成。</li>
+</ul>
+<p>代码中已有 tenant、dataset、visibility、allowed_roles 的检索过滤能力，但请求身份来源仍需由可信网关或认证层提供。直接把前端传入的 tenant/role 当作生产安全边界是不充分的。</p>
+<h2 id="_6">展示建议<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>对外展示时，优先演示：</p>
+<ol>
+<li>多场景切换和 source 边界；</li>
+<li>FAQ 直出与文档 RAG 的分流；</li>
+<li>表格行证据和引用补强；</li>
+<li>知识库版本、入库质量和评测 gate；</li>
+<li>Bad Case 如何进入 LangSmith/评测闭环。</li>
+</ol>
+<p>不建议把本项目包装成已经具备完整生产安全体系的平台。</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/index.html"><i class="fas fa-arrow-left"></i> 首页</a>
+        <a class="pager-link next" href="/docs/lectures/README.html">课程大纲 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

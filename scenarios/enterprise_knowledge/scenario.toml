@@ -1,0 +1,23 @@
+scenario_id = "enterprise_knowledge"
+display_name = "企业内部知识助手"
+industry = "企业知识管理"
+description = "面向 HR、IT 支持和财务报销的内部知识问答场景。"
+assistant_name = "企业知识助手"
+business_domain = "HR 制度、IT 支持和财务报销知识库"
+support_contact = "内部服务台"
+faq_collection = "enterprise_faq_hybrid_v1"
+doc_collection = "enterprise_doc_hybrid_v1"
+valid_sources = ["hr", "it", "finance"]
+sample_questions = ["新人入职需要完成哪些流程？", "VPN 连不上怎么处理？", "报销单据需要保留哪些材料？"]
+resume_project_name = "企业内部知识库智能问答平台"
+resume_keywords = ["企业知识管理", "SOP问答", "内部服务台", "多版本知识库", "RAG"]
+
+[source_labels]
+hr = "HR制度"
+it = "IT支持"
+finance = "财务报销"
+
+[source_patterns]
+hr = "入职|离职|请假|考勤|绩效|社保|公积金|转正|试用期|岗位变更"
+it = "VPN|电脑|账号|邮箱|权限|网络|打印机|软件|客户数据|外部平台|数据安全|权限回收|系统权限|API Token"
+finance = "报销|发票|预算|付款|借款|费用|单据|付款凭证"

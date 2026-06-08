@@ -1,0 +1,106 @@
+[
+  {
+    "conversation_id": "engineering_project_version_and_acceptance",
+    "scenario_id": "engineering_project_qa",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "turns": [
+      {
+        "turn_id": "drawing_version",
+        "query": "图纸变更后旧版本还能作为施工依据吗？",
+        "expected_hit_type": "faq_direct",
+        "expected_effective_source": "drawing",
+        "expected_keywords": ["最新有效版本", "旧版本", "追溯", "技术交底"],
+        "expected_source_contains": ["图纸变更后旧版本还能作为施工依据", "drawing_version.md"]
+      },
+      {
+        "turn_id": "acceptance_followup",
+        "query": "那隐蔽工程验收资料呢？",
+        "expected_effective_source": "quality",
+        "expected_keywords": ["报验申请", "隐蔽验收记录", "施工照片", "监理签认"],
+        "expected_source_contains": ["隐蔽工程验收需要哪些资料", "hidden_acceptance.md"]
+      }
+    ]
+  },
+  {
+    "conversation_id": "insurance_claims_exclusion_and_settlement",
+    "scenario_id": "insurance_claims",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "turns": [
+      {
+        "turn_id": "exclusion_rule",
+        "query": "哪些情况可能属于除外责任？",
+        "expected_hit_type": "faq_direct",
+        "expected_effective_source": "exclusion",
+        "expected_prompt_profile": "compliance_guard",
+        "expected_keywords": ["酒驾", "故意行为", "违法犯罪", "不承担赔付责任"],
+        "expected_source_contains": ["哪些情况可能属于除外责任", "exclusion_rules.md"]
+      },
+      {
+        "turn_id": "settlement_followup",
+        "query": "那赔付金额可以直接承诺吗？",
+        "expected_effective_source": "settlement",
+        "expected_prompt_profile": "pricing_guard",
+        "expected_keywords": ["不能", "资料未核定", "费用审核", "赔付比例"],
+        "expected_source_contains": ["赔付金额可以直接承诺吗", "payment_review.md"]
+      }
+    ]
+  },
+  {
+    "conversation_id": "cross_border_sanction_and_documentation",
+    "scenario_id": "cross_border_risk",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "turns": [
+      {
+        "turn_id": "sanction_screening",
+        "query": "交易对手命中制裁名单怎么办？",
+        "expected_hit_type": "faq_direct",
+        "expected_effective_source": "sanction",
+        "expected_prompt_profile": "compliance_guard",
+        "expected_keywords": ["暂停交易", "筛查记录", "贸易合规", "不应继续发货"],
+        "expected_source_contains": ["交易对手命中制裁名单怎么办", "screening.md"]
+      },
+      {
+        "turn_id": "documentation_followup",
+        "query": "那商业发票和装箱单不一致呢？",
+        "expected_effective_source": "documentation",
+        "expected_keywords": ["核对", "品名", "数量", "金额", "修正"],
+        "expected_source_contains": ["商业发票和装箱单信息不一致怎么办", "invoice_packing_list.md"]
+      }
+    ]
+  },
+  {
+    "conversation_id": "tender_acceptance_and_payment",
+    "scenario_id": "tender_contract_risk",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "turns": [
+      {
+        "turn_id": "acceptance_materials",
+        "query": "验收材料不完整怎么办？",
+        "expected_hit_type": "faq_direct",
+        "expected_effective_source": "acceptance",
+        "expected_keywords": ["验收单", "测试报告", "交付清单", "客户确认"],
+        "expected_source_contains": ["验收材料不完整怎么办", "acceptance_materials.md"]
+      },
+      {
+        "turn_id": "payment_followup",
+        "query": "那非标准付款条款需要谁复核？",
+        "expected_effective_source": "contract",
+        "expected_prompt_profile": "pricing_guard",
+        "expected_keywords": ["业务负责人", "财务", "法务", "付款节点"],
+        "expected_source_contains": ["非标准付款条款需要谁复核", "payment_terms.md"]
+      }
+    ]
+  }
+]

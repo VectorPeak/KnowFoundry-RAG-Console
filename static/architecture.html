@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>QA Core 全链路架构详解</title>
+<script src="js/vendor/mermaid.min.js"></script>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bd:#30363d;--tx:#c9d1d9;--t2:#8b949e;--ac:#58a6ff;--gr:#3fb950;--or:#d2991d;--rd:#f85149;--pu:#a371f7}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font:14px/1.7 'Segoe UI',system-ui,sans-serif}
+header{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;gap:16px;backdrop-filter:blur(12px)}
+header h1{font-size:20px;background:linear-gradient(135deg,var(--ac),var(--pu));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header .badge{font-size:11px;padding:3px 8px;border-radius:10px;background:var(--bg3);color:var(--t2)}
+nav{display:flex;gap:4px;flex-wrap:wrap;padding:10px 24px;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:61px;z-index:99}
+nav button{background:var(--bg3);color:var(--t2);border:1px solid var(--bd);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s;white-space:nowrap}
+nav button:hover{border-color:var(--ac);color:var(--tx)}
+nav button.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{max-width:1200px;margin:0 auto;padding:32px 24px}
+section{display:none}
+section.active{display:block}
+.mermaid{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;margin:20px 0;overflow:hidden;min-height:72px}
+.diagram-toolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:8px 10px;background:rgba(33,38,45,.94);border-bottom:1px solid var(--bd)}
+.diagram-toolbar button{height:28px;min-width:34px;padding:0 9px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px}
+.diagram-toolbar button:hover{border-color:var(--ac);color:#fff}
+.diagram-zoom-value{min-width:48px;text-align:center;color:var(--t2);font-size:12px}
+.diagram-viewport{max-height:72vh;overflow:auto;padding:16px;background:var(--bg2);cursor:grab}
+.diagram-viewport.dragging{cursor:grabbing;user-select:none}
+.diagram-canvas{width:max-content;min-width:100%}
+.diagram-canvas svg{display:block;max-width:none;height:auto}
+.mermaid:fullscreen{background:var(--bg);padding:0}
+.mermaid:fullscreen .diagram-viewport{height:calc(100vh - 45px);max-height:none}
+.mermaid-error{color:var(--rd);font-family:monospace;white-space:pre-wrap}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:24px;margin:24px 0}
+.card h2{font-size:18px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.card h3{font-size:15px;margin:16px 0 8px;color:var(--ac)}
+.card p,.card li{color:var(--t2);font-size:13px;line-height:1.8}
+.card ul,.card ol{margin:8px 0 8px 20px}
+.step{background:var(--bg3);border-radius:8px;padding:14px 18px;margin:10px 0;border-left:3px solid var(--ac)}
+.step .num{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:12px;background:var(--ac);color:#fff;font-size:12px;font-weight:600;margin-right:8px}
+.step .func{font-family:monospace;color:var(--ac);font-size:13px}
+.step .desc{color:var(--t2);font-size:12px;margin-top:4px}
+.step.g{border-left-color:var(--gr)}.step.g .num{background:var(--gr)}
+.step.r{border-left-color:var(--rd)}.step.r .num{background:var(--rd)}
+.step.o{border-left-color:var(--or)}.step.o .num{background:var(--or)}
+.step.p{border-left-color:var(--pu)}.step.p .num{background:var(--pu)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack>.card{margin:0}
+.path-card{background:var(--bg3);border-left:3px solid var(--ac);border-radius:0 8px 8px 0;padding:14px 18px;cursor:pointer;transition:all .15s}
+.path-card:hover{background:var(--bg2);transform:translateX(4px)}
+.path-card .label{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--ac)}
+.path-card .title{font-size:14px;font-weight:600;margin:4px 0}
+.path-card .desc{font-size:12px;color:var(--t2)}
+.path-card.a{border-left-color:var(--gr)}.path-card.a .label{color:var(--gr)}
+.path-card.b{border-left-color:var(--or)}.path-card.b .label{color:var(--or)}
+.path-card.c{border-left-color:var(--ac)}
+.path-card.d{border-left-color:var(--rd)}.path-card.d .label{color:var(--rd)}
+code{font-family:monospace;background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:12px;color:var(--ac)}
+pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:14px;overflow-x:auto;margin:10px 0;font-size:12px}
+pre code{background:none;padding:0;color:var(--tx)}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--bd)}
+th{color:var(--ac);font-weight:600}
+td{color:var(--t2)}
+td:first-child{color:var(--tx);font-family:monospace;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.tag.e{background:#1d4ed8;color:#93c5fd}.tag.a{background:#166534;color:#86efac}
+.tag.p{background:#92400e;color:#fde68a}.tag.i{background:#991b1b;color:#fca5a5}
+.tag.r{background:#075985;color:#bae6fd}.tag.g{background:#6b21a8;color:#d8b4fe}
+.tag.c{background:#0f766e;color:#99f6e4}.tag.l{background:#334155;color:#cbd5e1}
+@media(max-width:768px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>QA Core 全链路架构详解</h1><span class="badge">83 modules</span><span class="badge">8 scenarios</span><span class="badge">v1 sealed</span></header>
+<nav>
+<button class="active" onclick="switchTab('overview')">总览</button>
+<button onclick="switchTab('fullflow')">全链路</button>
+	<button onclick="switchTab('pipeline')">问答主流程</button>
+<button onclick="switchTab('intent')">意图识别</button>
+<button onclick="switchTab('plan')">检索计划</button>
+<button onclick="switchTab('faq')">FAQ 三分支</button>
+<button onclick="switchTab('retrieval')">Milvus 检索</button>
+<button onclick="switchTab('context')">上下文构建</button>
+<button onclick="switchTab('governance')">治理层</button>
+<button onclick="switchTab('ingest')">入库流程</button>
+	<button onclick="switchTab('memory')">记忆系统</button>
+	<button onclick="switchTab('prompts')">提示词</button>
+	<button onclick="switchTab('startup')">项目启动</button>
+	<button onclick="switchTab('learning')">学习路径</button>
+</nav>
+<main>
+
+<!-- ==================== OVERVIEW ==================== -->
+<section id="overview" class="active">
+
+<div class="card">
+<h2>6 条业务决策路径</h2>
+<div class="grid2">
+<div class="path-card a" onclick="switchTab('faq')"><div class="label">A · 最快 &lt;500ms</div><div class="title">FAQ 精确直出</div><div class="desc"><code>try_fast_faq_direct_answer()</code> 在意图识别前尝试精确匹配，命中则跳过全部 RAG 流程</div></div>
+<div class="path-card b" onclick="switchTab('faq')"><div class="label">B · 快 &lt;1s</div><div class="title">FAQ 相似直出</div><div class="desc">意图识别 → 检索计划 → <code>search_faq()</code> → 分数达动态阈值直出，跳过文档检索+LLM</div></div>
+<div class="path-card c" onclick="switchTab('pipeline')"><div class="label">C · 标准路径</div><div class="title">完整 RAG 流程</div><div class="desc">意图→改写→FAQ→文档→上下文筛选→LLM 流式生成→引用增强→写历史+Trace</div></div>
+<div class="path-card d"><div class="label">D · 安全兜底</div><div class="title">信息不足提示</div><div class="desc"><code>build_insufficient_context_answer()</code> — 检索无结果时返回确定性提示，避免 LLM 幻觉</div></div>
+<div class="path-card" style="border-left-color:var(--pu)"><div class="label" style="color:var(--pu)">E · 边界保护</div><div class="title">场景/Source 拦截</div><div class="desc"><code>detect_scenario_boundary()</code> + <code>detect_source_boundary()</code> — 跨场景引导切换</div></div>
+<div class="path-card" style="border-left-color:#78716c"><div class="label" style="color:#78716c">F · 离线</div><div class="title">文档入库</div><div class="desc"><code>ingest_directory()</code> → load → normalize → split → add_documents → activate</div></div>
+</div></div>
+
+<div class="card">
+<h2>真实入口协议</h2>
+<p>当前代码不是所有问题都直接进入 WebSocket。浏览器先调用 <code>POST /api/query</code> 做轻量预检；只有复杂业务知识问题返回 <code>is_streaming=true</code> 后，前端才建立 <code>WS /api/stream</code> 获取 token 流。</p>
+<div class="mermaid">
+flowchart TD
+  Page["浏览器页面<br/>static/js/chat.js"] --> Http["POST /api/query<br/>QAService.preview_query()"]
+  Http --> Preview{"intent.direct_answer?"}
+  Preview -->|"是"| Sync["同步返回完整答案<br/>问候 / 越界 / 人工客服"]
+  Preview -->|"否<br/>is_streaming=true"| WS["WS /api/stream<br/>QAService.stream_query()"]
+  WS --> Events["status / token / end / error<br/>前端逐 token 渲染"]
+  Events --> Summary["_schedule_summary_refresh()<br/>end 后异步刷新历史摘要"]
+  style Sync fill:#16653420,stroke:#166534
+  style WS fill:#58a6ff20,stroke:#58a6ff
+</div>
+<div class="step o"><span class="num">!</span><strong>为什么这样设计</strong>：HTTP 预检负责低成本直答和参数校验，WebSocket 只承载真正需要流式生成的 RAG 问题。这样既能保证简单问题响应快，也不会让复杂问题阻塞页面。</div>
+</div>
+
+<div class="card">
+<h2>系统分层架构</h2>
+<p>7 层架构，每层独立封装，层间通过明确接口通信。</p>
+<div class="mermaid">
+flowchart TD
+  subgraph L1["入口层 (api/)"]
+    WS["WebSocketHandler<br/>/api/stream → websocket_endpoint()"]
+    HTTP["HTTP Routes<br/>/api/query / debug / admin / versions"]
+  end
+  subgraph L2["应用服务层 (application/)"]
+    QASvc["QAService<br/>preview_query() / stream_query() / debug_retrieval()"]
+    Factory["get_qa_service() — lru_cache 单例"]
+  end
+  subgraph L3["Pipeline 编排层 (pipeline/)"]
+    RAG["rag.py — stream_query() 在线 RAG 主流程"]
+    Steps["steps.py — prepare_retrieval() / search_faq() / search_doc()"]
+    Ctx["context.py — select_context_docs() / direct_faq_answer()"]
+    Runtime["runtime.py — RAGQueryContext / record_trace()"]
+  end
+  subgraph L4["意图与策略"]
+    Intent["intent/classifier.py — classify_intent() 6 级规则"]
+    Plan["retrieval/strategy.py — build_retrieval_plan() 默认值 + 4 层决策"]
+    Variants["pipeline/query_variants.py — generate_query_variants()"]
+    Rewrite["pipeline/rewrite.py — rewrite_query_if_needed()"]
+  end
+  subgraph L5["检索执行层 (retrieval/)"]
+    Store["MilvusHybridStore — Dense(BGE-M3) + Sparse(BM25)"]
+    Rank["ranking.py — merge_hits_by_document() / rerank_hits()"]
+    Filter["filters.py — build_source_expr() / validate_source_filter()"]
+    Models["models.py — get_embeddings() / get_reranker()"]
+  end
+  subgraph L6["治理层"]
+    Scope["governance/data_scope.py — DataScope / expr_clauses()"]
+    KB["governance/kb_versions.py — KnowledgeBaseVersionStore"]
+    Scenario["scenarios/ — ScenarioRegistry / boundary detection"]
+  end
+  subgraph L7["持久化与可观测"]
+    History["memory/history.py — ChatHistoryStore / SQLChatMessageHistory"]
+    Trace["observability/trace_writer.py — record_query_trace()"]
+    LLM["llm/client.py — get_chat_model() ChatOpenAI"]
+    Prompts["prompts/ — build_answer_prompt_profile()"]
+  end
+  L1 --> L2 --> L3 --> L4 --> L5
+  L3 --> L6
+  L4 --> L6
+  L5 --> L6
+  L3 --> L7
+  L5 --> L7
+</div>
+</div>
+</section>
+
+<!-- ==================== FULLFLOW ==================== -->
+<section id="fullflow">
+<div class="card">
+<h2>业务全貌: 一次问答从头到尾的全部决策</h2>
+<p>以 <code>"入职流程有哪些步骤"</code> 为例，追踪整个系统从收到问题到返回答案的每一步业务决策。图上方菱形是判断节点，方框是处理动作，绿色圆角是答案终点。建议全屏查看（点击图工具栏的全屏按钮）。</p>
+<div class="mermaid">
+flowchart TD
+  Start(["用户输入: 入职流程有哪些步骤<br/>场景: 企业知识助手 / 分类: hr"]) --> HTTP{"POST /api/query 轻量预检<br/>能直接回答吗?"}
+
+  HTTP -->|"能"| HTTP_Done(["(终点) 同步返回<br/>问候/客服/越界"])
+  HTTP -->|"不能"| WS["建立 WebSocket<br/>前端准备接收 token 流"]
+
+  WS --> Ctx["建立请求上下文<br/>场景=企业知识助手 / 版本=kb_v2 / 租户=acme / 公开数据"]
+  Ctx --> StartEvt["通知前端: 已接收请求"]
+
+  StartEvt --> FastChk{"试探: 问题短且像FAQ?"}
+  FastChk -->|"是"| FastSearch["不经意图识别, 直接查FAQ<br/>限制12条, 不做精排"]
+  FastSearch --> FastMatch{"和某条FAQ一字不差?"}
+  FastMatch -->|"命中"| FastDone(["直接返回标准答案, <500ms"])
+  FastMatch -->|"未命中"| Cache["缓存结果供后续复用"]
+  FastChk -->|"否"| Intent
+
+  Cache --> Intent["开始理解意图 + 制定策略"]
+
+  Intent --> R1{"规则1: 打招呼?"}
+  R1 -->|"是"| I1["问候, 不检索"]
+  R1 -->|"否"| R2{"规则2: 越界?"}
+  R2 -->|"是"| I2["拒答"]
+  R2 -->|"否"| R3{"规则3: 找人工?"}
+  R3 -->|"是"| I3["给电话"]
+  R3 -->|"否"| R4{"规则4: 是追问?"}
+  R4 -->|"是"| I4["标记需改写, 稍后补全"]
+  R4 -->|"否"| R5{"规则5: 关键词能确定?"}
+  R5 -->|"FAQ"| I5a["高置信FAQ查询"]
+  R5 -->|"知识"| I5b["高置信知识咨询"]
+  R5 -->|"不确定"| LLM_Intent["交给LLM判断<br/>结构化输出限制字段"]
+
+  LLM_Intent --> IntentResult["意图=KNOWLEDGE_QUERY, 置信度=0.84<br/>不需改写(已完整), 建议分类=hr"]
+
+  I4 --> Rewrite["追问补全: '那审批呢'→'入职审批步骤'"]
+  I5a --> Plan
+  I5b --> Plan
+  IntentResult --> Plan
+  Rewrite --> Plan
+
+  Plan["制定检索策略: 4层决策层层收紧"]
+
+  Plan --> P0["默认值: FAQ20条/文档20条/阈值0.72/上下文4条"]
+  P0 --> P1{"第1层: 按意图调整<br/>当前=KNOWLEDGE_QUERY"}
+  P1 -->|"知识咨询"| P1a["扩大文档20→24, 上下文4→5<br/>启用查询变体"]
+
+  P1a --> P2{"第2层: 短句? (≤12字)"}
+  P2 -->|"是"| P2a["收缩文档, 提阈值≥0.78"]
+  P2 -->|"否(10字, 不触发)"| P3{"第3层: 带风险? 费用/合规/排障/总结"}
+  P2a --> P3
+
+  P3 -->|"费用"| P3a["保守: 阈值≥0.84, 上下文≥6"]
+  P3 -->|"合规"| P3b["严格: 阈值≥0.86, 上下文≥6"]
+  P3 -->|"排障"| P3c["扩大文档"]
+  P3 -->|"总结"| P3d["扩大文档"]
+  P3 -->|"无(当前)"| P4{"第4层: 表格查询?<br/>含清单/台账/字段等词"}
+  P3a --> P4
+  P3b --> P4
+  P3c --> P4
+  P3d --> P4
+
+  P4 -->|"是"| P4a["扩大候选, 关闭相似FAQ直出<br/>表格行优先保留"]
+  P4 -->|"否"| PlanDone["计划确定: FAQ20条/文档24条<br/>阈值0.72/上下文5条/启用精排<br/>reason=knowledge_doc_enriched"]
+
+  PlanDone --> Variants["生成等价问法<br/>入职流程有哪些步骤 → 入职流程步骤 → 入职SOP"]
+
+  Variants --> FAQ_Search["查FAQ库: 3问法×20条 → 合并去重 → 精排"]
+
+  FAQ_Search --> FAQ_Judge{"FAQ能直接答吗?<br/>精确=无条件 / 相似=分数≥0.72"}
+  FAQ_Judge -->|"能"| FAQ_Done(["返回FAQ标准答案, <1s"])
+  FAQ_Judge -->|"不能"| Doc_Search["查文档库: 3问法×24条 → 合并去重 → 精排"]
+
+  Doc_Search --> Context["筛选段落进LLM窗口"]
+
+  Context --> Ctx_F["FAQ: 过滤低分→取前2→转标准问答格式"]
+  Ctx_F --> Ctx_D["文档: 过滤低分→保持精排顺序→优先父块"]
+  Ctx_D --> Ctx_Loop{"逐条加入, 三重约束"}
+  Ctx_Loop -->|"满5条"| Ctx_Stop["停止"]
+  Ctx_Loop -->|"单条>1600字"| Ctx_Trunc["截断到1600字"]
+  Ctx_Trunc --> Ctx_Total{"总长>6000字?"}
+  Ctx_Loop -->|"未超"| Ctx_Total
+  Ctx_Total -->|"超"| Ctx_Stop
+  Ctx_Total -->|"不超"| Ctx_Add["加入, 继续"]
+  Ctx_Add --> Ctx_Loop
+
+  Ctx_Stop --> Ctx_Result["最终: 5条上下文, 约3200字"]
+  Ctx_Result --> Ctx_Empty{"一条没选中?"}
+  Ctx_Empty -->|"是"| NoContext["明确告知: 资料不足, 联系人工"]
+  Ctx_Empty -->|"否"| Prompt["选模板: 无风险+KNOWLEDGE→knowledge_answer<br/>填充: 助手名/业务域/行业/联系方式"]
+
+  Prompt --> LLM_Gen["LLM流式生成, 逐token推送<br/>前端打字机效果"]
+
+  LLM_Gen --> Citation["检查来源标注<br/>已有[1][2]→原样 / 缺失→补参考资料"]
+  Citation --> Save["保存: 问答→MySQL / trace→JSONL"]
+
+  Save --> Summary["后台异步: 消息≥14条时, LLM增量摘要"]
+  Summary --> EndEvt(["(终点) push end事件<br/>浏览器显示完整答案+来源+诊断"])
+
+  style FastDone fill:#166534,color:#86efac
+  style FAQ_Done fill:#166534,color:#86efac
+  style EndEvt fill:#166534,color:#86efac
+  style HTTP_Done fill:#166534,color:#86efac
+  style NoContext fill:#991b1b,color:#fca5a5
+  style P1 fill:#d2991d20,stroke:#d2991d
+  style P2 fill:#d2991d20,stroke:#d2991d
+  style P3 fill:#d2991d20,stroke:#d2991d
+  style P4 fill:#58a6ff20,stroke:#58a6ff
+  style PlanDone fill:#16653420,stroke:#166534
+  style Ctx_Result fill:#16653420,stroke:#166534
+</div>
+
+<h3>读图指南</h3>
+<div class="step g"><span class="num">1</span><strong>从上到下跟踪主路径</strong><div class="desc">图中用粗体标注了本案例的实际走法: HTTP预检→WebSocket→上下文→快速试探(未命中)→意图识别(规则5命中KNOWLEDGE)→4层计划→变体→FAQ(不直出)→文档→筛选5条上下文→LLM生成→引用→保存→end。菱形中标注了分支条件, 方框中标注了处理结果。</div></div>
+<div class="step"><span class="num">2</span><strong>绿色圆角 = 提前退出的快捷出口</strong><div class="desc">招呼/越界/客服(直接答)、FAQ精确匹配(<500ms)、FAQ相似匹配(<1s)。凡是不需要LLM生成的分支都会提前结束, 节省时间和算力。</div></div>
+<div class="step o"><span class="num">3</span><strong>4层决策的核心逻辑</strong><div class="desc">如果意图是FAQ_QUERY→文档减半阈值降低。如果带"费用"关键词→阈值提到0.84。如果带"合规"→阈值提到0.86。如果是表格查询→关闭相似直出。同一个问题换个意图或风险类别, 检索参数完全不同。</div></div>
+</div>
+</section>
+
+<!-- ==================== PIPELINE ==================== --><!-- ==================== PIPELINE ==================== -->
+<section id="pipeline">
+<div class="card">
+<h2>在线问答主流程 — 业务视角</h2>
+<p>站在系统的角度，收到一个问题后需要做四个层次的决定。每个决定都有提前退出的"快捷出口"。</p>
+<div class="mermaid">
+flowchart TD
+  Q["收到问题: 入职流程有哪些步骤"] --> D0{"第一层决定:<br/>这个问题需要检索吗?"}
+  D0 -->|"不用<br/>你好/客服电话/越界"| B0["直接返回答案<br/>&lt;100ms"]
+  D0 -->|"需要"| D1{"第二层决定:<br/>这个问题是什么意思?"}
+  D1 -->|"是追问"| D1a["结合历史补全<br/>那审批呢→入职审批"]
+  D1 -.->|"意图识别"| D1b["是FAQ查询还是文档咨询?<br/>是费用问题还是合规问题?"]
+  D1b --> D2{"第三层决定:<br/>答案已经在FAQ库里了吗?"}
+  D2 -->|"精确匹配"| B2["直接返回标准答案<br/>&lt;1s, 不需要LLM"]
+  D2 -->|"相似度够高"| B2
+  D2 -->|"不够确定"| D3{"第四层决定:<br/>基于文档资料生成答案"}
+  D3 -->|"文档资料充分"| D3a["筛选最相关的段落<br/>限制长度防止超出LLM窗口"]
+  D3a --> D3b["LLM基于资料生成答案<br/>标注信息来源"]
+  D3b --> B3["返回带引用的答案<br/>3~6s"]
+  D3 -->|"资料不足"| B4["明确告知信息不足<br/>引导联系人工"]
+  style B0 fill:#166534,color:#86efac
+  style B2 fill:#166534,color:#86efac
+  style B3 fill:#58a6ff20,stroke:#58a6ff
+  style B4 fill:#991b1b,color:#fca5a5
+</div>
+<div class="step g"><span class="num">!</span><strong>用业务语言理解</strong>：系统不是"先调A再调B"，而是"先判断要不要查、再判断查什么、再判断答案能不能直接用、最后才让LLM生成"。每一步都有提前退出的"快捷出口"——能直接答就不走后面的步骤。</div>
+</div>
+
+<div class="card">
+<h2>四个决定的技术实现对照</h2>
+<table>
+<tr><th style="width:18%">业务决定</th><th style="width:35%">核心逻辑</th><th style="width:47%">关键函数</th></tr>
+<tr><td>第一层: 需要检索吗?</td><td>判断是不是问候/客服/越界——这些话术无需查资料，直接回答即可。FAQ 精确匹配也能跳过检索计划。</td><td><code>classify_intent()</code> 规则1-3、<code>try_fast_faq_direct_answer()</code></td></tr>
+<tr><td>第二层: 什么意思?</td><td>理解用户意图——是问FAQ还是查文档? 带不带费用/合规风险? 需不需要结合历史改写? 然后根据这些信息制定一个"检索计划"：查多少条、用什么阈值。</td><td><code>classify_intent()</code> 规则4-6 + LLM、<code>rewrite_query_if_needed()</code>、<code>build_retrieval_plan()</code>（4层决策）、<code>generate_query_variants()</code></td></tr>
+<tr><td>第三层: FAQ能直接答吗?</td><td>先查FAQ库——如果命中了标准问题(如"忘记密码怎么办")且匹配度够高，直接用标准答案回复。注意: 费用/合规类问题即使FAQ命中也需要更高分数才敢直接答。</td><td><code>search_faq()</code>、<code>get_faq_direct_answer()</code>、<code>direct_faq_answer()</code></td></tr>
+<tr><td>第四层: 基于文档生成</td><td>FAQ不够确定时查文档。从几十条候选中筛选最相关的段落(过滤低分、去重、截断过长的)，拼成上下文交给LLM。LLM生成完后还要补上"参考资料"标签。</td><td><code>search_doc()</code>、<code>select_context_docs()</code>（三重约束）、<code>stream_llm_answer()</code>、<code>enforce_answer_citations()</code></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>技术实现: 每个业务决定背后的具体动作</h2>
+<p>每个节点描述<strong>做了什么</strong>，括号内标注<strong>由哪个函数执行</strong>。</p>
+<div class="mermaid">
+flowchart TD
+  Q["收到 WebSocket 消息<br/>包含 query / session_id / scenario_id / source_filter"] --> Ctx["建立请求上下文<br/>确定用哪个场景、哪个知识库版本、数据可见范围<br/>(create_query_context)"]
+  Ctx --> Start["通知前端: 已收到请求<br/>(yield start_event)"]
+  Start --> S1["试探 FAQ 精确匹配<br/>问题短且像标准问答时, 不经意图识别直接查 FAQ<br/>(try_fast_faq_direct_answer)"]
+  S1 --> S1C{"问题与某条 FAQ 标准问题<br/>一字不差?"}
+  S1C -->|"是"| E0(["直接返回标准答案, 首 token<500ms"])
+  S1C -->|"否"| S2["理解意图 + 制定检索策略<br/>判断用户想干什么, 问题带什么风险, 该查多少条<br/>(prepare_retrieval)"]
+  S2 --> S2a["判断意图类型<br/>规则优先: 先看是不是打招呼/要客服/越界<br/>再看是不是追问/FAQ咨询/知识咨询<br/>(classify_intent)"]
+  S2a --> S2C{"打的招呼? 要的客服? 越界了?"}
+  S2C -->|"是"| E1(["直接回复, 不查知识库"])
+  S2C -->|"否"| S2b["追问补全<br/>'那审批呢'→'入职流程中的审批步骤'<br/>(rewrite_query_if_needed)"]
+  S2b --> S2c["制定检索计划<br/>根据意图+风险类别+问题长度<br/>决定查多少条、用什么阈值<br/>(build_retrieval_plan, 4层决策)"]
+  S2c --> S2d["生成等价问法<br/>'Webhook失败'→'回调失败'<br/>提高命中不同表述的资料<br/>(generate_query_variants)"]
+  S2d --> S3["查 FAQ 库<br/>用多个问法去 FAQ 集合检索, 合并去重后精排<br/>(search_faq)"]
+  S3 --> S3C{"命中的 FAQ 答案可信吗?<br/>问题完全一样→无条件信任<br/>语义相近→分数必须超过动态阈值"}
+  S3C -->|"是"| E2(["直接返回 FAQ 标准答案, 首 token<1s"])
+  S3C -->|"否"| S4["查文档库<br/>用多个问法去文档集合检索, 合并去重后精排<br/>(search_doc)"]
+  S4 --> S5["筛选最相关的段落<br/>丢弃低分片段, 限制总长度防止超出 LLM 窗口<br/>表格问题优先保留表格行<br/>(select_context_docs, 三重约束)"]
+  S5 --> S5C{"筛选完一条都没有?"}
+  S5C -->|"是"| E3(["明确告知: 当前资料不足以回答<br/>给出人工联系方式"])
+  S5C -->|"否"| S6["基于资料流式生成答案<br/>逐 token 推送给前端, 用户看到打字机效果<br/>(stream_llm_answer)"]
+  S6 --> S7["检查答案有没有标注来源<br/>没有的话自动补充'参考资料: xxx'<br/>表格问题确保关键字段没丢<br/>(enforce_answer_citations)"]
+  S7 --> Save["记录这次问答<br/>对话写入 MySQL 供后续追问使用<br/>摘要写入 trace 供LangSmith 分析<br/>(history.add_turn + finish_success)"]
+  Save --> Done(["推送 end 事件 → 浏览器看到完整答案和来源"])
+  style E0 fill:#166534,color:#86efac
+  style E1 fill:#166534,color:#86efac
+  style E2 fill:#166534,color:#86efac
+  style E3 fill:#991b1b,color:#fca5a5
+</div>
+</div>
+
+<h3>每个阶段在做什么</h3>
+
+<div class="step"><span class="num">0</span><strong>建立请求上下文</strong> — 确定用哪个场景、哪个知识库版本、数据可见范围。不检索，只准备请求级状态。<div class="desc">→ <code>create_query_context()</code></div></div>
+
+<div class="step g"><span class="num">1</span><strong>试探 FAQ 精确匹配</strong> — 问题短且像标准问答时，不经意图识别直接查 FAQ。只认一字不差的匹配，宁可不命中也不错答。<div class="desc">→ <code>try_fast_faq_direct_answer()</code> → <code>_exact_faq_answer(threshold=inf)</code></div></div>
+
+<div class="step"><span class="num">2</span><strong>理解意图 + 制定检索策略</strong> — 判断用户在干什么（打招呼？问客服？查资料？），问题带什么风险（费用类要保守、合规类更保守），追问需要补全上下文。然后根据这些信息决定查多少条、用什么阈值。<div class="desc">→ <code>classify_intent()</code> → <code>rewrite_query_if_needed()</code> → <code>build_retrieval_plan()</code> → <code>generate_query_variants()</code></div></div>
+
+<div class="step o"><span class="num">3</span><strong>查 FAQ 库，判断能直接答吗</strong> — 先查标准问答集。问题完全一样→无条件信任。语义相近→分数必须超过动态阈值（普通问题 0.62，费用 0.84，合规 0.86）。表格类问题只允许精确匹配（关闭相似直出）。<div class="desc">→ <code>search_faq()</code> → <code>get_faq_direct_answer()</code> → <code>direct_faq_answer()</code></div></div>
+
+<div class="step"><span class="num">4</span><strong>查文档库</strong> — FAQ 不够确定时才查。知识咨询类问题会扩大搜索范围（doc_top_k 从默认 20 扩到 complex 24）。<div class="desc">→ <code>search_doc()</code></div></div>
+
+<div class="step o"><span class="num">5</span><strong>筛选最相关的段落</strong> — 从几十条候选中筛选真正进 LLM 窗口的内容。FAQ 转成"常见问题+标准答案"格式，文档优先用父块完整上下文。三重约束：条数上限 / 单条长度上限 / 总长度上限。<div class="desc">→ <code>select_context_docs()</code> → <code>build_context()</code></div></div>
+
+<div class="step"><span class="num">6</span><strong>LLM 基于资料生成答案</strong> — 根据问题风险类别选择提示词模板（费用走 pricing_guard、合规走 compliance_guard），把资料和问题拼成 prompt，逐 token 流式推给前端。<div class="desc">→ <code>build_answer_prompt_profile()</code> → <code>stream_llm_answer()</code></div></div>
+
+<div class="step g"><span class="num">7</span><strong>检查答案完整性</strong> — 答案有没有标注来源？没标注的补上"参考资料"。涉及表格的确保关键字段没丢。<div class="desc">→ <code>enforce_answer_citations()</code></div></div>
+
+<div class="step g"><span class="num">8</span><strong>保存记录</strong> — 问答写入 MySQL（供后续追问），摘要写入 JSONL trace（供LangSmith 分析），后台异步刷新会话摘要。<div class="desc">→ <code>history.add_turn()</code> + <code>finish_success()</code> + <code>_schedule_summary_refresh()</code></div></div>
+</div>
+</section>
+
+<!-- ==================== INTENT ==================== -->
+<section id="intent">
+<div class="card">
+<h2>意图识别: 6 级规则优先级</h2>
+<p>设计原则：规则优先保证低延迟和确定性，LLM 仅处理模糊问题。规则命中 confidence 在 0.8~1.0，LLM 补充 confidence 在 0.6~0.8。</p>
+<div class="mermaid">
+flowchart TD
+  In["收到问题 + 历史记录<br/>(classify_intent)"] --> R1{"是打招呼吗?<br/>你好/在吗/hi/hello<br/>(GREETING 正则)"}
+  R1 -->|"是"| G["直接回复问候语<br/>confidence=1.0, 不进入后续规则"]
+  R1 -->|"否"| R2{"是越界内容吗?<br/>彩票/赌博/色情/违法<br/>(OFF_TOPIC_HINTS 正则)"}
+  R2 -->|"是"| O["直接拒答<br/>confidence=0.95"]
+  R2 -->|"否"| R3{"是要找人工客服吗?<br/>'转人工'/'客服电话' + 短句≤18字<br/>(HUMAN_SERVICE_HINTS 正则)"}
+  R3 -->|"是"| H["给出客服联系方式<br/>confidence=0.9"]
+  R3 -->|"否"| R4{"是追问吗?<br/>'那审批呢'/'费用呢'<br/>代词开头或短句≤8字 + 有历史<br/>(FOLLOW_UP_HINTS 正则)"}
+  R4 -->|"是"| F["标记为追问, 稍后改写补全<br/>requires_rewrite=True, confidence=0.8"]
+  R4 -->|"否"| R5{"能通过关键词确定意图吗?<br/>FAQ_HINTS(怎么办/如何/需要什么)<br/>或 KNOWLEDGE_HINTS(流程/规范/SOP)<br/>+ source 可推断或短句≤36字<br/>(_strong_rule_domain_intent)"}
+  R5 -->|"是"| S["高置信分类为 FAQ_QUERY<br/>或 KNOWLEDGE_QUERY<br/>confidence=0.82~0.84"]
+  R5 -->|"否"| LLM["模糊问题, 交给 LLM 判断<br/>发送最近 6 条历史 + 当前问题<br/>Pydantic 结构化输出限制只返回枚举<br/>(_classify_with_llm)"]
+  LLM --> Result["输出: 意图类型 + 置信度<br/>+ 是否需要改写 + 建议的业务分类"]
+  style R5 fill:#d2991d20,stroke:#d2991d
+  style LLM fill:#58a6ff20,stroke:#58a6ff
+</div>
+
+<div class="step r"><span class="num">1</span><strong>GREETING</strong> — 例: "你好"→"你好！我是企业知识助手，可以帮你查询制度、流程、FAQ 和文档资料。" / "在吗"→问候 / "你是谁"→身份说明<div class="desc">正则匹配 <code>你好|您好|hi|hello|在吗|你是谁</code></div></div>
+<div class="step r"><span class="num">2</span><strong>OUT_OF_SCOPE</strong> — 例: "彩票怎么买"→"这个问题超出了业务知识库的问答范围。"/ "如何攻击服务器"→拒答<div class="desc"><code>OFF_TOPIC_HINTS</code> 正则匹配越界关键词</div></div>
+<div class="step r"><span class="num">3</span><strong>HUMAN_SERVICE</strong> — 例: "转人工"→"可以联系人工支持，联系方式：400-xxx-xxxx。"（短句≤18字）/ "我想了解一下客服工单的处理流程是怎样的"→不触发（长句可能在问流程）<div class="desc">匹配人工客服关键词 + 短句限制</div></div>
+<div class="step r"><span class="num">4</span><strong>FOLLOW_UP</strong> — 例: 上文问"入职流程"，当前问"那审批呢"→Intent=FOLLOW_UP, requires_rewrite=True→改写为"入职流程中的审批步骤是什么" / "费用呢"→根据上文改写为"入职费用"或"培训费用"<div class="desc"><code>FOLLOW_UP_HINTS</code> 匹配代词开头</div></div>
+<div class="step o"><span class="num">5</span><strong>强规则</strong> — 例: "忘记密码怎么办"→FAQ_QUERY（FAQ_HINTS 命中"怎么办"）+ inferred source；"入职流程有哪些步骤"→KNOWLEDGE_QUERY（KNOWLEDGE_HINTS 命中"流程"+"步骤"）+ inferred source="hr"<div class="desc">匹配 FAQ_HINTS / KNOWLEDGE_HINTS + infer_source()</div></div>
+<div class="step"><span class="num">6</span><strong>LLM 兜底</strong> — 例: "我们部门最近想优化一下新员工的培训体系，你有什么建议"→规则未命中→LLM 判断为 KNOWLEDGE_QUERY<div class="desc"><code>_classify_with_llm()</code> 结构化输出</div></div>
+</div>
+</section>
+
+<!-- ==================== PLAN ==================== -->
+<section id="plan">
+<div class="card">
+<h2>检索计划: build_retrieval_plan() 默认值 + 4 层决策</h2>
+<p>输入 <code>query</code> + <code>IntentResult</code> + <code>Settings</code>，先初始化默认参数，再经过 4 个策略层逐步收紧，最终输出 <code>RetrievalPlan</code> (frozen dataclass, 15 字段)。</p>
+<div class="mermaid">
+flowchart TD
+  S["输入: 问题文本 + IntentResult + 全局配置<br/>(build_retrieval_plan)"] --> Init["从配置加载默认值<br/>FAQ 召回数 / 文档召回数 / 直出阈值 / 上下文上限<br/>同时判断: 问题长度(是否短句)<br/>风险类别(pricing/compliance/...)<br/>是否表格查询"]
+  Init --> L1
+  L1["第1层: 根据意图调整基础参数<br/>(_apply_intent_branching)"] -->|"是打招呼/客服/越界"| L1A["完全不检索<br/>直接答案即可"]
+  L1 -->|"是 FAQ 类查询"| L1B["降低直出门槛(更容易命中)<br/>文档检索减半(FAQ答案更权威)"]
+  L1 -->|"是知识咨询"| L1C["扩大文档检索范围<br/>增加上下文条数(需要多段资料)"]
+  L1 -->|"是追问"| L1D["扩大候选范围<br/>提高直出门槛(防止残缺问题误命中)"]
+  L1B --> L2{"第2层: 短句需要额外保护吗?<br/>(_apply_short_query_guard)"}
+  L1C --> L2
+  L1D --> L2
+  L2 -->|"是短句且不是追问"| L2A["收缩文档检索(短句歧义大)<br/>提高直出门槛到>=0.78"]
+  L2 -->|"否"| L3{"第3层: 问题带风险吗?<br/>(_apply_risk_category)"}
+  L2A --> L3
+  L3 -->|"费用/价格/退款"| L3A["最保守策略: 直出阈值>=0.84<br/>上下文>=6条"]
+  L3 -->|"合规/合同/隐私"| L3B["最严格策略: 直出阈值>=0.86<br/>上下文>=6条"]
+  L3 -->|"故障/报错/排查"| L3C["扩大文档搜索范围"]
+  L3 -->|"总结/对比/归纳"| L3D["扩大文档搜索范围"]
+  L3 -->|"普通问题"| L4{"第4层: 是表格查询吗?<br/>(_apply_table_preference)"}
+  L3A --> L4
+  L3B --> L4
+  L3C --> L4
+  L3D --> L4
+  L4 -->|"是(查清单/台账/状态)"| L4A["扩大文档候选<br/>关闭相似FAQ直出(表格类答案不能泛化)<br/>优先保留表格行"]
+  L4 -->|"否"| O["输出: RetrievalPlan (frozen)<br/>包含 15 个检索参数 + 决策原因 trace"]
+  L4A --> O
+  style L1 fill:#f8514920,stroke:#f85149
+  style L2 fill:#d2991d20,stroke:#d2991d
+  style L3 fill:#d2991d20,stroke:#d2991d
+  style L4 fill:#58a6ff20,stroke:#58a6ff
+  style O fill:#16653420,stroke:#166534
+</div>
+
+<table>
+<tr><th>层级</th><th>函数</th><th>决策条件</th><th>影响的 plan 字段</th></tr>
+<tr><td>L1</td><td><code>_apply_intent_branching()</code></td><td>intent.intent 类型</td><td>run_faq/doc, doc_top_k, faq_top_k, direct_threshold, final_context_top_n</td></tr>
+<tr><td>L2</td><td><code>_apply_short_query_guard()</code></td><td>is_short 且非 FOLLOW_UP</td><td>doc_top_k(min约束), direct_threshold(>=0.78)</td></tr>
+<tr><td>L3</td><td><code>_apply_risk_category()</code></td><td>question_category</td><td>faq_top_k, doc_top_k, final_context_top_n, direct_threshold</td></tr>
+<tr><td>L4</td><td><code>_apply_table_preference()</code></td><td>prefer_table 且 run_doc</td><td>doc_top_k, final_context_top_n(>=7), faq_direct_exact_only</td></tr>
+</table>
+
+<div class="step o"><span class="num">!</span><strong>具体示例</strong>：<code>build_retrieval_plan("忘记密码怎么办", IntentResult("FAQ_QUERY"))</code> → RetrievalPlan(faq_top_k=20, doc_top_k=8, faq_direct_threshold=0.64, reason="faq_first")。而 <code>build_retrieval_plan("这个合同条款合法吗", IntentResult("KNOWLEDGE_QUERY"))</code> → RetrievalPlan(doc_top_k=24, final_context_top_n=6, faq_direct_threshold=0.86, reason="knowledge_doc_enriched_compliance_guard")——同一个函数，完全不同的参数。</div>
+<div class="step o"><span class="num">!</span><strong>关键设计</strong>：<code>RetrievalPlan</code> 是 frozen dataclass — 一旦创建不可修改。reason 字段记录了每层决策的原因（如 <code>faq_first_short_query_guard_pricing_guard</code>），可追溯每个参数为什么是这个值。</div>
+</div>
+</section>
+
+<!-- ==================== FAQ ==================== -->
+<section id="faq">
+<div class="card">
+<h2>FAQ 三条路径对比 — 业务视角</h2>
+<p>系统面对一个问题的核心判断：<strong>"这个答案在 FAQ 库里吗？如果在，我能信任这个匹配吗？"</strong>答案分为三个层次。</p>
+<div class="step g"><span class="num">A</span><strong>精确命中——"这个答案100%对"</strong><div class="desc">用户问的和 FAQ 库里某条标准问题一字不差。系统不需要做意图识别就知道这是 FAQ 查询，直接返回。这是最快、最安全的路径。</div></div>
+<div class="step o"><span class="num">B</span><strong>相似命中——"这个答案很可能对，但我不100%确定"</strong><div class="desc">用户问法不同但语义相近（"怎么重置密码" vs "忘记密码怎么办"）。系统先识别意图为 FAQ_QUERY，再根据问题类型决定一个动态阈值：普通问题 0.64(默认0.72-0.08)，费用问题必须 0.84 以上。这是"信任但要验证"的路径。</div></div>
+<div class="step"><span class="num">C</span><strong>不够确定——"FAQ 给不了答案，查文档吧"</strong><div class="desc">FAQ 没命中，或命中但分数不够。问题可能是知识咨询（"入职流程包含哪些步骤"），需要多段文档资料拼出完整答案。这是最慢但最全面的路径。</div></div>
+<p style="margin-top:16px">技术实现对照：</p>
+<div class="mermaid">
+flowchart TD
+  Q["收到问题"] --> FP{"问题短且像标准问答吗?<br/>(should_try_faq_fast_path)"}
+  FP -->|"✅ 路径 A: 像, 先试精确匹配"| A1["不经意图识别, 直接查 FAQ 库<br/>限制最多查 12 条, 不做精排<br/>(get_faq_store().search_many)"]
+  A1 --> A2{"问题与某条 FAQ<br/>一字不差?<br/>(_exact_faq_answer, threshold=inf)"}
+  A2 -->|"是"| AH(["返回标准答案<br/>首 token<500ms<br/>跳过意图识别+改写+LLM"])
+  A2 -->|"否"| Continue["缓存结果留到后续复用<br/>避免重复检索<br/>继续正常流程"]
+  FP -->|"路径 B/C: 正常流程"| Normal["先理解意图 + 制定检索策略<br/>追问需要改写补全<br/>(prepare_retrieval)"]
+  Normal --> B1["查 FAQ 库, 这次做全量检索+精排<br/>(search_faq, rerank=True)"]
+  B1 --> B2{"命中的 FAQ 答案可信吗?<br/>问题一样→无条件信任<br/>语义相近→分数需超过动态阈值<br/>(get_faq_direct_answer)"}
+  B2 -->|"✅ 路径 B: 可信, 直接答"| BH(["返回标准答案<br/>首 token<1s<br/>跳过文档检索+LLM"])
+  B2 -->|"❌ 路径 C: 不够确定"| C1["查文档库 → 筛选上下文 → LLM 生成<br/>完整 RAG 流程"]
+  style AH fill:#166534,color:#86efac,stroke:#3fb950,stroke-width:3px
+  style BH fill:#166534,color:#86efac,stroke:#3fb950,stroke-width:3px
+</div>
+
+<table>
+<tr><th></th><th>路径 A: 快速路径</th><th>路径 B: 相似直出</th><th>路径 C: 完整 RAG</th></tr>
+<tr><td>时机</td><td>意图识别之前</td><td>意图识别 + 检索计划之后</td><td>意图识别 + 检索计划之后</td></tr>
+<tr><td>匹配方式</td><td>仅精确匹配</td><td>精确 + 相似分数</td><td>不满足直出条件</td></tr>
+<tr><td>阈值</td><td>inf（只精确）</td><td>0.62~0.86 动态</td><td>-</td></tr>
+<tr><td>rerank</td><td>否</td><td>是</td><td>是</td></tr>
+<tr><td>首 token 延迟</td><td>&lt;500ms</td><td>&lt;1s</td><td>3~6s</td></tr>
+<tr><td>适用</td><td>短标准问答</td><td>已确认 FAQ_QUERY 意图</td><td>知识咨询 / 追问 / 表格</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== RETRIEVAL ==================== -->
+<section id="retrieval">
+<div class="card">
+<h2>Milvus 混合检索 — 业务视角</h2>
+<p>检索的本质问题是：<strong>"用户用这些说法提问，知识库里哪些内容最可能回答它？"</strong>解决思路分两步：先用两种方式（语义+关键词）各找一批候选，再让精排模型从中挑最好的。</p>
+<div class="step g"><span class="num">1</span><strong>语义召回 (Dense/BGE-M3)</strong> — "入职流程"和"报到步骤"用词不同但意思相近。Embedding 模型能理解这种语义相似性。但它未必能精确匹配"HS编码8471"这种专业术语。</div>
+<div class="step"><span class="num">2</span><strong>关键词召回 (Sparse/BM25)</strong> — 弥补语义召回的盲区。"HS编码8471"是精确关键词，BM25 直接匹配。但它不理解"改密码"和"重置密码"是同一回事。</div>
+<div class="step o"><span class="num">3</span><strong>双路融合 + 精排</strong> — 两路结果按 0.55:0.45 权重合并。但向量相似度高≠真的能回答这个问题。CrossEncoder 精排模型把 query 和 passage 一起读，判断"这段内容真的在回答这个问题吗"，重新排序后取 top。</div>
+<p style="margin-top:16px">技术实现：</p>
+<div class="mermaid">
+flowchart TD
+  Q["输入: 3 个等价问法<br/>入职流程步骤 / 新人入职流程 / 入职SOP"] --> N["清洗: 去空白、去空串、去重<br/>原问题始终排第一位<br/>(normalize_queries)"]
+  N --> V1["问法1 检索"] & V2["问法2 检索"] & V3["问法3 检索"]
+  V1 --> H1["两路并行召回<br/>语义路: BGE-M3 向量(1024维)<br/>关键词路: BM25 中文分词<br/>加权融合 55%:45%<br/>先不做精排(后面统一做)<br/>(self.search, rerank=False)"]
+  V2 --> H2["两路并行召回<br/>同上"]
+  V3 --> H3["两路并行召回<br/>同上"]
+  H1 --> F1["拼接过滤条件<br/>source=hr + kb_version=...<br/>+ tenant=default + 可见性范围<br/>(build_source_expr)"]
+  H2 --> F2["拼接过滤条件"]
+  H3 --> F3["拼接过滤条件"]
+  F1 --> M["合并去重: 3批结果中<br/>同一个文档只保留最高分那次<br/>按 chunk_id/faq_id 识别<br/>(merge_hits_by_document)"]
+  F2 --> M
+  F3 --> M
+  M --> S["按分数从高到低排序<br/>(sort_hits_by_score)"]
+  S --> C["截断候选: 精排模型处理能力有限<br/>只取前 N 条送进精排"]
+  C --> R["精排: CrossEncoder 逐对阅读<br/>'这段内容真的在回答这个问题吗?'<br/>重新打分、重新排序、取 top_n<br/>(rerank_hits)"]
+  R --> Result["输出: 命中列表 + 最高分 + 耗时<br/>(RetrievalResult)"]
+  style M fill:#d2991d20,stroke:#d2991d
+  style R fill:#16653420,stroke:#166534
+</div>
+
+<div class="step"><span class="num">1</span><strong>normalize_queries()</strong> — 清洗查询变体列表：去空白、去空串、保持顺序去重。原问题始终排第一位，用于后续 rerank。</div>
+<div class="step"><span class="num">2</span><strong>逐个变体检索</strong> — 每个变体调用 <code>self.search(query, rerank=False)</code>。先关闭 rerank 避免重复重排同一批候选。Milvus 内部 Dense(BGE-M3) + Sparse(BM25) 加权融合（0.55:0.45）。同时通过 <code>build_source_expr()</code> 拼接 source/kb_version/tenant/dataset/visibility/roles 过滤表达式。</div>
+<div class="step o"><span class="num">3</span><strong>merge_hits_by_document()</strong> — 按 <code>chunk_id</code>（文档）或 <code>faq_id</code>（FAQ）合并不同变体的命中。同一个 chunk 被多个变体命中时，只保留分数最高的那次。</div>
+<div class="step"><span class="num">4</span><strong>sort + truncate</strong> — <code>sort_hits_by_score()</code> 降序排列。候选上限取 <code>rerank_top_n × len(queries)</code> 和 <code>rerank_top_n</code> 的较大值。</div>
+<div class="step g"><span class="num">5</span><strong>rerank_hits()</strong> — 使用本地 CrossEncoder 对 (query, passage) 对进行精排。CrossEncoder 比向量相似度更能判断"这段内容是否真正回答这个问题"。最终 top_n 截断返回。</div>
+</div>
+</section>
+
+<!-- ==================== CONTEXT ==================== -->
+<section id="context">
+<div class="card">
+<h2>select_context_docs() 三重约束过滤链</h2>
+<p>从 FAQ + Doc 检索命中中筛选最终进入 LLM prompt 的上下文片段。全部参数来自 <code>RetrievalPlan</code>。</p>
+<div class="mermaid">
+flowchart TD
+  FI["FAQ 检索命中"] --> F1{"质量过关吗?<br/>分数 >= 最低分数门槛?"}
+  F1 -->|"是"| F2["取前 2 条<br/>转为'常见问题 + 标准答案'格式<br/>让 LLM 看到明确口径"]
+  F2 --> Ap
+  DI["文档检索命中"] --> D1{"质量过关吗?<br/>分数 >= 最低分数门槛?"}
+  D1 -->|"是"| D2{"这是表格查询吗?<br/>(prefer_table=true)"}
+  D2 -->|"是"| D3["表格行排到普通正文前面<br/>保证'某行的状态/金额/负责人'不丢失"]
+  D2 -->|"否"| D4["保持精排顺序<br/>最高分的在前"]
+  D3 --> D5["优先用父块完整内容<br/>避免短子块信息不完整"]
+  D4 --> D5
+  D5 --> Ap["逐条加入候选列表<br/>(append_doc)"]
+  Ap --> C1{"约束1: 条数到上限了?<br/>(final_context_top_n)"}
+  C1 -->|"到了"| Stop["停止, 返回已选的"]
+  C1 -->|"还没"| C2{"约束2: 这条太长了?<br/>(max_context_doc_chars)"}
+  C2 -->|"太长"| C2a["截断到上限<br/>标记为已截断"]
+  C2a --> C3
+  C2 -->|"合适"| C3{"约束3: 总长度超了?<br/>(max_context_chars)"}
+  C3 -->|"超了"| Stop
+  C3 -->|"不超"| Add["加入候选, 继续下一条"]
+  Add --> C1
+  Stop --> O["返回最终上下文列表<br/>空列表 = 信息不足<br/>走确定性提示"]
+  style C1 fill:#f8514920,stroke:#f85149
+  style C2 fill:#d2991d20,stroke:#d2991d
+  style C3 fill:#d2991d20,stroke:#d2991d
+</div>
+
+<h3>FAQ 与 Doc 的处理差异</h3>
+<div class="step g"><span class="num">FAQ</span><strong> 命中 → 口头转述为结构化的"常见问题+标准答案"格式</strong>，给 LLM 提供明确口径。最多取前 2 条作为补充来源。</div>
+<div class="step"><span class="num">Doc</span><strong> 命中 → 优先使用 parent_content</strong>（父块完整上下文），避免只把很短的子块交给 LLM 导致信息不完整。<code>prefer_table=True</code> 时将 <code>content_type=table_row</code> 的命中排到普通正文前。</div>
+<div class="step o"><span class="num">示例</span><strong> 三重约束实战</strong><div class="desc">假设检索返回 12 条文档命中，min_context_score=0.45 过滤掉 3 条低分，prefer_table=False 保持 rerank 顺序。进入 append_doc：第 1~5 条顺利加入（total 2800 chars）。第 6 条内容 3500 chars → 被 max_context_doc_chars=1600 截断为 1600 chars（标记 truncated）。此时 used_chars=4800 > max_context_chars=6000 → 停止追加。<strong>最终 selected = 5 条完整 + 1 条截断</strong> = 6 条上下文。</div></div>
+<div class="step o"><span class="num">去重</span><strong> 按 document_key(chunk_id/faq_id/content[:120]) 去重</strong>，同一个 FAQ/chunk/父块只保留一次。</div>
+</div>
+</section>
+
+<!-- ==================== GOVERNANCE ==================== -->
+<section id="governance">
+<div class="stack">
+<div class="card"><h2>数据隔离: DataScope → Milvus expr</h2>
+<p><code>resolve_data_scope()</code> 将 API 请求参数转为 <code>DataScope</code> 对象，再通过 <code>expr_clauses()</code> 生成 Milvus 过滤表达式。</p>
+<div class="mermaid">
+flowchart TD
+  R["API 请求参数<br/>tenant_id='acme'<br/>dataset_id='products'<br/>visibility='internal'<br/>user_roles=['emp','mgr']"] --> DS["resolve_data_scope()<br/>→ DataScope.from_request()<br/>合并 user_role + user_roles<br/>去重后默认['public']"]
+  DS --> E["data_scope.expr_clauses()"]
+  E --> C1["tenant_id == 'acme'"]
+  E --> C2["dataset_id == 'products'"]
+  E --> C3["visibility == 'public' OR 'internal'"]
+  E --> C4["array_contains(allowed_roles,'emp') OR array_contains(allowed_roles,'mgr')"]
+  C1 & C2 & C3 & C4 --> Final["AND 拼接 → Milvus 标量过滤<br/>先过滤再向量检索"]
+</div></div>
+<div class="card"><h2>版本生命周期</h2>
+<div class="mermaid">
+flowchart TD
+  C["ensure_version()<br/>create_new=True<br/>generate_kb_version()"] --> S["STAGED"]
+  S --> I["入库写入<br/>ingest_directory() / faq_documents_from_csv()"]
+  I --> R["build_ingestion_quality_report()<br/>质量报告"]
+  R --> G{"质量门控检查"}
+  G -->|"通过"| Act["activate_version()<br/>修改清单 JSON<br/>不更新 Milvus"]
+  G -->|"不通过"| Fix["修复后重新入库"]
+  Act --> A["ACTIVE<br/>在线检索按此版本过滤<br/>kb_version == '...'"]
+  A --> Arc["archive_version()<br/>仅改状态<br/>不删 Milvus"]
+  Arc --> Ar["ARCHIVED<br/>保留历史数据"]
+  Fix --> I
+  style S fill:#d2991d20,stroke:#d2991d
+  style A fill:#16653420,stroke:#166534
+  style Ar fill:#33415520,stroke:#64748b
+</div></div>
+</div>
+<div class="card"><h2>场景边界检测</h2>
+<p>用户在当前场景问了明显属于其他场景的问题时，系统引导切换而非跨场景串库。</p>
+<div class="mermaid">
+flowchart TD
+  Q["企业知识助手场景<br/>'安全技术交底只有口头说明可以吗'"] --> Cur["score_source_matches()<br/>对当前场景评分<br/>(match_count*10 + sum(text_len) - index)"]
+  Cur -->|"score < 8"| Cross["遍历所有其他场景<br/>score_source_matches()"]
+  Cross --> Hit["工程资料场景<br/>匹配 safety source_pattern<br/>score >= 12"]
+  Hit --> Dec["detect_scenario_boundary()<br/>返回 crossed=True"]
+  Dec --> Hint["引导提示:<br/>切换到工程资料场景的安全资料分类"]
+  Cur -->|"score >= 8"| OK["当前场景已匹配<br/>正常检索"]
+  style Dec fill:#f8514920,stroke:#f85149
+</div>
+<div class="step"><span class="num">示例</span><strong> 实际 Milvus 表达式</strong><div class="desc">API 请求参数: tenant_id="acme", dataset_id="products", visibility="internal", user_roles=["employee","manager"], source_filter="hr", kb_version="kb_v2"。经过 <code>build_source_expr()</code> 拼接后的 Milvus 过滤表达式：<pre><code>source == "hr" and kb_version == "kb_v2" and tenant_id == "acme" and dataset_id == "products" and (visibility == "public" or visibility == "internal") and (array_contains(allowed_roles, "employee") or array_contains(allowed_roles, "manager"))</code></pre>Milvus 先执行标量过滤（缩小范围），再进行 Dense+Sparse 向量检索。</div></div>
+<div class="step r"><span class="num">!</span><strong>设计原则</strong>：不自动跨场景检索。用户显式选择的场景代表业务上下文，系统只能建议切换，不能替用户扩大数据范围。避免多场景项目在无感知情况下跨场景串库。</div>
+</div>
+</section>
+
+<!-- ==================== INGEST ==================== -->
+<section id="ingest">
+<div class="card">
+<h2>文档入库全流程: ingest_directory()</h2>
+<p>从本地文档目录到 Milvus 可检索向量的完整离线链路。</p>
+<div class="mermaid">
+flowchart TD
+  Start["入参: 文档目录路径<br/>例: data/hr_data/<br/>(ingest_directory)"] --> Res["确定场景和数据边界<br/>用哪个 Milvus 集合 / 哪个租户 / 哪个数据集<br/>(resolve_scenario + resolve_data_scope)"]
+  Res --> Ver["创建或复用知识库版本号<br/>如 kb_hr_20250101_120000_a1b2c3d4<br/>首次入库且无 active 版本时自动激活<br/>(get_kb_version_store + ensure_version)"]
+  Ver --> Walk["逐文件处理"]
+  Walk --> PF["处理单个文件<br/>(_ingest_single_file)"]
+  PF --> FP{"文件类型支持吗?<br/>PDF/DOCX/MD/CSV/TXT 等<br/>(get_document_loader_spec)"}
+  FP -->|"不支持"| Err["报错退出<br/>不静默跳过"]
+  FP -->|"支持"| FPrint["计算文件指纹<br/>基于路径+修改时间+大小<br/>不读内容(省IO)<br/>(file_fingerprint)"]
+  FPrint --> Check{"文件变过吗?<br/>指纹相同 + 模型/切分方案版本相同?<br/>(manifest.is_unchanged)"}
+  Check -->|"没变"| Skip["跳过, 不重复入库"]
+  Check -->|"变了或新文件"| Del["先删旧数据<br/>同版本同文件的旧 chunk<br/>(doc_store.delete_ids)"]
+  Del --> Load["加载文件内容<br/>PDF→PyPDFLoader / DOCX→Docx2txtLoader<br/>根据扩展名自动匹配<br/>(load_file)"]
+  Load --> Norm["标准化处理<br/>分段、去噪、写入元数据:<br/>source / kb_version / scenario_id<br/>tenant_id / dataset_id / visibility / roles<br/>(normalize_documents)"]
+  Norm --> Split["切分成 chunk<br/>父子块策略: 大段文本拆成小块<br/>保留父块引用便于上下文还原<br/>(split_documents)"]
+  Split --> Write["写入 Milvus<br/>同时生成 Dense 向量(BGE-M3)<br/>和 Sparse 向量(BM25)<br/>(doc_store.add_documents)"]
+  Write --> Man["更新文件索引<br/>记录指纹 + chunk 列表 + 模型/切分版本<br/>下次入库靠这个判断是否跳过<br/>(manifest.update)"]
+  Skip --> Next{"还有文件?"}
+  Man --> Next
+  Next -->|"是"| PF
+  Next -->|"否"| Save["保存索引 + 记录统计<br/>(manifest.save + record_ingest_result)"]
+  Save --> Act{"需要立即生效吗?<br/>(activate=True)"}
+  Act -->|"是"| ActVer["切换在线检索版本<br/>下一个请求即按新版本过滤<br/>(activate_version)"]
+  Act -->|"否"| Done["完成, 版本保持 STAGED<br/>后续手动激活或质量门控通过后激活"]
+  style Write fill:#16653420,stroke:#166534
+  style ActVer fill:#3fb950,stroke:#3fb950,color:#000
+</div>
+
+<div class="step"><span class="num">1</span><strong>场景与数据域解析</strong> — <code>resolve_scenario()</code> 获取 collection/source 配置。<code>resolve_data_scope()</code> 构建 tenant/dataset/visibility/roles 隔离信息。</div>
+<div class="step"><span class="num">2</span><strong>版本管理</strong> — <code>ensure_version()</code> 创建或复用版本号。首次入库且无 active 版本时自动激活。</div>
+<div class="step o"><span class="num">3</span><strong>逐文件增量处理</strong> — <code>_ingest_single_file()</code> 封装完整的单文件周期：指纹对比 → 跳过未变更 → 删除旧 chunk → 加载 → 标准化 → 切分 → 写入 Milvus → 更新 manifest。</div>
+<div class="step g"><span class="num">4</span><strong>收尾</strong> — <code>manifest.save()</code> 持久化文件索引。<code>record_ingest_result()</code> 记录统计信息。可选 <code>activate_version()</code> 立即切换在线检索版本。</div>
+</div>
+</section>
+
+<!-- ==================== MEMORY ==================== -->
+<section id="memory">
+<div class="card">
+<h2>ChatHistoryStore: 对话记忆系统</h2>
+<p>基于 MySQL 的会话历史管理，通过 <code>摘要 + 最近消息</code> 策略在省 token 和不丢信息之间平衡。继承自 <code>_MySqlStore</code> 基类获取惰性引擎和 DDL 执行能力。</p>
+<div class="mermaid">
+flowchart LR
+  subgraph Store["ChatHistoryStore(_MySqlStore)"]
+    GM["get_context_messages()<br/>每次 RAG 请求调用"]
+    AT["add_turn()<br/>问答完成后成对写入"]
+    RF["refresh_summary_if_needed()<br/>后台异步执行"]
+    GS["get_summary()<br/>读 MySQL 摘要表"]
+    SS["save_summary()<br/>LLM 生成后 upsert"]
+  end
+  GM --> Recent["get_messages(sid, limit=8)<br/>读最近 N 条完整消息"]
+  GM --> Sum["get_summary(sid)<br/>读已有摘要"]
+  Sum --> Merge["摘要作为 SystemMessage<br/>放在消息列表最前面"]
+  Recent --> Merge
+  Merge --> Out["返回 [SystemMessage(摘要), msg1, msg2, ...]<br/>供 rewrite + intent + answer prompt 使用"]
+  RF --> Check{"消息数 >= 14?"}
+  Check -->|"是"| Older["取较早历史<br/>messages[:-8]"]
+  Check -->|"否"| Skip["跳过"]
+  Older --> LLM["format_messages() 转文本<br/>get_chat_model(streaming=False)<br/>LLM 生成增量摘要"]
+  LLM --> SS2["save_summary(sid, summary)<br/>upsert 到 MySQL 摘要表"]
+  style Out fill:#16653420,stroke:#166534
+</div>
+<div class="step"><span class="num">1</span><span class="func">get_context_messages()</span> <strong>构建每次请求的上下文</strong><div class="desc">从 MySQL 加载最近 8 条完整消息 + 已有摘要。摘要包装为 SystemMessage 放在最前面，让后续 rewrite / intent / answer prompt 都能把它当作背景事实读取。</div></div>
+<div class="step o"><span class="num">2</span><span class="func">refresh_summary_if_needed()</span> <strong>后台异步增量摘要</strong><div class="desc">每轮问答结束后通过 <code>_schedule_summary_refresh()</code> 在后台线程执行。只压缩较早历史，最近 8 条继续原文保留。增量摘要融合已有摘要和新增历史，上限 1200 字符。</div></div>
+<div class="step"><span class="num">示例</span><strong> 摘要压缩时间线</strong><div class="desc">会话 s_001 经历了 20 轮问答：第 1~14 轮 → 消息数未达 14，<code>refresh_summary_if_needed()</code> 跳过。第 15 轮结束后 → 检查消息数 >= 14 → 取 messages[:-8]（前 7 轮）→ <code>format_messages()</code> 转文本 → LLM 生成摘要（约 800 字）→ <code>save_summary()</code> upsert。第 16~20 轮 → 每次都检查，增量更新摘要。每次 <code>get_context_messages()</code> 返回 = SystemMessage(最新摘要) + 最近 8 条完整消息。</div></div>
+<div class="step g"><span class="num">3</span><span class="func">add_turn()</span> <strong>成对写入 HumanMessage + AIMessage</strong><div class="desc">以 LangChain 标准消息格式写入 MySQL。便于 LangChain 生态中的记忆组件、格式化函数和评测脚本复用。</div></div>
+</div>
+</section>
+
+<!-- ==================== PROMPTS ==================== -->
+<section id="prompts">
+<div class="card">
+<h2>提示词系统: build_answer_prompt_profile()</h2>
+<p>根据意图类型和问题风险类别选择回答模板。确定性选择，不为此额外调用 LLM。</p>
+<div class="mermaid">
+flowchart TD
+  In["build_answer_prompt_profile(intent, scenario, query)"] --> Cat["infer_question_category(query)<br/>正则匹配: pricing/compliance/troubleshooting/summary/default"]
+  Cat --> Sel{"CATEGORY_PROMPT_PROFILES.get(category)?"}
+  Sel -->|"命中"| Risk["高风险模板:<br/>pricing_guard (threshold>=0.84)<br/>compliance_guard (>=0.86)<br/>troubleshooting_steps<br/>source_bound_summary"]
+  Sel -->|"未命中"| Intent{"PROMPT_PROFILES.get(intent)?"}
+  Intent -->|"FAQ_QUERY"| FAQ["faq_answer<br/>优先复用标准答案<br/>控制回答长度"]
+  Intent -->|"KNOWLEDGE_QUERY"| KNW["knowledge_answer<br/>整合文档资料<br/>允许结构化回答"]
+  Intent -->|"FOLLOW_UP"| FW["follow_up<br/>结合历史理解指代<br/>焦点限定当前问题"]
+  Intent -->|"其他"| DEF["DEFAULT_PROMPT_PROFILE<br/>通用安全回答模板"]
+  Risk --> Fill["_scenario_prompt_context()<br/>填充 {assistant_name}<br/>{business_domain}<br/>{industry}<br/>{support_contact}"]
+  FAQ --> Fill
+  KNW --> Fill
+  FW --> Fill
+  DEF --> Fill
+  Fill --> Out["返回 PromptProfile<br/>system_template + user_template + reason"]
+  style Risk fill:#f8514920,stroke:#f85149
+  style Out fill:#16653420,stroke:#166534
+</div>
+<div class="step"><span class="num">示例</span><strong> 模板填充实例</strong><div class="desc">场景: enterprise_knowledge, intent=KNOWLEDGE_QUERY, query="入职流程有哪些步骤"。<code>_scenario_prompt_context(scenario)</code> 返回 {assistant_name:"企业知识助手", business_domain:"企业内部知识库", industry:"通用企业服务", support_contact:"400-xxx-xxxx"}。选中的 knowledge_answer 模板的 user_template 经 <code>.format(history=..., question=..., context=...)</code> 填充后，最终发给 LLM 的 user_prompt：<pre><code>历史对话:
+用户：你好
+助手：你好！我是企业知识助手...
+当前问题: 入职流程有哪些步骤
+参考资料:
+[1] 来源：人事制度.md
+入职流程包括以下步骤：1.提交入职材料(身份证复印件、学历证书)...
+[2] 来源：FAQ
+常见问题：入职需要哪些材料
+标准答案：入职需要身份证复印件、学历证书、离职证明...</code></pre></div></div>
+<div class="step r"><span class="num">!</span><strong>为什么用确定性选择</strong>：当前系统已按意图构建检索策略，生成模板必须与检索策略一致。让 LLM 再判断模板会引入不稳定性和额外成本。</div>
+
+<h3>选择流程逐段解读</h3>
+<div class="step g"><span class="num">1</span><strong>判断问题风险类别</strong><div class="desc"><code>infer_question_category(query)</code> 用正则匹配关键词，将问题分为五类。优先级: pricing > compliance > troubleshooting > summary > default。同一条问题如果同时匹配多个类别，取优先级最高的。例: "这个合同金额超过预算怎么办" 同时命中 pricing("金额/预算") 和 compliance("合同")，最终归为 pricing。</div></div>
+<div class="step"><span class="num">2</span><strong>查高风险模板</strong><div class="desc">如果命中了风险类别，走 <code>CATEGORY_PROMPT_PROFILES</code> 字典，返回对应的高风险模板。pricing_guard 模板要求 LLM 区分"已确认"和"未确认"信息，compliance_guard 模板要求明确法律边界。</div></div>
+<div class="step o"><span class="num">3</span><strong>查意图模板</strong><div class="desc">没有风险类别时，走 <code>PROMPT_PROFILES</code> 字典按意图选择: FAQ_QUERY→faq_answer(复用标准答案，控制长度)，KNOWLEDGE_QUERY→knowledge_answer(整合文档，结构化回答)，FOLLOW_UP→follow_up(结合历史，焦点限定当前)。</div></div>
+<div class="step"><span class="num">4</span><strong>兜底通用模板</strong><div class="desc">意图也不在映射表中时，使用 <code>DEFAULT_PROMPT_PROFILE</code>。这是一个通用安全回答模板，要求基于上下文、不编造信息。</div></div>
+<div class="step g"><span class="num">5</span><strong>填充场景变量</strong><div class="desc"><code>_scenario_prompt_context(scenario)</code> 将场景 TOML 中的 assistant_name / business_domain / industry / support_contact 填入模板的 {placeholder}。这个步骤保证同一套模板被 8 个场景复用时，每个场景的助手身份和业务边界都是正确的。</div></div>
+</div>
+</section>
+
+<!-- ==================== STARTUP ==================== -->
+<section id="startup">
+<div class="card">
+<h2>项目启动: FastAPI lifespan 预检链</h2>
+<p>服务启动时按序检查所有依赖，任一步失败则拒绝启动（fail-fast），避免运行时才发现配置问题。</p>
+<div class="mermaid">
+flowchart TD
+  S["FastAPI startup / lifespan"] --> P1["1. 初始化 logging"]
+  P1 --> P2["2. get_settings() 加载 .env + 环境变量"]
+  P2 --> P3["3. validate_runtime_environment()"]
+  P3 --> P3a["3a. 检查 DASHSCOPE_API_KEY 非占位"]
+  P3 --> P3b["3b. 检查 ADMIN_API_TOKEN 非占位"]
+  P3 --> P3c["3c. 检查 embedding/reranker 模型目录存在"]
+  P3 --> P3d["3d. 检查场景配置目录 + active 场景文档/FAQ 文件"]
+  P3 --> P3e["3e. TCP 检查 Milvus :19530"]
+  P3 --> P3f["3f. TCP 检查 MySQL :3306"]
+  P3 --> P3g["3g. validate_llm_connectivity() 真实 LLM 调用"]
+  P3 --> P3h["3h. resolve_active_kb_version() active 版本存在"]
+  P3a --> P4["4. warmup_retrieval_stack()"]
+  P3b --> P4
+  P3c --> P4
+  P3d --> P4
+  P3e --> P4
+  P3f --> P4
+  P3g --> P4
+  P3h --> P4
+  P4 --> P4a["get_embeddings().embed_query() 加载 BGE-M3"]
+  P4 --> P4b["get_hybrid_store().store 初始化所有场景 Milvus collection"]
+  P4 --> P4c["get_reranker().predict() 加载 CrossEncoder"]
+  P4a --> Ready["服务就绪<br/>http://localhost:8000"]
+  P4b --> Ready
+  P4c --> Ready
+  style Ready fill:#16653420,stroke:#166534
+</div>
+<div class="step r"><span class="num">!</span><strong>Fail-fast 原则</strong>：embedding、Milvus collection 和 reranker 任一预热失败都让启动失败。这些是主链路前置条件，提前失败比运行时悄悄跳过更容易排查。</div>
+
+<h3>预检链逐段解读</h3>
+<div class="step g"><span class="num">1</span><strong>配置加载</strong><div class="desc"><code>get_settings()</code> 从 .env 文件和环境变量加载全部配置。pydantic-settings 自动校验字段类型，无效值在加载时就报错。例: LLM_TIMEOUT=abc→启动失败而不是运行时超时。</div></div>
+<div class="step"><span class="num">2</span><strong>密钥校验</strong><div class="desc">检查 DASHSCOPE_API_KEY 不是占位符"your-api-key"，检查 ADMIN_API_TOKEN 不是占位符。密钥缺失/错误时立即报错，避免用户提问时才发现 LLM 不可用。</div></div>
+<div class="step o"><span class="num">3</span><strong>模型文件校验</strong><div class="desc">检查 BGE-M3 和 BGE-Reranker 模型目录存在且包含必需的配置文件和词表。reranker 额外检查 sentencepiece.bpe.model 词表文件（XLM-Roberta 系模型必需）。</div></div>
+<div class="step"><span class="num">4</span><strong>场景配置校验</strong><div class="desc">遍历 scenarios/ 目录下所有 scenario.toml，检查必填字段（scenario_id/display_name/valid_sources/faq_collection/doc_collection 等）。检查 active 场景的文档目录和 FAQ CSV 文件存在。</div></div>
+<div class="step g"><span class="num">5</span><strong>基础设施连通性</strong><div class="desc">TCP 连接检查 Milvus:19530 和 MySQL:3306。仅检查端口可达，不验证认证信息。真正的认证验证在 warmup 阶段通过实际操作检查。</div></div>
+<div class="step o"><span class="num">6</span><strong>LLM 真实调用验证</strong><div class="desc"><code>validate_llm_connectivity()</code> 发送一条"回复 OK"消息给 LLM，确认 API Key、Base URL、Model 名都正确且服务可用。即使端口通，密钥过期或模型无权限也会在这里暴露。</div></div>
+<div class="step"><span class="num">7</span><strong>检索栈预热</strong><div class="desc"><code>warmup_retrieval_stack()</code> 做三件事: (1) BGE-M3 对样例查询做一次向量化验证模型加载成功，(2) 遍历所有场景的 faq/doc collection 触发 Milvus 连接初始化，(3) CrossEncoder 对样例对做一次预测验证 reranker 可用。任一预热失败都拒绝启动。</div></div>
+<div class="step g"><span class="num">8</span><strong>知识库版本校验</strong><div class="desc">检查 active 知识库版本在版本清单中真实存在。如果环境变量 ACTIVE_KB_VERSION 指向一个不存在的版本，立即报错——避免在线检索时才发现版本不存在导致请求失败。</div></div>
+</div>
+</section>
+
+<!-- ==================== LEARNING ==================== -->
+<section id="learning">
+<div class="card">
+<h2>模块依赖图: 推荐学习顺序</h2>
+<p>数字 1-8 表示推荐阅读顺序。每个层级依赖其下方层级（基础设施 → 治理 → 检索 → 意图/记忆 → Pipeline → 应用 → 入库/质量）。</p>
+<div class="mermaid">
+flowchart TD
+  subgraph L0["1. 入口与配置 (先理解系统骨架)"]
+    Settings["config/settings.py<br/>环境变量与默认值"]
+    Preflight["config/preflight.py<br/>启动预检链"]
+    Schemas["schemas.py<br/>Pydantic 数据模型"]
+  end
+  subgraph L1["2. 基础设施 (理解外部依赖)"]
+    LLM["llm/client.py<br/>get_chat_model()"]
+    Models["retrieval/models.py<br/>get_embeddings/get_reranker"]
+    Milvus["retrieval/milvus_compat.py<br/>Milvus 连接修复"]
+  end
+  subgraph L2["3. 治理层 (理解数据边界)"]
+    Scope["governance/data_scope.py<br/>DataScope 数据隔离"]
+    KB["governance/kb_versions.py<br/>KnowledgeBaseVersionStore"]
+    Scenario["scenarios/registry.py<br/>ScenarioRegistry"]
+    Boundary["scenarios/boundary.py<br/>跨场景边界检测"]
+  end
+  subgraph L3["4. 检索层 (理解核心能力)"]
+    Store["retrieval/store.py<br/>MilvusHybridStore"]
+    Strategy["retrieval/strategy.py<br/>build_retrieval_plan"]
+    Ranking["retrieval/ranking.py<br/>merge/sort/rerank"]
+    Filters["retrieval/filters.py<br/>build_source_expr"]
+  end
+  subgraph L4["5. 记忆与意图 (理解智能决策)"]
+    History["memory/history.py<br/>ChatHistoryStore"]
+    Intent["intent/classifier.py<br/>classify_intent"]
+    QCat["intent/question_category.py<br/>infer_question_category"]
+  end
+  subgraph L5["6. Pipeline 编排 (理解整体流程)"]
+    RAG["pipeline/rag.py<br/>stream_query 主流程"]
+    Steps["pipeline/steps.py<br/>7 个业务步骤"]
+    Ctx2["pipeline/context.py<br/>select_context_docs"]
+    Runtime2["pipeline/runtime.py<br/>RAGQueryContext"]
+    Prompts2["prompts/selector.py<br/>build_answer_prompt_profile"]
+    Citations2["pipeline/citations.py<br/>enforce_answer_citations"]
+  end
+  subgraph L6["7. 应用与 API (理解对外接口)"]
+    Service["application/service.py<br/>QAService"]
+    Chat["api/chat.py<br/>WebSocket + HTTP 路由"]
+  end
+  subgraph L7["8. 入库与质量 (理解离线链路)"]
+    Ingest["indexing/service.py<br/>ingest_directory"]
+    Quality["quality/ingestion.py<br/>质量报告"]
+    Conflicts["quality/conflicts.py<br/>FAQ 冲突检测"]
+  end
+  L0 --> L1 --> L2 --> L3 --> L4 --> L5 --> L6
+  L2 --> L7
+  L3 --> L7
+  style L0 fill:#33415520,stroke:#64748b
+  style L1 fill:#07598520,stroke:#0284c7
+  style L2 fill:#6b21a820,stroke:#9333ea
+  style L3 fill:#16653420,stroke:#16a34a
+  style L4 fill:#991b1b20,stroke:#dc2626
+  style L5 fill:#d2991d20,stroke:#d97706
+  style L6 fill:#1d4ed820,stroke:#3b82f6
+  style L7 fill:#44403c20,stroke:#78716c
+</div>
+</div>
+
+<div class="card">
+<h2>逐层学习指南</h2>
+
+<div class="step g"><span class="num">1</span><strong>入口与配置</strong> — 了解系统骨架<div class="desc">先读 <code>schemas.py</code> 理解数据模型（QueryRequest/Response、RetrievalHit/Result），再读 <code>settings.py</code> 理解配置体系（pydantic-settings + .env），最后看 <code>preflight.py</code> 理解启动时做了哪些检查。这层不需要理解业务逻辑，只需知道"有什么配置、用什么数据结构"。</div></div>
+
+<div class="step"><span class="num">2</span><strong>基础设施</strong> — 理解外部依赖<div class="desc"><code>llm/client.py</code> 的 <code>get_chat_model()</code> 是 LLM 客户端的唯一入口，<code>retrieval/models.py</code> 管理 embedding 和 reranker 模型加载（均用 lru_cache 缓存）。理解 <code>resolve_device()</code> 如何选择 CUDA/CPU。</div></div>
+
+<div class="step o"><span class="num">3</span><strong>治理层</strong> — 理解数据边界<div class="desc"><code>data_scope.py</code> 的 DataScope 定义了 tenant/dataset/visibility/roles 四级隔离，<code>kb_versions.py</code> 管理知识库多版本（STAGED→ACTIVE→ARCHIVED），<code>scenarios/registry.py</code> 从 TOML 加载多场景配置。这层回答"数据范围和版本如何控制"。</div></div>
+
+<div class="step g"><span class="num">4</span><strong>检索层</strong> — 理解核心能力<div class="desc"><code>store.py</code> 的 MilvusHybridStore 是全文最重要的类之一——它封装了 Milvus 的 Dense+Sparse 混合检索。<code>strategy.py</code> 的 build_retrieval_plan() 用 4 层决策生成动态检索参数。<code>ranking.py</code> 的 merge→sort→rerank 构成了检索后处理流水线。</div></div>
+
+<div class="step"><span class="num">5</span><strong>记忆与意图</strong> — 理解智能决策<div class="desc"><code>classify_intent()</code> 的 6 级规则优先级是意图识别的核心。<code>ChatHistoryStore</code> 的摘要+最近消息策略是对话记忆的核心。理解这两个模块后，就能看懂"系统如何理解用户问题"。</div></div>
+
+<div class="step o"><span class="num">6</span><strong>Pipeline 编排</strong> — 理解整体流程<div class="desc">这是整个项目最核心的一层。从 <code>rag.py</code> 的 <code>stream_query()</code> 入口开始，跟踪一次完整问答的 7 个阶段。对照本页"问答主流程"Tab 的流程图阅读代码。这层理解后，整个 RAG 系统的工作原理就清楚了。</div></div>
+
+<div class="step"><span class="num">7</span><strong>应用与 API</strong> — 理解对外接口<div class="desc"><code>QAService</code> 是应用层的编排门面，它把 HTTP 请求参数转换为 Pipeline 调用。<code>api/chat.py</code> 处理 WebSocket 连接、事件转发和后台摘要调度。理解 <code>asyncio.to_thread</code> 如何桥接同步生成器和异步 WebSocket。</div></div>
+
+<div class="step g"><span class="num">8</span><strong>入库与质量</strong> — 理解离线链路<div class="desc"><code>ingest_directory()</code> 展示文档如何从本地目录进入 Milvus。<code>build_ingestion_quality_report()</code> 展示入库后的质量检查流程。这层回答"知识库如何建立和维护"。</div></div>
+</div>
+
+<div class="card">
+<h2>核心函数调用链: 一次完整问答</h2>
+<p>按代码执行顺序排列，每个步骤标注了所属文件和核心作用。可对照各 Tab 页的流程图阅读。</p>
+<ol>
+<li><code>websocket_endpoint()</code> — api/chat.py — 接收 WebSocket JSON 载荷</li>
+<li><code>QueryServiceContext.from_ws_payload()</code> — api/chat.py — 解析请求参数</li>
+<li><code>get_qa_service().stream_query()</code> — application/service.py — 委托至 pipeline 生成器</li>
+<li><code>create_query_context()</code> — pipeline/runtime.py — resolve_scenario + resolve_data_scope + resolve_active_kb_version</li>
+<li><code>try_fast_faq_direct_answer()</code> — pipeline/steps.py — 意图识别前先尝试 FAQ 精确直出</li>
+<li><code>prepare_retrieval()</code> — pipeline/steps.py — classify_intent + rewrite + build_retrieval_plan + generate_query_variants</li>
+<li><code>classify_intent()</code> — intent/classifier.py — 6 级规则优先级 + LLM 兜底</li>
+<li><code>rewrite_query_if_needed()</code> — pipeline/rewrite.py — 追问改写为独立检索问题</li>
+<li><code>build_retrieval_plan()</code> — retrieval/strategy.py — 默认值 + 4 层决策 → RetrievalPlan</li>
+<li><code>generate_query_variants()</code> — pipeline/query_variants.py — 同义检索表达(规则+LLM)</li>
+<li><code>search_faq()</code> — pipeline/steps.py — FAQ Milvus 集合检索</li>
+<li><code>get_faq_direct_answer()</code> — pipeline/steps.py — 判断 FAQ 是否可直出(direct_faq_answer)</li>
+<li><code>search_doc()</code> — pipeline/steps.py — 文档 Milvus 集合检索</li>
+<li><code>prepare_answer()</code> — pipeline/steps.py — 组装 context_docs + sources + system/user prompt</li>
+<li><code>select_context_docs()</code> — pipeline/context.py — 三重约束过滤(min_score/top_n/chars)</li>
+<li><code>build_context()</code> — pipeline/context.py — 将 Document 列表转为带编号的上下文文本</li>
+<li><code>stream_llm_answer()</code> — pipeline/steps.py — get_chat_model(streaming=True).stream()</li>
+<li><code>enforce_answer_citations()</code> — pipeline/citations.py — 补充来源编号 + 表格行详情</li>
+<li><code>finish_success()</code> — pipeline/runtime.py — 构建 end 事件 + 写入 trace</li>
+<li><code>history.add_turn()</code> — memory/history.py — HumanMessage + AIMessage 成对写入 MySQL</li>
+<li><code>_schedule_summary_refresh()</code> — api/chat.py — 后台异步刷新增量摘要</li>
+</ol>
+</div>
+
+<div class="card">
+<h2>关键设计决策一览</h2>
+<table>
+<tr><th style="width:25%">决策</th><th>原因</th></tr>
+<tr><td>HTTP 预检 + WebSocket 流式双入口</td><td>简单问题走 HTTP 即时返回（问候/客服/越界），复杂 RAG 走 WebSocket 流式推送 token。避免一次问题触发两次生成。</td></tr>
+<tr><td>规则优先 + LLM 兜底的意图识别</td><td>问候、越界、客服等场景确定性强，用规则更快更稳定。LLM 只处理模糊问题，控制成本和延迟。</td></tr>
+<tr><td>4 层动态检索计划</td><td>不同类型问题需要不同的检索参数。费用类(threshold>=0.84)比普通 FAQ(0.62)更保守。frozen dataclass 保证创建后不可修改。</td></tr>
+<tr><td>FAQ 直出分快慢两条路径</td><td>快速路径在意图识别前精确匹配（首 token<500ms），正常路径在检索计划后相似匹配（<1s）。两条路径的阈值和 rerank 策略不同。</td></tr>
+<tr><td>同步生成器 + asyncio.to_thread</td><td>RAG 链路（Milvus gRPC + LLM HTTP）是阻塞操作。用 asyncio.to_thread 把生成器推进放到工作线程，主线程处理 WebSocket 收发。</td></tr>
+<tr><td>摘要 + 最近 8 条的历史管理</td><td>不全量发送历史给 LLM（token 膨胀+注意力稀释）。早期对话压缩为摘要(<=1200字)，最近 8 轮保留原文。</td></tr>
+<tr><td>TOML 驱动的多场景隔离</td><td>同一套 RAG 引擎服务 8 个业务场景。每个场景独立配置 collection、source 白名单和正则匹配规则。新增场景只需复制目录改 TOML。</td></tr>
+<tr><td>版本清单 JSON + Milvus expr 过滤</td><td>知识库版本切换不改 Milvus 数据，只在检索 expr 中加 kb_version 过滤条件。版本激活是轻量操作。</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>项目目录结构</h2>
+<pre><code>qa_core/
+├── api/           # FastAPI: chat.py(WS/HTTP), dependencies.py(限流/鉴权), pages.py(静态), admin.py(管理), kb_versions.py(版本API)
+├── application/   # 应用服务: service.py(QAService), factory.py(单例)
+├── pipeline/      # RAG 编排: rag.py(主流程), steps.py(步骤), context.py(上下文), runtime.py(运行时)
+├── retrieval/     # 检索层: store.py(Milvus), strategy.py(计划), ranking.py(排序), filters.py(过滤)
+├── intent/        # 意图: classifier.py(6级规则+LLM), question_category.py(风险类别)
+├── memory/        # 记忆: history.py(聊天存储), feedback.py(反馈), base.py(SQL基类)
+├── governance/    # 治理: data_scope.py(数据隔离), kb_versions.py(版本管理)
+├── scenarios/     # 场景: registry.py(注册表), boundary.py(边界检测)
+├── prompts/       # 提示词: selector.py(选择器), profiles.py(档位), constants.py(文本)
+├── llm/           # LLM: client.py(ChatOpenAI 工厂)
+├── indexing/      # 入库: service.py(目录入库), faq_ingestion.py(FAQ CSV), chunking.py(切分)
+├── quality/       # 质量: ingestion.py(入库报告), conflicts.py(FAQ冲突检测)
+├── observability/ # 可观测: trace_writer.py(trace), traces.py(聚合), evaluations.py(评测)
+├── config/        # 配置: settings.py(全局), logging_config.py, preflight.py(预检)
+├── schemas.py     # Pydantic 数据模型: QueryRequest/Response, FeedbackRequest, RetrievalDebugResponse
+├── common.py      # 公共工具: utc_now(), utc_file_stamp(), read_json(), write_json(), list_json_reports()
+└── utils.py       # 工具: stable_hash(), file_fingerprint(), normalize_source_from_path()</code></pre>
+</div>
+</section>
+</main>
+<script>
+var mermaidConfig={startOnLoad:false,theme:'dark',securityLevel:'loose',themeVariables:{fontFamily:'Segoe UI,system-ui,sans-serif',fontSize:'13px'}};
+var mermaidReady=false;
+var mermaidIndex=0;
+var diagramDefaultZoom=1.35;
+
+function initMermaid(){
+  if(!window.mermaid)return false;
+  if(!mermaidReady){
+    window.mermaid.initialize(mermaidConfig);
+    mermaidReady=true;
+  }
+  return true;
+}
+
+function rememberMermaidSource(container){
+  container.querySelectorAll('.mermaid').forEach(function(node){
+    if(!node.dataset.source)node.dataset.source=node.textContent.trim();
+  });
+}
+
+function diagramBaseSize(node){
+  var svg=node.querySelector('.diagram-canvas svg');
+  if(!svg)return {width:1000,height:600};
+  if(!node.dataset.baseWidth||!node.dataset.baseHeight){
+    var viewBox=svg.viewBox&&svg.viewBox.baseVal;
+    var width=viewBox&&viewBox.width?viewBox.width:parseFloat(svg.getAttribute('width'))||1000;
+    var height=viewBox&&viewBox.height?viewBox.height:parseFloat(svg.getAttribute('height'))||600;
+    node.dataset.baseWidth=String(width);
+    node.dataset.baseHeight=String(height);
+  }
+  return {width:Number(node.dataset.baseWidth),height:Number(node.dataset.baseHeight)};
+}
+
+function updateDiagramZoom(node){
+  var svg=node.querySelector('.diagram-canvas svg');
+  var label=node.querySelector('.diagram-zoom-value');
+  if(!svg)return;
+  var zoom=Number(node.dataset.zoom||diagramDefaultZoom);
+  var base=diagramBaseSize(node);
+  svg.style.width=Math.round(base.width*zoom)+'px';
+  svg.style.height=Math.round(base.height*zoom)+'px';
+  if(label)label.textContent=Math.round(zoom*100)+'%';
+}
+
+function setDiagramZoom(node, zoom){
+  var next=Math.max(.8,Math.min(2.6,zoom));
+  node.dataset.zoom=String(Math.round(next*100)/100);
+  updateDiagramZoom(node);
+}
+
+function enableDiagramDrag(viewport){
+  if(viewport.dataset.dragReady==='true')return;
+  viewport.dataset.dragReady='true';
+  var dragging=false;
+  var startX=0;
+  var startY=0;
+  var startLeft=0;
+  var startTop=0;
+  viewport.addEventListener('pointerdown',function(event){
+    if(event.target.closest('button'))return;
+    dragging=true;
+    viewport.classList.add('dragging');
+    startX=event.clientX;
+    startY=event.clientY;
+    startLeft=viewport.scrollLeft;
+    startTop=viewport.scrollTop;
+    viewport.setPointerCapture(event.pointerId);
+  });
+  viewport.addEventListener('pointermove',function(event){
+    if(!dragging)return;
+    viewport.scrollLeft=startLeft-(event.clientX-startX);
+    viewport.scrollTop=startTop-(event.clientY-startY);
+  });
+  viewport.addEventListener('pointerup',function(event){
+    dragging=false;
+    viewport.classList.remove('dragging');
+    viewport.releasePointerCapture(event.pointerId);
+  });
+  viewport.addEventListener('pointercancel',function(){
+    dragging=false;
+    viewport.classList.remove('dragging');
+  });
+}
+
+function wrapRenderedDiagram(node, svg){
+  node.innerHTML='';
+  var toolbar=document.createElement('div');
+  toolbar.className='diagram-toolbar';
+  var zoomOut=document.createElement('button');
+  zoomOut.type='button';
+  zoomOut.textContent='-';
+  zoomOut.title='缩小当前图';
+  var zoomValue=document.createElement('span');
+  zoomValue.className='diagram-zoom-value';
+  var zoomIn=document.createElement('button');
+  zoomIn.type='button';
+  zoomIn.textContent='+';
+  zoomIn.title='放大当前图';
+  var reset=document.createElement('button');
+  reset.type='button';
+  reset.textContent='100%';
+  reset.title='恢复默认大小';
+  var fit=document.createElement('button');
+  fit.type='button';
+  fit.textContent='适屏';
+  fit.title='按当前可视宽度适配';
+  var full=document.createElement('button');
+  full.type='button';
+  full.textContent='全屏';
+  full.title='全屏查看当前图';
+  toolbar.append(zoomOut,zoomValue,zoomIn,reset,fit,full);
+
+  var viewport=document.createElement('div');
+  viewport.className='diagram-viewport';
+  var canvas=document.createElement('div');
+  canvas.className='diagram-canvas';
+  canvas.innerHTML=svg;
+  viewport.appendChild(canvas);
+  node.append(toolbar,viewport);
+  enableDiagramDrag(viewport);
+
+  zoomOut.addEventListener('click',function(){setDiagramZoom(node,Number(node.dataset.zoom||diagramDefaultZoom)-.15)});
+  zoomIn.addEventListener('click',function(){setDiagramZoom(node,Number(node.dataset.zoom||diagramDefaultZoom)+.15)});
+  reset.addEventListener('click',function(){setDiagramZoom(node,1)});
+  fit.addEventListener('click',function(){
+    var base=diagramBaseSize(node);
+    if(base.width>0)setDiagramZoom(node,Math.max(.8,Math.min(1.4,(viewport.clientWidth-24)/base.width)));
+  });
+  full.addEventListener('click',function(){
+    if(document.fullscreenElement)document.exitFullscreen();
+    else if(node.requestFullscreen)node.requestFullscreen();
+  });
+  setDiagramZoom(node,Number(node.dataset.zoom||diagramDefaultZoom));
+}
+
+function renderMermaidIn(container){
+  if(!container)return;
+  rememberMermaidSource(container);
+  if(!initMermaid())return;
+  Array.from(container.querySelectorAll('.mermaid')).forEach(function(node){
+    if(node.dataset.rendered==='true'&&node.querySelector('svg'))return;
+    node.dataset.rendered='pending';
+    node.classList.remove('mermaid-error');
+    mermaidIndex+=1;
+    window.mermaid.render('architecture_mermaid_'+mermaidIndex,node.dataset.source).then(function(result){
+      wrapRenderedDiagram(node,result.svg);
+      if(result.bindFunctions)result.bindFunctions(node.querySelector('.diagram-canvas')||node);
+      node.dataset.rendered='true';
+    }).catch(function(err){
+      node.dataset.rendered='false';
+      node.classList.add('mermaid-error');
+      node.textContent='图表渲染失败，请检查 Mermaid 语法。';
+      if(window.console)console.error('Mermaid render failed:',err,node.dataset.source);
+    });
+  });
+}
+
+function switchTab(id){
+  document.querySelectorAll('section').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active')});
+  var section=document.getElementById(id);
+  if(!section)return;
+  section.classList.add('active');
+  var btn=document.querySelector('nav button[onclick="switchTab(\''+id+'\')"]');
+  if(btn)btn.classList.add('active');
+  renderMermaidIn(section);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+window.switchTab=switchTab;
+
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('section').forEach(rememberMermaidSource);
+  renderMermaidIn(document.querySelector('section.active'));
+});
+</script>
+</body>
+</html>

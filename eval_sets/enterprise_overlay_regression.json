@@ -1,0 +1,242 @@
+[
+  {
+    "case_id": "overlay_compliance_privacy_vendor_export",
+    "scenario_id": "compliance_qa",
+    "source_filter": "privacy",
+    "question": "客户数据导出给供应商处理需要哪些合规动作？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "privacy",
+    "expected_source_contains": ["客户数据导出给供应商处理需要哪些合规动作？", "vendor_data_processing.md"],
+    "expected_keywords": ["处理目的", "最小必要", "脱敏", "合同数据保护条款", "删除"]
+  },
+  {
+    "case_id": "overlay_compliance_contract_payee_mismatch",
+    "scenario_id": "compliance_qa",
+    "source_filter": "contract",
+    "question": "供应商收款账户与合同主体不一致怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "contract",
+    "expected_source_contains": ["供应商收款账户与合同主体不一致怎么办？", "payee_mismatch_review.md"],
+    "expected_keywords": ["不应直接付款", "主体关系证明", "授权文件", "法务", "财务复核"]
+  },
+  {
+    "case_id": "overlay_compliance_audit_delay",
+    "scenario_id": "compliance_qa",
+    "source_filter": "audit",
+    "question": "整改延期超过 30 天需要怎么升级？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "audit",
+    "expected_source_contains": ["整改延期超过 30 天需要怎么升级？"],
+    "expected_keywords": ["延期原因", "临时控制措施", "新的完成日期", "责任部门负责人", "审计负责人"]
+  },
+  {
+    "case_id": "overlay_cross_border_hs_mapping",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "customs",
+    "question": "同一商品在不同国家 HS 编码不一致怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "customs",
+    "expected_source_contains": ["同一商品在不同国家 HS 编码不一致怎么办？", "multi_country_hs_mapping.md"],
+    "expected_keywords": ["目的国", "出口国", "归类规则", "技术参数", "不能简单沿用"]
+  },
+  {
+    "case_id": "overlay_cross_border_third_party_screening",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "sanction",
+    "question": "客户要求改用第三方收货人是否需要重新筛查？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "sanction",
+    "expected_source_contains": ["客户要求改用第三方收货人是否需要重新筛查？"],
+    "expected_keywords": ["第三方收货人", "最终用户", "最终用途", "关系说明", "未完成筛查"]
+  },
+  {
+    "case_id": "overlay_cross_border_invoice_change",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "documentation",
+    "question": "客户临时要求修改发票金额可以吗？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "documentation",
+    "expected_source_contains": ["客户临时要求修改发票金额可以吗？", "invoice_amount_change.md"],
+    "expected_keywords": ["合同", "订单", "实际货值", "报关要求", "不能"]
+  },
+  {
+    "case_id": "overlay_engineering_design_visa_mismatch",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "drawing",
+    "question": "设计变更单和现场签证内容不一致怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "drawing",
+    "expected_source_contains": ["设计变更单和现场签证内容不一致怎么办？", "design_change_vs_site_visa.md"],
+    "expected_keywords": ["暂停", "设计变更", "现场签证", "会议纪要", "监理确认"]
+  },
+  {
+    "case_id": "overlay_engineering_spec_standard_conflict",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "specification",
+    "question": "地方标准和企业标准要求不一致时按哪个执行？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "specification",
+    "expected_source_contains": ["地方标准和企业标准要求不一致时按哪个执行？"],
+    "expected_keywords": ["强制性标准", "合同约定", "地方标准", "企业标准", "不能自行降低"]
+  },
+  {
+    "case_id": "overlay_engineering_quality_retroactive_signature",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "quality",
+    "question": "检验批资料补签是否可以替代现场验收？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "quality",
+    "expected_source_contains": ["检验批资料补签是否可以替代现场验收？", "retroactive_signature_control.md"],
+    "expected_keywords": ["不能替代", "施工记录", "影像资料", "监理确认", "实测数据"]
+  },
+  {
+    "case_id": "overlay_enterprise_hr_shanghai_onboarding",
+    "scenario_id": "enterprise_knowledge",
+    "source_filter": "hr",
+    "question": "上海分公司新员工入职和总部流程有什么差异？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "hr",
+    "expected_source_contains": ["上海分公司新员工入职和总部流程有什么差异？", "regional_onboarding_policy.md"],
+    "expected_keywords": ["属地 HR", "社保公积金", "入职确认单", "直属负责人", "留痕"]
+  },
+  {
+    "case_id": "overlay_enterprise_it_outsourcing_access",
+    "scenario_id": "enterprise_knowledge",
+    "source_filter": "it",
+    "question": "外包人员申请系统权限需要哪些额外审批？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "it",
+    "expected_source_contains": ["外包人员申请系统权限需要哪些额外审批？"],
+    "expected_keywords": ["外包归口负责人", "信息安全负责人", "系统 owner", "有效期", "不能默认长期"]
+  },
+  {
+    "case_id": "overlay_enterprise_finance_large_payment",
+    "scenario_id": "enterprise_knowledge",
+    "source_filter": "finance",
+    "question": "超过 5 万元的采购付款能走普通报销吗？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "finance",
+    "expected_source_contains": ["超过 5 万元的采购付款能走普通报销吗？", "payment_threshold_matrix.md"],
+    "expected_keywords": ["不应走普通报销", "采购付款", "合同付款", "预算审批", "验收记录"]
+  },
+  {
+    "case_id": "overlay_equipment_night_shift_escalation",
+    "scenario_id": "equipment_ops",
+    "source_filter": "inspection",
+    "question": "夜班发现设备异常但主管不在场怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "inspection",
+    "expected_source_contains": ["夜班发现设备异常但主管不在场怎么办？", "night_shift_escalation.md"],
+    "expected_keywords": ["异常等级", "记录现象", "降载", "停机", "远程确认"]
+  },
+  {
+    "case_id": "overlay_equipment_temperature_reset",
+    "scenario_id": "equipment_ops",
+    "source_filter": "alarm",
+    "question": "温度告警复位后是否可以直接恢复满负荷运行？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "alarm",
+    "expected_source_contains": ["温度告警复位后是否可以直接恢复满负荷运行？"],
+    "expected_keywords": ["不能直接", "传感器", "负载", "散热", "低负荷观察"]
+  },
+  {
+    "case_id": "overlay_equipment_contractor_confined_space",
+    "scenario_id": "equipment_ops",
+    "source_filter": "safety",
+    "question": "承包商进入受限空间作业需要哪些额外确认？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "safety",
+    "expected_source_contains": ["承包商进入受限空间作业需要哪些额外确认？", "contractor_confined_space.md"],
+    "expected_keywords": ["作业票", "气体检测", "通风", "监护人", "承包商资质"]
+  },
+  {
+    "case_id": "overlay_insurance_group_policy_leaver",
+    "scenario_id": "insurance_claims",
+    "source_filter": "policy",
+    "question": "团体险员工离职后出险还能理赔吗？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "policy",
+    "expected_source_contains": ["团体险员工离职后出险还能理赔吗？", "group_policy_leaver.md"],
+    "expected_keywords": ["保单约定", "员工在册状态", "离职日期", "保障终止规则", "不能只凭"]
+  },
+  {
+    "case_id": "overlay_insurance_invoice_mismatch",
+    "scenario_id": "insurance_claims",
+    "source_filter": "claim_material",
+    "question": "医院发票和费用清单金额不一致怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "claim_material",
+    "expected_source_contains": ["医院发票和费用清单金额不一致怎么办？", "invoice_amount_mismatch.md"],
+    "expected_keywords": ["补充", "更正费用清单", "发票", "病历", "不能直接进入赔付计算"]
+  },
+  {
+    "case_id": "overlay_insurance_company_account",
+    "scenario_id": "insurance_claims",
+    "source_filter": "settlement",
+    "question": "赔付账户是公司账户而非个人账户可以吗？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "settlement",
+    "expected_source_contains": ["赔付账户是公司账户而非个人账户可以吗？"],
+    "expected_keywords": ["保单约定", "受益人", "授权文件", "收款主体关系", "不应直接打款"]
+  },
+  {
+    "case_id": "overlay_saas_admin_transfer",
+    "scenario_id": "saas_support",
+    "source_filter": "account",
+    "question": "企业客户管理员离职但没有交接账号怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "account",
+    "expected_source_contains": ["企业客户管理员离职但没有交接账号怎么办？"],
+    "expected_keywords": ["授权联系人", "管理员变更申请", "不得直接重置", "禁用原管理员", "新管理员"]
+  },
+  {
+    "case_id": "overlay_saas_credit_exception",
+    "scenario_id": "saas_support",
+    "source_filter": "billing",
+    "question": "年度合同客户申请临时赠送额度需要谁审批？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "billing",
+    "expected_source_contains": ["年度合同客户申请临时赠送额度需要谁审批？", "enterprise_credit_exception.md"],
+    "expected_keywords": ["合同条款", "订单状态", "历史使用量", "客户成功负责人", "财务审批"]
+  },
+  {
+    "case_id": "overlay_saas_webhook_retry_limit",
+    "scenario_id": "saas_support",
+    "source_filter": "integration",
+    "question": "Webhook 重试超过上限后是否会自动补发？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "integration",
+    "expected_source_contains": ["Webhook 重试超过上限后是否会自动补发？", "webhook_retry_policy.md"],
+    "expected_keywords": ["不会无限自动补发", "失败记录", "重新触发", "提交工单", "技术支持"]
+  },
+  {
+    "case_id": "overlay_tender_authorized_representative",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "bidding",
+    "question": "客户要求投标文件临时替换授权代表怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "bidding",
+    "expected_source_contains": ["客户要求投标文件临时替换授权代表怎么办？"],
+    "expected_keywords": ["截止时间", "授权书", "法人证明", "签字盖章", "未完成正式授权"]
+  },
+  {
+    "case_id": "overlay_tender_invoice_before_acceptance",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "contract",
+    "question": "客户提出先开票后验收是否可以接受？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "contract",
+    "expected_source_contains": ["客户提出先开票后验收是否可以接受？", "invoice_before_acceptance.md"],
+    "expected_keywords": ["非标准条款", "业务", "财务", "法务复核", "验收风险"]
+  },
+  {
+    "case_id": "overlay_tender_risk_go_live",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "delivery",
+    "question": "项目交付延期但客户要求先上线怎么办？",
+    "expected_hit_type": "faq_direct",
+    "expected_effective_source": "delivery",
+    "expected_source_contains": ["项目交付延期但客户要求先上线怎么办？", "risk_go_live.md"],
+    "expected_keywords": ["上线风险确认", "遗留问题清单", "回退方案", "书面确认", "不能只凭口头"]
+  }
+]

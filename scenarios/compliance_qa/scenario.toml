@@ -1,0 +1,23 @@
+scenario_id = "compliance_qa"
+display_name = "合规制度知识助手"
+industry = "法务与合规"
+description = "面向合同审查、审计要求和隐私保护的合规知识问答场景。"
+assistant_name = "合规知识助手"
+business_domain = "合同审查、审计要求和隐私保护知识库"
+support_contact = "法务合规团队"
+faq_collection = "compliance_faq_hybrid_v1"
+doc_collection = "compliance_doc_hybrid_v1"
+valid_sources = ["contract", "audit", "privacy"]
+sample_questions = ["合同审批需要哪些材料？", "哪些数据属于敏感个人信息？", "审计抽查缺材料怎么办？"]
+resume_project_name = "企业合规制度智能问答系统"
+resume_keywords = ["合规知识库", "合同审查", "审计问答", "隐私保护", "引用溯源"]
+
+[source_labels]
+contract = "合同审查"
+audit = "审计要求"
+privacy = "隐私保护"
+
+[source_patterns]
+contract = "合同|条款|签署|盖章|审批"
+audit = "审计|抽查|整改|延期|复核|留痕|证据|审计负责人"
+privacy = "隐私|个人信息|敏感信息|授权|脱敏|数据导出|客户数据|供应商|最小必要|数据保护"

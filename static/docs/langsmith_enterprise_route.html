@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LangSmith 企业路线与自研边界 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="langsmith">LangSmith 企业路线与自研边界<a class="headerlink" href="#langsmith" title="Permanent link">&para;</a></h1>
+<p>本项目后续采用 <strong>LangSmith 优先</strong> 的企业工程路线：通用平台能力不继续自研，项目自研只保留 RAG 主链路和业务差异化能力。</p>
+<p>这个决策的目标是降低学习成本和授课成本，让学生把精力放在企业 RAG 的核心业务工程，而不是学习一套自研版观测、评测和状态页平台。</p>
+<h2 id="1">1. 总原则<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>企业落地时，通用 LLMOps 能力优先交给 LangSmith：</p>
+<ul>
+<li>tracing / span / LLM 调用观测；</li>
+<li>prompt 版本与实验；</li>
+<li>dataset 管理；</li>
+<li>evaluation experiment；</li>
+<li>trace 到 bad case / dataset 的沉淀；</li>
+<li>annotation / 人工复核；</li>
+<li>评测趋势和实验对比。</li>
+</ul>
+<p>本项目自研只保留：</p>
+<ul>
+<li>RAG 主链路编排；</li>
+<li>业务 source 推断；</li>
+<li>数据权限过滤；</li>
+<li>知识库版本规则；</li>
+<li>FAQ 命中策略；</li>
+<li>Prompt Profile 路由；</li>
+<li>检索后处理；</li>
+<li>表格/文档解析策略；</li>
+<li>领域评测指标。</li>
+</ul>
+<p>一句话边界：</p>
+<blockquote>
+<p>LangSmith 负责平台能力，项目代码负责业务 RAG 能力。</p>
+</blockquote>
+<h2 id="2-langsmith">2. 为什么切到 LangSmith<a class="headerlink" href="#2-langsmith" title="Permanent link">&para;</a></h2>
+<p>项目曾经规划过本地观测、评测、Bad Case、趋势报告和状态页诊断能力。当前版本已经切到 LangSmith-first 路线，课程只保留业务 RAG 主链路和领域指标。</p>
+<p>继续自研会带来三个问题：</p>
+<ol>
+<li>学生需要理解大量非核心平台代码，学习成本高。</li>
+<li>授课时容易把重点从 RAG 主链路带偏到报表和状态页。</li>
+<li>企业中通常已有 LangSmith、Langfuse、Phoenix、Datadog、Grafana 或内部平台，不会让业务团队从零造一套完整观测评测平台。</li>
+</ol>
+<p>切到 LangSmith 后，课程表达更贴近企业：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>业务系统
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>  -&gt; 自研 RAG 主链路
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>  -&gt; LangSmith tracing / dataset / evaluation / annotation
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>  -&gt; CI 回归检查读取评测结果
+</code></pre></div></td></tr></table></div>
+<h2 id="3">3. 保留自研的核心业务能力<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>下面这些能力不能简单交给 LangSmith，因为它们决定项目的业务效果和工程差异化。</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>保留原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAG 主链路编排</td>
+<td>决定 FAQ、文档 RAG、追问、边界和流式输出如何组合。</td>
+</tr>
+<tr>
+<td>业务 source 推断</td>
+<td>不同场景的分类规则来自业务资料，不是通用平台能力。</td>
+</tr>
+<tr>
+<td>数据权限过滤</td>
+<td>tenant、dataset、visibility、role 必须进入检索过滤。</td>
+</tr>
+<tr>
+<td>知识库版本规则</td>
+<td>active/staged/rollback 是本项目知识治理核心。</td>
+</tr>
+<tr>
+<td>FAQ 命中策略</td>
+<td>标准答案直出和文档 RAG 分层是项目主设计。</td>
+</tr>
+<tr>
+<td>Prompt Profile 路由</td>
+<td>费用、合规、赔付、安全等风险边界必须由业务规则控制。</td>
+</tr>
+<tr>
+<td>检索后处理</td>
+<td>去重、parent-child chunk、表格行优先、上下文预算属于 RAG 效果核心。</td>
+</tr>
+<tr>
+<td>表格/文档解析策略</td>
+<td>CSV/XLSX 行级证据、OCR 风险、文档规范化依赖业务资料形态。</td>
+</tr>
+<tr>
+<td>领域评测指标</td>
+<td>source 推断准确率、场景隔离率、FAQ 直出准确率、表格行召回等需要项目自定义。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4">4. 迁移范围<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>优先迁移或瘦身：</p>
+<table>
+<thead>
+<tr>
+<th>当前自研能力</th>
+<th>LangSmith 路线</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qa_core/observability</code> trace 存储与查询</td>
+<td>改为 LangSmith trace，项目只保留 trace metadata 组装。</td>
+</tr>
+<tr>
+<td><code>/api/admin</code> 复杂链路诊断</td>
+<td>状态页改为系统状态 + LangSmith trace 链接。</td>
+</tr>
+<tr>
+<td>Bad Case 草稿导出与复核队列</td>
+<td>使用 LangSmith trace -&gt; dataset / annotation 工作流。</td>
+</tr>
+<tr>
+<td>评测实验和趋势报告</td>
+<td>使用 LangSmith datasets / experiments，项目保留领域指标 evaluator。</td>
+</tr>
+<tr>
+<td>Prompt 调试和版本说明</td>
+<td>使用 LangSmith prompt/experiment，项目保留 Prompt Profile 选择逻辑。</td>
+</tr>
+<tr>
+<td>本地长篇报告</td>
+<td>缩减为本地回归摘要，详细结果跳转 LangSmith experiment。</td>
+</tr>
+</tbody>
+</table>
+<p>暂不迁移：</p>
+<ul>
+<li>入库质量检查；</li>
+<li>Milvus 集合和 metadata 过滤；</li>
+<li>知识库版本激活和回滚；</li>
+<li>表格/文档 loader；</li>
+<li>场景配置和 source 白名单；</li>
+<li>Prompt Profile 路由代码；</li>
+<li>核心单元测试。</li>
+</ul>
+<h2 id="5">5. 建议迁移步骤<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="langsmith-tracing">阶段一：接入 LangSmith tracing<a class="headerlink" href="#langsmith-tracing" title="Permanent link">&para;</a></h3>
+<p>目标：每次问答在 LangSmith 中能看到完整 trace。</p>
+<p>环境变量：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>LANGSMITH_TRACING=true
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>LANGSMITH_API_KEY=请替换为 LangSmith API Key
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>LANGSMITH_PROJECT=knowforge-rag-platform
+</code></pre></div></td></tr></table></div>
+<p>trace metadata 至少包含：</p>
+<ul>
+<li><code>scenario_id</code></li>
+<li><code>source_filter</code></li>
+<li><code>kb_version</code></li>
+<li><code>tenant_id</code></li>
+<li><code>dataset_id</code></li>
+<li><code>visibility</code></li>
+<li><code>user_role</code></li>
+<li><code>intent</code></li>
+<li><code>hit_type</code></li>
+<li><code>prompt_profile</code></li>
+<li><code>effective_source</code></li>
+</ul>
+<h3 id="_1">阶段二：迁移评测集<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>目标：把 <code>eval_sets/*.json</code> 映射为 LangSmith dataset。</p>
+<p>保留项目领域字段：</p>
+<ul>
+<li><code>expected_source_contains</code></li>
+<li><code>expected_hit_type</code></li>
+<li><code>expected_effective_source</code></li>
+<li><code>expected_prompt_profile</code></li>
+<li><code>expected_keywords</code></li>
+</ul>
+<p>这些字段用于自定义 evaluator，而不是丢掉。</p>
+<h3 id="_2">阶段三：瘦身状态页和报告<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>目标：状态页不再复刻 LangSmith。</p>
+<p>保留：</p>
+<ul>
+<li>服务状态；</li>
+<li>active kb_version；</li>
+<li>入库质量摘要；</li>
+<li>最近质量检查摘要；</li>
+<li>LangSmith project / trace / experiment 链接。</li>
+</ul>
+<p>移除或降级：</p>
+<ul>
+<li>本地 trace 明细页；</li>
+<li>本地 evaluation trend；</li>
+<li>本地 bad case review queue；</li>
+<li>大量 Markdown 报告生成器。</li>
+</ul>
+<h3 id="_3">阶段四：清理自研平台代码<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>目标：删除或归档已被 LangSmith 替代的观测、评测平台代码。</p>
+<p>保留少量适配层：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>qa_core/observability/langsmith_adapter.py
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>scripts/langsmith/sync_eval_dataset.py
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>scripts/langsmith/run_evaluation.py
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>scripts/langsmith/check_experiment_gate.py
+</code></pre></div></td></tr></table></div>
+<h2 id="6">6. 授课表达<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p>课堂上这样讲：</p>
+<blockquote>
+<p>本项目不从零自研 LLMOps 平台。企业里通常使用 LangSmith 这类成熟平台管理 trace、dataset、evaluation 和 annotation。我们自研的重点放在业务 RAG 主链路：source 推断、权限过滤、FAQ 策略、Prompt Profile、表格证据、知识库版本和领域评测指标。</p>
+</blockquote>
+<p>这样学生要学的内容更聚焦：</p>
+<ol>
+<li>如何设计企业 RAG 主链路。</li>
+<li>如何把业务规则接进检索和 Prompt。</li>
+<li>如何把运行过程交给 LangSmith 观测。</li>
+<li>如何用 LangSmith dataset/evaluation 做回归。</li>
+<li>哪些指标必须由业务系统自定义。</li>
+</ol>
+<h2 id="7">7. 代码量预期<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p>迁移完成后，预计可以减少：</p>
+<ul>
+<li>保守：2500-3500 行；</li>
+<li>合理目标：3500-5000 行；</li>
+<li>激进：6000 行以上，但不建议第一阶段追求。</li>
+</ul>
+<p>合理目标是删除平台复刻代码，而不是削弱 RAG 主链路。</p>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

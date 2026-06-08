@@ -1,0 +1,122 @@
+/* ============================================================
+   composer.css — Chat Input, Send Button, Composer Metadata
+   ============================================================ */
+
+/* ---- Composer container ---- */
+.composer {
+  border-top: 1px solid var(--border-light);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-5);
+}
+
+/* Composer metadata bar */
+.composer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.composer-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 60%;
+  padding: 3px 10px;
+  background: var(--bg-soft);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.composer-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ---- Composer box ---- */
+.composer-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: end;
+}
+
+/* ---- Chat input ---- */
+.chat-input {
+  width: 100%;
+  min-height: 44px;
+  max-height: 160px;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  line-height: 1.5;
+  font-size: var(--text-sm);
+  color: var(--text);
+  background: var(--bg-soft);
+  transition: all var(--transition-base);
+  outline: none;
+}
+
+.chat-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.chat-input:hover {
+  border-color: var(--text-placeholder);
+  background: var(--surface);
+}
+
+.chat-input:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08),
+              0 2px 12px rgba(37, 99, 235, 0.06);
+}
+
+/* ---- Send button ---- */
+.send-button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  color: #FFFFFF;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0;
+}
+
+.send-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+}
+
+.send-button:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Stop state (when streaming) */
+.send-button.is-stopping {
+  background: var(--danger);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.send-button.is-stopping:hover {
+  background: #B91C1C;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+}

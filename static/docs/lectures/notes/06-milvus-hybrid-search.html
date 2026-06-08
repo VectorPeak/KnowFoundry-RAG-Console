@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第6讲 笔记：Milvus 混合检索深度解析 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/pipeline-demo.html">🎬 流程动画演示</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/19-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+</ul></li>
+
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="6-milvus">第6讲 笔记：Milvus 混合检索深度解析<a class="headerlink" href="#6-milvus" title="Permanent link">&para;</a></h1>
+<h2 id="_1">学习目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>能解释 Milvus Hybrid Search 的 Dense + Sparse 双向量检索流程</li>
+<li>能说出过滤表达式的 5 种约束来源和安全校验机制</li>
+<li>能理解多查询变体合并去重和 Reranker 精排的完整顺序</li>
+</ul>
+<h2 id="_2">核心知识点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Milvus 双向量字段（dense + sparse）：dense 由 BGE-M3 生成（语义），sparse 由 Milvus BM25BuiltInFunction 服务端生成（关键词），一次入库两种向量</li>
+<li>混合检索分数融合：默认权重 0.55(dense) + 0.45(sparse)</li>
+<li>过滤表达式在向量检索之前执行：先用 <code>expr</code> 缩小搜索范围，再执行 Dense + Sparse 检索</li>
+<li>过滤表达式包含五类约束：source / kb_version / tenant_id / dataset_id / visibility + allowed_roles</li>
+<li><code>search_many</code> 对多个 query variant 分别检索 → 按 <code>document_key</code> 合并去重（保留最高分）→ rerank 精排</li>
+<li><code>langchain-milvus</code> 是业务检索入口，PyMilvus 是底层驱动；连接别名兼容问题统一收口在 <code>milvus_compat.py</code></li>
+</ol>
+<h2 id="_3">关键概念<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BM25BuiltInFunction</td>
+<td>Milvus 服务端内置函数，自动对 text 字段做中文分词 + BM25 编码</td>
+</tr>
+<tr>
+<td>Hybrid Search</td>
+<td>Dense 向量（语义）+ Sparse 向量（关键词）加权融合检索</td>
+</tr>
+<tr>
+<td>Filter Expression</td>
+<td>Milvus 标量过滤表达式，限制只检索符合条件的行</td>
+</tr>
+<tr>
+<td>Consistency Level</td>
+<td>读写一致性级别，本项目使用 Session</td>
+</tr>
+<tr>
+<td>enable_dynamic_field</td>
+<td>允许在不修改 Schema 的情况下写入额外 metadata 字段</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">核心代码<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span>
+<span class="normal"><a href="#__codelineno-0-26">26</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># qa_core/retrieval/store.py — 混合检索核心</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MilvusHybridStore</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">kb_version</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>               <span class="n">valid_sources</span><span class="p">,</span> <span class="n">data_scope</span><span class="p">,</span> <span class="n">source_type</span><span class="p">,</span> <span class="n">rerank</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>        <span class="n">expr</span> <span class="o">=</span> <span class="n">build_source_expr</span><span class="p">(</span><span class="n">source_filter</span><span class="p">,</span> <span class="n">kb_version</span><span class="p">,</span> <span class="n">valid_sources</span><span class="p">,</span> <span class="n">data_scope</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>        <span class="n">raw_hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">similarity_search_with_score</span><span class="p">(</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>            <span class="n">query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="n">expr</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>            <span class="n">ranker_type</span><span class="o">=</span><span class="s2">&quot;weighted&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>            <span class="n">ranker_params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.55</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">]},</span>  <span class="c1"># Dense:Sparse = 55:45</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>        <span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>        <span class="n">hits</span> <span class="o">=</span> <span class="p">[</span><span class="n">RetrievalHit</span><span class="p">(</span><span class="n">document</span><span class="o">=</span><span class="n">doc</span><span class="p">,</span> <span class="n">score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">score</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">))</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>                <span class="k">for</span> <span class="n">doc</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">raw_hits</span><span class="p">]</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>        <span class="k">if</span> <span class="n">rerank</span> <span class="ow">and</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>            <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rerank</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">hits</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a>        <span class="k">return</span> <span class="n">RetrievalResult</span><span class="p">(</span><span class="n">hits</span><span class="o">=</span><span class="n">hits</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">source_type</span><span class="o">=</span><span class="n">source_type</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queries</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;多变体检索 → 合并去重 → rerank&quot;&quot;&quot;</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>        <span class="n">merged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RetrievalHit</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>        <span class="k">for</span> <span class="n">clean_query</span> <span class="ow">in</span> <span class="n">normalize_queries</span><span class="p">(</span><span class="n">queries</span><span class="p">):</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">clean_query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">rerank</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>            <span class="n">merge_hits_by_document</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">hits</span><span class="p">)</span>  <span class="c1"># 按 document_key 合并去重</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>        <span class="n">hits</span> <span class="o">=</span> <span class="n">sort_hits_by_score</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>        <span class="k">if</span> <span class="n">rerank</span> <span class="ow">and</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>            <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rerank</span><span class="p">(</span><span class="n">queries</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hits</span><span class="p">)</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26"></a>        <span class="k">return</span> <span class="n">RetrievalResult</span><span class="p">(</span><span class="n">hits</span><span class="o">=</span><span class="n">hits</span><span class="p">[:</span><span class="n">k</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># qa_core/retrieval/filters.py — 过滤表达式构建</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_source_expr</span><span class="p">(</span><span class="n">source_filter</span><span class="p">,</span> <span class="n">kb_version</span><span class="p">,</span> <span class="n">valid_sources</span><span class="p">,</span> <span class="n">data_scope</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">clauses</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>    <span class="k">if</span> <span class="n">source_filter</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>        <span class="k">if</span> <span class="n">valid_sources</span> <span class="ow">and</span> <span class="n">source_filter</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_sources</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;无效的业务分类：</span><span class="si">{</span><span class="n">source_filter</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>        <span class="n">clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;source == &quot;</span><span class="si">{</span><span class="n">escape_expr_value</span><span class="p">(</span><span class="n">source_filter</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>    <span class="k">if</span> <span class="n">kb_version</span><span class="p">:</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>        <span class="n">clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;kb_version == &quot;</span><span class="si">{</span><span class="n">escape_expr_value</span><span class="p">(</span><span class="n">kb_version</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="k">if</span> <span class="n">data_scope</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>        <span class="n">clauses</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data_scope</span><span class="o">.</span><span class="n">expr_clauses</span><span class="p">())</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>    <span class="k">return</span> <span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clauses</span><span class="p">)</span> <span class="k">if</span> <span class="n">clauses</span> <span class="k">else</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="_5">练习题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>对比单变体和多变体检索</strong>：通过 <code>debug_retrieval</code> 分别提交 1 个和 3 个 query variant 的请求，观察 <code>faq_sources</code> 和 <code>doc_sources</code> 数量及最高分的差异。</li>
+<li><strong>构造过滤表达式</strong>：在 <code>debug_retrieval</code> 请求中传入不同的 <code>source_filter</code> 值（hr / it / 空），观察返回结果数量的变化。</li>
+</ol>
+<h2 id="milvus_compatpy">课堂踩坑小节：为什么有 milvus_compat.py<a class="headerlink" href="#milvus_compatpy" title="Permanent link">&para;</a></h2>
+<p>教学主线里，业务检索统一使用 <code>langchain-milvus</code>，不要求学生手写完整 PyMilvus
+检索适配器。但 <code>langchain-milvus</code> 底层仍然依赖 PyMilvus，某些版本组合下会出现：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>业务代码创建了 langchain-milvus.Milvus
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>  -&gt; 内部创建 pymilvus.MilvusClient
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>  -&gt; hybrid search 某些底层路径按 ORM alias 查连接
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>  -&gt; pymilvus.connections 中没有对应 alias
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>  -&gt; connection not found
+</code></pre></div></td></tr></table></div>
+<p>这个问题不是 Milvus 服务端坏了，而是上层 VectorStore 和底层驱动的连接登记方式没有完全对齐。
+本项目的处理不是改成纯 PyMilvus，而是把兼容修复收口到：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a>qa_core/retrieval/milvus_compat.py
+</code></pre></div></td></tr></table></div>
+<p>课堂讲解顺序建议：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
+<span class="normal"><a href="#__codelineno-4-2">2</a></span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a>1. 先讲正常业务目标：QAService 只通过 langchain-milvus 检索。
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>2. 再展示连接别名问题：底层 PyMilvus 仍有 alias 注册表。
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>3. 最后看兼容修复：首次建连时预注册 ORM alias，并补丁 MilvusClient 初始化。
+</code></pre></div></td></tr></table></div>
+<p>详细代码演示放在附录 F，本讲只需要学生记住一句话：</p>
+<blockquote>
+<p>LangChain 负责 RAG VectorStore 抽象，PyMilvus 负责底层连接现实，兼容层负责把电线接好。</p>
+</blockquote>
+<h2 id="_6">常见面试题<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：为什么 FAQ 和文档分为两个 Collection？</strong></p>
+<blockquote>
+<p>FAQ 适合高置信直出，文档适合做 LLM 生成上下文。分两个 Collection 可以独立设置 top_k、阈值和直出策略，避免混在一起时标准答案被长文档稀释，或复杂问题被相似 FAQ 误直出。</p>
+</blockquote>
+<p><strong>Q2：为什么用 Milvus 内置 BM25 而不是自研？</strong></p>
+<blockquote>
+<p>当前部署使用 Milvus 2.6.x 的 BM25BuiltInFunction 能力。自研需要维护第二套索引和入库流程。收敛到 Milvus 内意味着入库一次、检索一次、版本过滤和数据隔离同一条表达式完成。</p>
+</blockquote>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/notes/05-query-rewrite-variants.html"><i class="fas fa-arrow-left"></i> 05 查询改写与变体</a>
+        <a class="pager-link next" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

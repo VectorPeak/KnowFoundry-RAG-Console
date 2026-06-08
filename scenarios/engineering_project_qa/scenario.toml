@@ -1,0 +1,27 @@
+scenario_id = "engineering_project_qa"
+display_name = "工程项目资料问答助手"
+industry = "工程项目管理与施工资料"
+description = "面向设计图纸、施工规范、进度资料、质量验收和安全资料的工程项目知识问答场景。"
+assistant_name = "工程项目资料助手"
+business_domain = "工程项目图纸、施工规范、进度计划、质量验收和安全资料"
+support_contact = "项目资料室与技术负责人"
+faq_collection = "engineering_project_qa_faq_hybrid_v1"
+doc_collection = "engineering_project_qa_doc_hybrid_v1"
+valid_sources = ["drawing", "specification", "schedule", "quality", "safety"]
+sample_questions = ["图纸变更后旧版本还能作为施工依据吗？", "施工规范和图纸冲突时以哪个为准？", "隐蔽工程验收需要哪些资料？"]
+resume_project_name = "工程项目资料与施工规范 RAG 问答助手"
+resume_keywords = ["工程资料", "施工规范", "图纸版本", "质量验收", "多版本检索", "RAG"]
+
+[source_labels]
+drawing = "设计图纸"
+specification = "施工规范"
+schedule = "进度资料"
+quality = "质量验收"
+safety = "安全资料"
+
+[source_patterns]
+drawing = "图纸|设计图|变更图|蓝图|版本|会审|设计变更|施工图|竣工图"
+specification = "规范|标准|条文|强制性|强制性规范|图纸冲突|施工工艺|技术要求|验收标准|做法"
+schedule = "进度|计划|工期|节点|里程碑|延期|周报|月报|施工计划"
+quality = "质量|验收|隐蔽工程|检验批|报验|试验报告|整改|质检"
+safety = "安全|交底|危险源|防护|高处作业|临电|吊装|专项方案|事故"

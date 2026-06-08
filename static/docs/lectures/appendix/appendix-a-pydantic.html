@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附录A：Pydantic 数据校验 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="apydantic">附录A：Pydantic 数据校验<a class="headerlink" href="#apydantic" title="Permanent link">&para;</a></h1>
+<h2 id="_1">为什么需要这讲<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>Pydantic 在本项目中被<strong>五处关键位置</strong>使用，但主讲义从未系统讲解它是什么、怎么工作：</p>
+<table>
+<thead>
+<tr>
+<th>使用位置</th>
+<th>作用</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全局配置</td>
+<td>从 <code>.env</code> 加载并校验配置</td>
+<td><code>Settings(BaseSettings)</code></td>
+</tr>
+<tr>
+<td>API 请求校验</td>
+<td>自动校验 JSON 请求体的字段和类型</td>
+<td><code>QueryRequest(BaseModel)</code></td>
+</tr>
+<tr>
+<td>LLM 结构化输出</td>
+<td>限制 LLM 只返回枚举字段</td>
+<td><code>IntentLLMDecision(BaseModel)</code></td>
+</tr>
+<tr>
+<td>检索计划</td>
+<td>序列化检索参数供诊断使用</td>
+<td><code>RetrievalPlan</code> dataclass</td>
+</tr>
+<tr>
+<td>数据隔离</td>
+<td>封装多租户参数</td>
+<td><code>DataScope</code> dataclass</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pydantic">一、Pydantic 是什么<a class="headerlink" href="#pydantic" title="Permanent link">&para;</a></h2>
+<p><strong>Pydantic</strong> 是 Python 最流行的数据校验库。它的核心思想：<strong>用 Python 类型注解定义数据结构，运行时自动校验类型</strong>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="c1"># 正确数据</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;张三&quot;</span><span class="p">,</span> <span class="n">age</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;zhangsan@example.com&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="c1"># 错误的类型 → 自动报错</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;张三&quot;</span><span class="p">,</span> <span class="n">age</span><span class="o">=</span><span class="s2">&quot;二十八&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;zhangsan@example.com&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="c1"># ValidationError: age: Input should be a valid integer</span>
+</code></pre></div></td></tr></table></div>
+<p>对比手写校验：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span>
+<span class="normal"><a href="#__codelineno-1-14">14</a></span>
+<span class="normal"><a href="#__codelineno-1-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># 手写校验（容易遗漏、重复代码多）</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">create_user</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="k">if</span> <span class="s2">&quot;name&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;name is required&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;name must be string&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>    <span class="k">if</span> <span class="s2">&quot;age&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;age is required&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="c1"># ... 20 行校验代码 ...</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;age&quot;</span><span class="p">])}</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="c1"># Pydantic（一行声明，自动校验）</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13"></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14"></a>    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15"></a>    <span class="n">age</span><span class="p">:</span> <span class="nb">int</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="basemodel">二、BaseModel 核心能力<a class="headerlink" href="#basemodel" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 基础类型校验<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span>
+<span class="normal"><a href="#__codelineno-2-6">6</a></span>
+<span class="normal"><a href="#__codelineno-2-7">7</a></span>
+<span class="normal"><a href="#__codelineno-2-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">QueryRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span>                      <span class="c1"># 必填，字符串</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># 可选，默认 None</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>    <span class="n">scenario_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>    <span class="n">source_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>      <span class="c1"># 可选，默认值 &quot;default&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p>当 FastAPI 收到一个 JSON 请求体时：
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;入职流程&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tenant_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+Pydantic 会自动校验：
+- <code>query</code> 是 <code>str</code> ✅
+- <code>tenant_id</code> 是 <code>int</code> 但期望 <code>str</code> ❌ → 返回 422 错误，附带清晰描述</p>
+<h3 id="22-field">2.2 Field 约束<a class="headerlink" href="#22-field" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">QueryRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>        <span class="o">...</span><span class="p">,</span>                      <span class="c1"># ... 表示必填</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>             <span class="c1"># 至少 1 个字符</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>          <span class="c1"># 最多 2000 字符</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;用户问题&quot;</span>     <span class="c1"># 用于生成 OpenAPI 文档</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a>    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>    <span class="p">)</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a>    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a>        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a>        <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-z0-9_]+$&quot;</span><span class="p">,</span>  <span class="c1"># 只允许小写字母+数字+下划线</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>Field 支持的常用约束：
+| 约束 | 说明 |
+|------|------|
+| <code>min_length</code> / <code>max_length</code> | 字符串长度范围 |
+| <code>ge</code> / <code>le</code> / <code>gt</code> / <code>lt</code> | 数值范围（≥/≤/&gt;/&lt;） |
+| <code>pattern</code> | 正则表达式匹配 |
+| <code>description</code> | OpenAPI 文档描述 |
+| <code>examples</code> | OpenAPI 示例值 |</p>
+<h3 id="23">2.3 嵌套模型<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">DataScope</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a>    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>    <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">QueryRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a>    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a>    <span class="n">data_scope</span><span class="p">:</span> <span class="n">DataScope</span>  <span class="c1"># 嵌套模型</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="c1"># JSON 请求</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="p">{</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;入职流程&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>    <span class="s2">&quot;data_scope&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a>        <span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="s2">&quot;company_a&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a>        <span class="s2">&quot;dataset_id&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a>    <span class="p">}</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="basesettings">三、BaseSettings — 环境变量管理<a class="headerlink" href="#basesettings" title="Permanent link">&para;</a></h2>
+<p>这是 Pydantic 的一个特殊子类，专门用于管理配置：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span>
+<span class="normal"><a href="#__codelineno-6-11">11</a></span>
+<span class="normal"><a href="#__codelineno-6-12">12</a></span>
+<span class="normal"><a href="#__codelineno-6-13">13</a></span>
+<span class="normal"><a href="#__codelineno-6-14">14</a></span>
+<span class="normal"><a href="#__codelineno-6-15">15</a></span>
+<span class="normal"><a href="#__codelineno-6-16">16</a></span>
+<span class="normal"><a href="#__codelineno-6-17">17</a></span>
+<span class="normal"><a href="#__codelineno-6-18">18</a></span>
+<span class="normal"><a href="#__codelineno-6-19">19</a></span>
+<span class="normal"><a href="#__codelineno-6-20">20</a></span>
+<span class="normal"><a href="#__codelineno-6-21">21</a></span>
+<span class="normal"><a href="#__codelineno-6-22">22</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSettings</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">Settings</span><span class="p">(</span><span class="n">BaseSettings</span><span class="p">):</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>    <span class="c1"># 自动从环境变量或 .env 文件读取</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a>    <span class="n">llm_api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>    <span class="n">milvus_uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;http://127.0.0.1:19530&quot;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>    <span class="n">mysql_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3306</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a>    <span class="n">api_rate_limit_per_minute</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">120</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a>    <span class="n">model_config</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a>        <span class="s2">&quot;env_file&quot;</span><span class="p">:</span> <span class="s2">&quot;.env&quot;</span><span class="p">,</span>        <span class="c1"># 读取 .env 文件</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12"></a>        <span class="s2">&quot;env_file_encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13"></a>    <span class="p">}</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="c1"># 使用</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17"></a><span class="nb">print</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">milvus_uri</span><span class="p">)</span>  <span class="c1"># 优先环境变量，其次 .env，最后默认值</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19"></a><span class="c1"># 优先级</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20"></a><span class="c1"># 1. 环境变量 export MILVUS_URI=http://prod:19530</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21"></a><span class="c1"># 2. .env 文件中的 MILVUS_URI=http://prod:19530</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22"></a><span class="c1"># 3. 代码中的默认值 &quot;http://127.0.0.1:19530&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p>本项目中的 Settings 实例被 <code>@lru_cache</code> 缓存为全局单例：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># qa_core/config/settings.py</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Settings</span><span class="p">:</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6"></a>    <span class="k">return</span> <span class="n">Settings</span><span class="p">()</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8"></a><span class="c1"># 任何模块导入即可获取同一份配置</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">qa_core.config.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_settings</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10"></a><span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>  <span class="c1"># 整个进程只加载一次 .env</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="with_structured_output-llm">四、with_structured_output — LLM 输出约束<a class="headerlink" href="#with_structured_output-llm" title="Permanent link">&para;</a></h2>
+<p>这是本项目中 Pydantic 最高级的用法：让 LLM 按指定结构返回结果。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-8-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-8-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-8-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-8-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-8-10">10</a></span>
+<span class="normal"><a href="#__codelineno-8-11">11</a></span>
+<span class="normal"><a href="#__codelineno-8-12">12</a></span>
+<span class="normal"><a href="#__codelineno-8-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">IntentLLMDecision</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>    <span class="n">intent</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;用户问题意图&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a>    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a><span class="c1"># 使用 LangChain 的 with_structured_output</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">IntentLLMDecision</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a><span class="n">decision</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span><span class="o">...</span><span class="p">])</span>  <span class="c1"># 返回 IntentLLMDecision 对象</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11"></a>
+<a id="__codelineno-8-12" name="__codelineno-8-12"></a><span class="c1"># 不是返回 &quot;用户的意图是FAQ_QUERY，置信度0.82&quot;</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13"></a><span class="c1"># 而是返回 IntentLLMDecision(intent=&quot;FAQ_QUERY&quot;, confidence=0.82, reason=&quot;...&quot;)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>工作原理</strong>：LangChain 将 Pydantic 模型的 JSON Schema 嵌入 System Prompt，告诉 LLM 只能用这些字段和枚举值来回答。LLM 返回的 JSON 会被 Pydantic 自动校验——如果 LLM 返回了 <code>{"intent": "INVALID_TYPE"}</code>，Pydantic 会报错。</p>
+<h2 id="_2">五、在本项目中的使用速查<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pydantic 类</th>
+<th>定义位置</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Settings(BaseSettings)</code></td>
+<td><code>qa_core/config/settings.py</code></td>
+<td>读取 .env 配置</td>
+</tr>
+<tr>
+<td><code>QueryRequest(BaseModel)</code></td>
+<td><code>qa_core/schemas.py</code></td>
+<td>API 请求体校验</td>
+</tr>
+<tr>
+<td><code>FeedbackRequest(BaseModel)</code></td>
+<td><code>qa_core/schemas.py</code></td>
+<td>反馈请求校验</td>
+</tr>
+<tr>
+<td><code>IntentLLMDecision(BaseModel)</code></td>
+<td><code>qa_core/intent/classifier.py</code></td>
+<td>LLM 意图输出约束</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>BaseModel</strong> = 类型注解 + 自动校验，替代手写 if/else 校验</li>
+<li><strong>Field</strong> = 为字段附加约束（长度、范围、正则）</li>
+<li><strong>BaseSettings</strong> = 自动从环境变量和 .env 加载配置</li>
+<li><strong>with_structured_output</strong> = 用 Pydantic Schema 约束 LLM 输出格式</li>
+</ul>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/18-fastapi-async.html"><i class="fas fa-arrow-left"></i> 18 FastAPI 与异步 Web 框架</a>
+        <a class="pager-link next" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

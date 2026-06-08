@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4讲 笔记：检索策略与动态计划 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/pipeline-demo.html">🎬 流程动画演示</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/19-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+</ul></li>
+
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="4">第4讲 笔记：检索策略与动态计划<a class="headerlink" href="#4" title="Permanent link">&para;</a></h1>
+<h2 id="_1">学习目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>能解释为什么不同问题需要不同的检索参数</li>
+<li>能说出 RetrievalPlan 的关键字段及其作用</li>
+<li>能理解费用/合规类问题的特殊保护策略</li>
+</ul>
+<h2 id="_2">核心知识点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ol>
+<li>不用所有问题一套参数：FAQ 用低阈值勇敢直出，知识咨询扩大文档候选，追问提高阈值防误命中，短句显歧义需保护</li>
+<li>RetrievalPlan 是一个 <code>frozen=True</code> 的 dataclass，一旦构建不可修改，表示一次确定性的检索决策</li>
+<li>问答类别保护是检索策略中最重要的安全机制：pricing 阈值 ≥0.84、compliance 阈值 ≥0.86（最高），宁可多召回也不轻信一条 FAQ</li>
+<li>表格类问题强制 <code>faq_direct_exact_only=True</code>：只允许标准问题精确匹配，禁止相似 FAQ 直出</li>
+<li><code>prefer_table</code> 标志还会影响 <code>select_context_docs</code> 的排序逻辑：同等分数下表格行优先于普通文本段落</li>
+</ol>
+<h2 id="_3">关键概念<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RetrievalPlan</td>
+<td>封装单次检索所有参数的不可变对象</td>
+</tr>
+<tr>
+<td>Dynamic Threshold</td>
+<td>按问题类型动态调整的 FAQ 直出阈值</td>
+</tr>
+<tr>
+<td>Short Query Guard</td>
+<td>短问题保护：收缩文档候选数，提高直出阈值</td>
+</tr>
+<tr>
+<td>Pricing Guard</td>
+<td>费用类特殊保护：阈值 ≥0.84，扩大文档召回</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">核心代码<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span>
+<span class="normal"><a href="#__codelineno-0-21">21</a></span>
+<span class="normal"><a href="#__codelineno-0-22">22</a></span>
+<span class="normal"><a href="#__codelineno-0-23">23</a></span>
+<span class="normal"><a href="#__codelineno-0-24">24</a></span>
+<span class="normal"><a href="#__codelineno-0-25">25</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># qa_core/retrieval/strategy.py — 核心策略分支</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_retrieval_plan</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">intent</span><span class="p">:</span> <span class="n">IntentResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RetrievalPlan</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">question_category</span> <span class="o">=</span> <span class="n">infer_question_category</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="n">prefer_table</span> <span class="o">=</span> <span class="n">is_table_query</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>    <span class="n">is_short</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="n">settings</span><span class="o">.</span><span class="n">short_query_max_chars</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>    <span class="k">if</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;FAQ_QUERY&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>        <span class="n">doc_top_k</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>        <span class="n">direct_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.62</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_direct_score_threshold</span> <span class="o">-</span> <span class="mf">0.08</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>    <span class="k">elif</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>        <span class="n">doc_top_k</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>        <span class="n">final_context_top_n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">final_context_top_n</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>    <span class="k">elif</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a>        <span class="n">direct_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">faq_direct_score_threshold</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>    <span class="c1"># 问题类别保护（核心安全机制）</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>    <span class="k">if</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;pricing&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>        <span class="n">direct_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">direct_threshold</span><span class="p">,</span> <span class="mf">0.84</span><span class="p">)</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="k">elif</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;compliance&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21"></a>        <span class="n">direct_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">direct_threshold</span><span class="p">,</span> <span class="mf">0.86</span><span class="p">)</span>  <span class="c1"># 最高阈值</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="c1"># 表格类：禁止相似 FAQ 直出</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="k">if</span> <span class="n">prefer_table</span> <span class="ow">and</span> <span class="n">run_doc</span><span class="p">:</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25"></a>        <span class="n">faq_direct_exact_only</span> <span class="o">=</span> <span class="kc">True</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="_5">练习题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>对比不同意图的检索计划</strong>：分别以一句 FAQ、一句知识咨询、一句追问作为输入，打印出 <code>build_retrieval_plan()</code> 返回的完整参数，对比差异。</li>
+<li><strong>模拟费用类保护</strong>：在 <code>.env</code> 中临时降低 <code>FAQ_DIRECT_SCORE_THRESHOLD</code> 到 0.5，然后提问「退款多久到账」，观察 pricing guard 是否将阈值拉回到 0.84 以上。</li>
+</ol>
+<h2 id="_6">常见面试题<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：为什么 FAQ 直出不能用一个固定阈值？</strong></p>
+<blockquote>
+<p>不同类型问题的「误直出」代价不同。FAQ 类问题误直出最多答偏，费用/合规类问题误直出可能承诺错误金额或给出违法建议。所以用动态阈值：FAQ 类可以低至 0.62，合规类必须 ≥0.86。</p>
+</blockquote>
+<p><strong>Q2：表格问题为什么强制 <code>faq_direct_exact_only=True</code>？</strong></p>
+<blockquote>
+<p>用户问表格问题时通常是想查某个字段的具体值，泛化 FAQ 只能答出「需要哪些材料」而非具体状态。只有标准问题完全匹配时才敢直出，相似命中必须走文档 RAG。</p>
+</blockquote>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/notes/03-intent-classification.html"><i class="fas fa-arrow-left"></i> 03 意图分类</a>
+        <a class="pager-link next" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

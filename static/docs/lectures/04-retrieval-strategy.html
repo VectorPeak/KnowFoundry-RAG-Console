@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4讲：检索策略与动态计划 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="4">第4讲：检索策略与动态计划<a class="headerlink" href="#4" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./03-intent-classification.html">意图识别系统</a><br />
+<strong>下一讲</strong>：<a href="./05-query-rewrite-variants.html">查询改写与变体生成</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解为什么不同问题需要不同的检索参数</li>
+<li>掌握 RetrievalPlan 的完整结构和每个字段的含义</li>
+<li>理解动态阈值的设计哲学</li>
+<li>读懂 build_retrieval_plan() 的策略分支逻辑</li>
+</ul>
+<hr />
+<h2 id="_2">第一部分：前置知识 — 检索策略中的关键概念<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 为什么不能所有问题用一套参数<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>很多 RAG 教程和 Demo 会这样做：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># 简单粗暴的做法（本项目避免这样做）</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">simple_rag</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>    <span class="n">docs</span> <span class="o">=</span> <span class="n">vector_store</span><span class="o">.</span><span class="n">similarity_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># 永远取 5 条</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">answer</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;根据以下资料回答：</span><span class="si">{</span><span class="n">docs</span><span class="si">}</span><span class="se">\n</span><span class="s2">问题：</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="k">return</span> <span class="n">answer</span>
+</code></pre></div></td></tr></table></div>
+<p>这个做法的问题：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>问题</th>
+<th>固定参数的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FAQ</td>
+<td>"忘记密码怎么办"</td>
+<td>k=5 不够，FAQ 里最匹配的那条可能在 top-3 之外</td>
+</tr>
+<tr>
+<td>知识咨询</td>
+<td>"入职流程包含哪些步骤"</td>
+<td>k=5 可能不够，需要多段资料拼出完整流程</td>
+</tr>
+<tr>
+<td>追问</td>
+<td>"那审批呢"</td>
+<td>信息不完整，k=5 可能全是无关内容</td>
+</tr>
+<tr>
+<td>合规</td>
+<td>"这个合同条款合法吗"</td>
+<td>只看 5 条可能导致断章取义</td>
+</tr>
+<tr>
+<td>问候</td>
+<td>"你好"</td>
+<td>根本不需要检索，白白消耗资源</td>
+</tr>
+</tbody>
+</table>
+<p><strong>检索策略的核心思想</strong>：不同问题类型，用不同的检索参数。这是一个"动态计划"，而非"全局常量"。</p>
+<h3 id="12">1.2 关键参数概念<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>调大效果</th>
+<th>调小效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>faq_top_k</code></td>
+<td>FAQ 召回条数</td>
+<td>更多候选，召回更全</td>
+<td>更快，减少噪音</td>
+</tr>
+<tr>
+<td><code>doc_top_k</code></td>
+<td>文档召回条数</td>
+<td>更多上下文</td>
+<td>更快，减少噪音</td>
+</tr>
+<tr>
+<td><code>faq_direct_threshold</code></td>
+<td>FAQ 直出分数阈值</td>
+<td>更谨慎，更少直出</td>
+<td>更激进，更多直出</td>
+</tr>
+<tr>
+<td><code>final_context_top_n</code></td>
+<td>最终进 Prompt 的条数</td>
+<td>LLM 看到更多资料</td>
+<td>Prompt 更短，响应更快</td>
+</tr>
+<tr>
+<td><code>min_context_score</code></td>
+<td>最低上下文分数</td>
+<td>更宽松，更多资料</td>
+<td>更严格，只保留高质量</td>
+</tr>
+<tr>
+<td><code>max_context_chars</code></td>
+<td>上下文总字符数上限</td>
+<td>更长上下文</td>
+<td>更短上下文</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="retrievalplan">第二部分：RetrievalPlan 数据结构<a class="headerlink" href="#retrievalplan" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span>
+<span class="normal"><a href="#__codelineno-1-14">14</a></span>
+<span class="normal"><a href="#__codelineno-1-15">15</a></span>
+<span class="normal"><a href="#__codelineno-1-16">16</a></span>
+<span class="normal"><a href="#__codelineno-1-17">17</a></span>
+<span class="normal"><a href="#__codelineno-1-18">18</a></span>
+<span class="normal"><a href="#__codelineno-1-19">19</a></span>
+<span class="normal"><a href="#__codelineno-1-20">20</a></span>
+<span class="normal"><a href="#__codelineno-1-21">21</a></span>
+<span class="normal"><a href="#__codelineno-1-22">22</a></span>
+<span class="normal"><a href="#__codelineno-1-23">23</a></span>
+<span class="normal"><a href="#__codelineno-1-24">24</a></span>
+<span class="normal"><a href="#__codelineno-1-25">25</a></span>
+<span class="normal"><a href="#__codelineno-1-26">26</a></span>
+<span class="normal"><a href="#__codelineno-1-27">27</a></span>
+<span class="normal"><a href="#__codelineno-1-28">28</a></span>
+<span class="normal"><a href="#__codelineno-1-29">29</a></span>
+<span class="normal"><a href="#__codelineno-1-30">30</a></span>
+<span class="normal"><a href="#__codelineno-1-31">31</a></span>
+<span class="normal"><a href="#__codelineno-1-32">32</a></span>
+<span class="normal"><a href="#__codelineno-1-33">33</a></span>
+<span class="normal"><a href="#__codelineno-1-34">34</a></span>
+<span class="normal"><a href="#__codelineno-1-35">35</a></span>
+<span class="normal"><a href="#__codelineno-1-36">36</a></span>
+<span class="normal"><a href="#__codelineno-1-37">37</a></span>
+<span class="normal"><a href="#__codelineno-1-38">38</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">RetrievalPlan</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;单个用户问题对应的具体检索参数。</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a><span class="sd">    QAService 不直接读 settings 中的阈值，而是只消费 RetrievalPlan。</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="sd">    这样调整策略时只需修改 build_retrieval_plan，不会把判断逻辑散落到主流程里。</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="c1"># === 是否执行 ===</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="n">run_faq</span><span class="p">:</span> <span class="nb">bool</span>                  <span class="c1"># 是否查 FAQ 集合</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>    <span class="n">run_doc</span><span class="p">:</span> <span class="nb">bool</span>                  <span class="c1"># 是否查文档集合</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13"></a>    <span class="c1"># === 召回数量 ===</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14"></a>    <span class="n">faq_top_k</span><span class="p">:</span> <span class="nb">int</span>                 <span class="c1"># FAQ 检索候选数</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15"></a>    <span class="n">doc_top_k</span><span class="p">:</span> <span class="nb">int</span>                 <span class="c1"># 文档检索候选数</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17"></a>    <span class="c1"># === 重排 ===</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18"></a>    <span class="n">rerank</span><span class="p">:</span> <span class="nb">bool</span>                   <span class="c1"># 是否对结果重排</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20"></a>    <span class="c1"># === FAQ 直出控制 ===</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21"></a>    <span class="n">faq_direct_threshold</span><span class="p">:</span> <span class="nb">float</span>    <span class="c1"># 高于此分数才能直出 FAQ 答案</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22"></a>    <span class="n">faq_direct_exact_only</span><span class="p">:</span> <span class="nb">bool</span>    <span class="c1"># True=只允许精确匹配直出，禁止相似分数直出</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23"></a>
+<a id="__codelineno-1-24" name="__codelineno-1-24"></a>    <span class="c1"># === 上下文控制 ===</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25"></a>    <span class="n">final_context_top_n</span><span class="p">:</span> <span class="nb">int</span>       <span class="c1"># 最终进入 Prompt 的文档条数</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26"></a>    <span class="n">min_context_score</span><span class="p">:</span> <span class="nb">float</span>       <span class="c1"># rerank 分数低于此值的文档直接丢弃</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27"></a>    <span class="n">max_context_chars</span><span class="p">:</span> <span class="nb">int</span>         <span class="c1"># 上下文总字符数上限</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28"></a>    <span class="n">max_context_doc_chars</span><span class="p">:</span> <span class="nb">int</span>     <span class="c1"># 单条文档最大字符数</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29"></a>
+<a id="__codelineno-1-30" name="__codelineno-1-30"></a>    <span class="c1"># === 查询增强 ===</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31"></a>    <span class="n">use_query_variants</span><span class="p">:</span> <span class="nb">bool</span>       <span class="c1"># 是否生成查询变体</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32"></a>
+<a id="__codelineno-1-33" name="__codelineno-1-33"></a>    <span class="c1"># === 问题分类 ===</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34"></a>    <span class="n">question_category</span><span class="p">:</span> <span class="nb">str</span>         <span class="c1"># 问题类别（pricing/compliance/...）</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35"></a>    <span class="n">prefer_table</span><span class="p">:</span> <span class="nb">bool</span>             <span class="c1"># 是否优先保留表格行</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36"></a>
+<a id="__codelineno-1-37" name="__codelineno-1-37"></a>    <span class="c1"># === 可解释性 ===</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38"></a>    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span>                    <span class="c1"># 为什么选择这些参数</span>
+</code></pre></div></td></tr></table></div>
+<p><strong><code>@dataclass(frozen=True)</code></strong> 的设计：检索计划一旦构建就不应被修改。它是一个确定性的决策结果，不是可变的状态。</p>
+<hr />
+<h2 id="build_retrieval_plan">第三部分：build_retrieval_plan() 详解<a class="headerlink" href="#build_retrieval_plan" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 基础参数<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span>
+<span class="normal"><a href="#__codelineno-2-15">15</a></span>
+<span class="normal"><a href="#__codelineno-2-16">16</a></span>
+<span class="normal"><a href="#__codelineno-2-17">17</a></span>
+<span class="normal"><a href="#__codelineno-2-18">18</a></span>
+<span class="normal"><a href="#__codelineno-2-19">19</a></span>
+<span class="normal"><a href="#__codelineno-2-20">20</a></span>
+<span class="normal"><a href="#__codelineno-2-21">21</a></span>
+<span class="normal"><a href="#__codelineno-2-22">22</a></span>
+<span class="normal"><a href="#__codelineno-2-23">23</a></span>
+<span class="normal"><a href="#__codelineno-2-24">24</a></span>
+<span class="normal"><a href="#__codelineno-2-25">25</a></span>
+<span class="normal"><a href="#__codelineno-2-26">26</a></span>
+<span class="normal"><a href="#__codelineno-2-27">27</a></span>
+<span class="normal"><a href="#__codelineno-2-28">28</a></span>
+<span class="normal"><a href="#__codelineno-2-29">29</a></span>
+<span class="normal"><a href="#__codelineno-2-30">30</a></span>
+<span class="normal"><a href="#__codelineno-2-31">31</a></span>
+<span class="normal"><a href="#__codelineno-2-32">32</a></span>
+<span class="normal"><a href="#__codelineno-2-33">33</a></span>
+<span class="normal"><a href="#__codelineno-2-34">34</a></span>
+<span class="normal"><a href="#__codelineno-2-35">35</a></span>
+<span class="normal"><a href="#__codelineno-2-36">36</a></span>
+<span class="normal"><a href="#__codelineno-2-37">37</a></span>
+<span class="normal"><a href="#__codelineno-2-38">38</a></span>
+<span class="normal"><a href="#__codelineno-2-39">39</a></span>
+<span class="normal"><a href="#__codelineno-2-40">40</a></span>
+<span class="normal"><a href="#__codelineno-2-41">41</a></span>
+<span class="normal"><a href="#__codelineno-2-42">42</a></span>
+<span class="normal"><a href="#__codelineno-2-43">43</a></span>
+<span class="normal"><a href="#__codelineno-2-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_retrieval_plan</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">intent</span><span class="p">:</span> <span class="n">IntentResult</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RetrievalPlan</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>    <span class="n">compact_query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>    <span class="c1"># 基础参数 — 从配置读取，以下游策略调整</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>    <span class="n">question_category</span> <span class="o">=</span> <span class="n">infer_question_category</span><span class="p">(</span><span class="n">compact_query</span><span class="p">)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>    <span class="n">prefer_table</span> <span class="o">=</span> <span class="n">is_table_query</span><span class="p">(</span><span class="n">compact_query</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>    <span class="n">is_short</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">compact_query</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">settings</span><span class="o">.</span><span class="n">short_query_max_chars</span>  <span class="c1"># 默认 12</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>    <span class="c1"># 初始化为 settings 默认值，存入 params 字典</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11"></a>    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12"></a>        <span class="s1">&#39;run_faq&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a>        <span class="s1">&#39;run_doc&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14"></a>        <span class="s1">&#39;faq_top_k&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_short_query_top_k</span> <span class="k">if</span> <span class="n">is_short</span> <span class="k">else</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_top_k</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15"></a>        <span class="s1">&#39;doc_top_k&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span><span class="p">,</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16"></a>        <span class="s1">&#39;final_context_top_n&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">final_context_top_n</span><span class="p">,</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17"></a>        <span class="s1">&#39;direct_threshold&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_direct_score_threshold</span><span class="p">,</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18"></a>        <span class="s1">&#39;faq_direct_exact_only&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19"></a>        <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;balanced_hybrid&#39;</span><span class="p">,</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20"></a>    <span class="p">}</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21"></a>
+<a id="__codelineno-2-22" name="__codelineno-2-22"></a>    <span class="c1"># 4 层决策链，逐层调整 params</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23"></a>    <span class="n">params</span> <span class="o">=</span> <span class="n">_apply_intent_branching</span><span class="p">(</span><span class="n">intent</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24"></a>    <span class="n">params</span> <span class="o">=</span> <span class="n">_apply_short_query_guard</span><span class="p">(</span><span class="n">is_short</span><span class="p">,</span> <span class="n">intent</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25"></a>    <span class="n">params</span> <span class="o">=</span> <span class="n">_apply_risk_category</span><span class="p">(</span><span class="n">question_category</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26"></a>    <span class="n">params</span> <span class="o">=</span> <span class="n">_apply_table_preference</span><span class="p">(</span><span class="n">prefer_table</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;run_doc&#39;</span><span class="p">],</span> <span class="n">params</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27"></a>
+<a id="__codelineno-2-28" name="__codelineno-2-28"></a>    <span class="k">return</span> <span class="n">RetrievalPlan</span><span class="p">(</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29"></a>        <span class="n">run_faq</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;run_faq&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30"></a>        <span class="n">run_doc</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;run_doc&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31"></a>        <span class="n">faq_top_k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_top_k&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32"></a>        <span class="n">doc_top_k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33"></a>        <span class="n">rerank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34"></a>        <span class="n">faq_direct_threshold</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35"></a>        <span class="n">final_context_top_n</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36"></a>        <span class="n">min_context_score</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">rag_min_score_threshold</span><span class="p">,</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37"></a>        <span class="n">max_context_chars</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">max_prompt_context_chars</span><span class="p">,</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38"></a>        <span class="n">max_context_doc_chars</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">max_context_doc_chars</span><span class="p">,</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39"></a>        <span class="n">use_query_variants</span><span class="o">=</span><span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">,</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">},</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40"></a>        <span class="n">question_category</span><span class="o">=</span><span class="n">question_category</span><span class="p">,</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41"></a>        <span class="n">prefer_table</span><span class="o">=</span><span class="n">prefer_table</span><span class="p">,</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42"></a>        <span class="n">faq_direct_exact_only</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_direct_exact_only&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43"></a>        <span class="n">reason</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">],</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>上面代码中 <code>is_table_query()</code> 用于判断用户问题是否涉及表格/清单类查询（详见 <a href="#35">3.5 节</a>），定义如下：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span>
+<span class="normal"><a href="#__codelineno-3-17">17</a></span>
+<span class="normal"><a href="#__codelineno-3-18">18</a></span>
+<span class="normal"><a href="#__codelineno-3-19">19</a></span>
+<span class="normal"><a href="#__codelineno-3-20">20</a></span>
+<span class="normal"><a href="#__codelineno-3-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="c1"># qa_core/intent/question_category.py</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="n">TABLE_QUERY_HINTS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>    <span class="sa">r</span><span class="s2">&quot;(表格|清单|台账|明细|字段|列名|行号|sheet|工作表|导出|列表|矩阵|评分表|检查表|对账|&quot;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>    <span class="sa">r</span><span class="s2">&quot;材料清单|验收项|付款节点|状态|责任人|金额|数量|单价|收款账户|银行卡|发票号码|箱单|装箱单)&quot;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">is_table_query</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;判断当前问题是否更像在查询表格、清单或台账中的某一行/某个字段。</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="sd">    这个判断和 infer_question_category 不是同一层含义：</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a><span class="sd">    - infer_question_category 决定 Prompt 风险模板，例如费用类走 pricing_guard；</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a><span class="sd">    - is_table_query 决定检索偏好，例如&quot;材料清单里施工照片是什么状态&quot;应优先保留</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a><span class="sd">      表格行 chunk。</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a><span class="sd">    使用场景：</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a><span class="sd">    - 检索计划里扩大文档候选数；</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17"></a><span class="sd">    - 上下文筛选时把 content_type=table_row 的 chunk 排在普通正文前；</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18"></a><span class="sd">    - 诊断面板展示本轮是否启用了表格行优先策略。</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20"></a>    <span class="n">normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21"></a>    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">TABLE_QUERY_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normalized</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+<p><strong><code>infer_question_category()</code> 的实现</strong></p>
+<p>上面代码中 <code>is_table_query()</code> 和 <code>infer_question_category()</code> 都定义在 <code>qa_core/intent/question_category.py</code> 中。<code>infer_question_category()</code> 通过正则匹配将问题分为五类，供检索策略和提示词模板共同使用：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span>
+<span class="normal"><a href="#__codelineno-4-18">18</a></span>
+<span class="normal"><a href="#__codelineno-4-19">19</a></span>
+<span class="normal"><a href="#__codelineno-4-20">20</a></span>
+<span class="normal"><a href="#__codelineno-4-21">21</a></span>
+<span class="normal"><a href="#__codelineno-4-22">22</a></span>
+<span class="normal"><a href="#__codelineno-4-23">23</a></span>
+<span class="normal"><a href="#__codelineno-4-24">24</a></span>
+<span class="normal"><a href="#__codelineno-4-25">25</a></span>
+<span class="normal"><a href="#__codelineno-4-26">26</a></span>
+<span class="normal"><a href="#__codelineno-4-27">27</a></span>
+<span class="normal"><a href="#__codelineno-4-28">28</a></span>
+<span class="normal"><a href="#__codelineno-4-29">29</a></span>
+<span class="normal"><a href="#__codelineno-4-30">30</a></span>
+<span class="normal"><a href="#__codelineno-4-31">31</a></span>
+<span class="normal"><a href="#__codelineno-4-32">32</a></span>
+<span class="normal"><a href="#__codelineno-4-33">33</a></span>
+<span class="normal"><a href="#__codelineno-4-34">34</a></span>
+<span class="normal"><a href="#__codelineno-4-35">35</a></span>
+<span class="normal"><a href="#__codelineno-4-36">36</a></span>
+<span class="normal"><a href="#__codelineno-4-37">37</a></span>
+<span class="normal"><a href="#__codelineno-4-38">38</a></span>
+<span class="normal"><a href="#__codelineno-4-39">39</a></span>
+<span class="normal"><a href="#__codelineno-4-40">40</a></span>
+<span class="normal"><a href="#__codelineno-4-41">41</a></span>
+<span class="normal"><a href="#__codelineno-4-42">42</a></span>
+<span class="normal"><a href="#__codelineno-4-43">43</a></span>
+<span class="normal"><a href="#__codelineno-4-44">44</a></span>
+<span class="normal"><a href="#__codelineno-4-45">45</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="n">QuestionCategory</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;pricing&quot;</span><span class="p">,</span> <span class="s2">&quot;compliance&quot;</span><span class="p">,</span> <span class="s2">&quot;troubleshooting&quot;</span><span class="p">,</span> <span class="s2">&quot;summary&quot;</span><span class="p">]</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="n">PRICING_HINTS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>    <span class="sa">r</span><span class="s2">&quot;(费用|价格|学费|报价|优惠|折扣|退费|退款|发票|账单|支付|开票|续费|合同金额|收费|付款|&quot;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>    <span class="sa">r</span><span class="s2">&quot;赔付|赔款|金额|回款|预算|采购|报销|信用证|保证金|付款条件|收款账户|打款|结算|税费)&quot;</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="n">COMPLIANCE_HINTS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a>    <span class="sa">r</span><span class="s2">&quot;(合规|隐私|个人信息|客户数据|外部平台|合同|条款|审计|风险|违规|保密|权限审批|数据出境|授权|责任|&quot;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>    <span class="sa">r</span><span class="s2">&quot;制裁|名单|出口管制|强制性|规范|标准|图纸冲突|除外|免责|不赔|拒赔|HS\s*编码|海关|报关|申报|&quot;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a>    <span class="sa">r</span><span class="s2">&quot;归类|最终用途|最终用户|尽调|受限空间|作业审批|安全确认|安全技术交底|检验批|隐蔽工程|验收|&quot;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>    <span class="sa">r</span><span class="s2">&quot;既往症|如实告知|保单复效)&quot;</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="p">)</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a><span class="n">TROUBLESHOOTING_HINTS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a>    <span class="sa">r</span><span class="s2">&quot;(故障|报错|失败|无法|异常|告警|报警|排查|维修|巡检|安装|配置|连接不上|超时|错误码)&quot;</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a><span class="p">)</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="n">SUMMARY_HINTS</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19"></a>    <span class="sa">r</span><span class="s2">&quot;(总结|概括|归纳|整理|对比|区别|有哪些|都包括|主要内容|学习内容|大纲)&quot;</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a><span class="p">)</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22"></a>
+<a id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="k">def</span><span class="w"> </span><span class="nf">infer_question_category</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuestionCategory</span><span class="p">:</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;根据用户问题判断 RAG 回答风险类别。</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25"></a>
+<a id="__codelineno-4-26" name="__codelineno-4-26"></a><span class="sd">    优先级从高到低：</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27"></a><span class="sd">    1. 费用/合同金额类——最保守，不能超知识库承诺；</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28"></a><span class="sd">    2. 合规/合同/隐私类——必须引用来源并明确未确认边界；</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29"></a><span class="sd">    3. 排障类——需要扩大文档召回并输出步骤；</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30"></a><span class="sd">    4. 总结类——需要整合更多上下文；</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31"></a><span class="sd">    5. 默认类——普通知识问答。</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32"></a>
+<a id="__codelineno-4-33" name="__codelineno-4-33"></a><span class="sd">    使用规则而不是 LLM，是因为类别用于控制风险和检索参数，必须稳定、</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34"></a><span class="sd">    低成本、可解释。</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36"></a>    <span class="n">normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">query</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37"></a>    <span class="k">if</span> <span class="n">PRICING_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normalized</span><span class="p">):</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38"></a>        <span class="k">return</span> <span class="s2">&quot;pricing&quot;</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39"></a>    <span class="k">if</span> <span class="n">COMPLIANCE_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normalized</span><span class="p">):</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40"></a>        <span class="k">return</span> <span class="s2">&quot;compliance&quot;</span>
+<a id="__codelineno-4-41" name="__codelineno-4-41"></a>    <span class="k">if</span> <span class="n">TROUBLESHOOTING_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normalized</span><span class="p">):</span>
+<a id="__codelineno-4-42" name="__codelineno-4-42"></a>        <span class="k">return</span> <span class="s2">&quot;troubleshooting&quot;</span>
+<a id="__codelineno-4-43" name="__codelineno-4-43"></a>    <span class="k">if</span> <span class="n">SUMMARY_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">normalized</span><span class="p">):</span>
+<a id="__codelineno-4-44" name="__codelineno-4-44"></a>        <span class="k">return</span> <span class="s2">&quot;summary&quot;</span>
+<a id="__codelineno-4-45" name="__codelineno-4-45"></a>    <span class="k">return</span> <span class="s2">&quot;default&quot;</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="32">3.2 意图分支<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<p><strong>分支 1：直接答案类 — 不检索</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span>
+<span class="normal"><a href="#__codelineno-5-2">2</a></span>
+<span class="normal"><a href="#__codelineno-5-3">3</a></span>
+<span class="normal"><a href="#__codelineno-5-4">4</a></span>
+<span class="normal"><a href="#__codelineno-5-5">5</a></span>
+<span class="normal"><a href="#__codelineno-5-6">6</a></span>
+<span class="normal"><a href="#__codelineno-5-7">7</a></span>
+<span class="normal"><a href="#__codelineno-5-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_apply_intent_branching</span><span class="p">(</span><span class="n">intent</span><span class="p">:</span> <span class="n">IntentResult</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;第 1 层：按意图分岔调整检索参数。&quot;&quot;&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>    <span class="k">if</span> <span class="n">intent</span><span class="o">.</span><span class="n">direct_answer</span> <span class="ow">or</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;GREETING&quot;</span><span class="p">,</span> <span class="s2">&quot;HUMAN_SERVICE&quot;</span><span class="p">,</span> <span class="s2">&quot;OUT_OF_SCOPE&quot;</span><span class="p">}:</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;run_faq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;run_doc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;direct_answer_no_retrieval&quot;</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>        <span class="k">return</span> <span class="n">params</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>分支 2：FAQ 查询 — FAQ 优先策略</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span>
+<span class="normal"><a href="#__codelineno-6-2">2</a></span>
+<span class="normal"><a href="#__codelineno-6-3">3</a></span>
+<span class="normal"><a href="#__codelineno-6-4">4</a></span>
+<span class="normal"><a href="#__codelineno-6-5">5</a></span>
+<span class="normal"><a href="#__codelineno-6-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a>    <span class="k">elif</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;FAQ_QUERY&quot;</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>        <span class="c1"># 降低直出阈值：FAQ 问题的标准答案更可信，可以更&quot;勇敢&quot;地直出</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a>        <span class="c1"># 但最低不低于 0.62，防止配置过低导致误直出</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.62</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_direct_score_threshold</span> <span class="o">-</span> <span class="mf">0.08</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;faq_first&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计分析</strong>：
+- <code>doc_top_k // 2</code>：FAQ 问题不需要太多文档上下文，减少文档候选
+- <code>threshold - 0.08</code>：降低直出门槛，相信 FAQ 标准答案
+- <code>max(0.62, ...)</code>：硬底限，防止配置事故</p>
+<p><strong>分支 3：知识咨询 — 加强文档检索</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span>
+<span class="normal"><a href="#__codelineno-7-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a>    <span class="k">elif</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">final_context_top_n</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;knowledge_doc_enriched&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计分析</strong>：
+- 知识咨询通常需要多段资料拼出完整答案（如入职流程需要制度、材料清单、审批步骤）
+- <code>doc_complex_query_top_k</code>（默认 32）：给复杂问题更大的搜索空间
+- <code>final_context_top_n</code> 增加到 5：LLM 看到更多完整片段</p>
+<p><strong>分支 4：追问 — 谨慎策略</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span>
+<span class="normal"><a href="#__codelineno-8-3">3</a></span>
+<span class="normal"><a href="#__codelineno-8-4">4</a></span>
+<span class="normal"><a href="#__codelineno-8-5">5</a></span>
+<span class="normal"><a href="#__codelineno-8-6">6</a></span>
+<span class="normal"><a href="#__codelineno-8-7">7</a></span>
+<span class="normal"><a href="#__codelineno-8-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a>    <span class="k">elif</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>        <span class="c1"># 追问信息不完整，即使经过改写也可能不精确</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>        <span class="c1"># 提高直出阈值，防止误命中</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">faq_top_k</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">doc_top_k</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">final_context_top_n</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">faq_direct_score_threshold</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;history_aware_follow_up&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计分析</strong>：
+- <code>direct_threshold ≥ 0.78</code>：宁可多检索也不要误直出。追问的信息不完整，FAQ 相似分数可能虚高。
+- 扩大候选数：给检索更多机会找到正确内容</p>
+<h3 id="33">3.3 短问题保护<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span>
+<span class="normal"><a href="#__codelineno-9-2">2</a></span>
+<span class="normal"><a href="#__codelineno-9-3">3</a></span>
+<span class="normal"><a href="#__codelineno-9-4">4</a></span>
+<span class="normal"><a href="#__codelineno-9-5">5</a></span>
+<span class="normal"><a href="#__codelineno-9-6">6</a></span>
+<span class="normal"><a href="#__codelineno-9-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_apply_short_query_guard</span><span class="p">(</span><span class="n">is_short</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">intent</span><span class="p">:</span> <span class="n">IntentResult</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;第 2 层：短问题歧义大，收缩文档检索范围、提高 FAQ 直出门槛。&quot;&quot;&quot;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>    <span class="k">if</span> <span class="n">is_short</span> <span class="ow">and</span> <span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="o">!=</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">:</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="nb">max</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">final_context_top_n</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.78</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">])</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_short_query_guard&quot;</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>    <span class="k">return</span> <span class="n">params</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计分析</strong>：
+- 短问题（如"权限"、"发票"）歧义很大
+- 收缩文档检索范围，减少噪声
+- 提高直出阈值，防止"权限"误匹配到 FAQ 中某个具体权限的答案
+- 但排除 FOLLOW_UP：短追问可以通过历史改写补全，不应简单按短句收缩</p>
+<h3 id="34">3.4 问题类别保护<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p>以下是对特定高频、高风险问题类别的特殊策略：</p>
+<p><strong>费用类 — 强口径保护</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span>
+<span class="normal"><a href="#__codelineno-10-2">2</a></span>
+<span class="normal"><a href="#__codelineno-10-3">3</a></span>
+<span class="normal"><a href="#__codelineno-10-4">4</a></span>
+<span class="normal"><a href="#__codelineno-10-5">5</a></span>
+<span class="normal"><a href="#__codelineno-10-6">6</a></span>
+<span class="normal"><a href="#__codelineno-10-7">7</a></span>
+<span class="normal"><a href="#__codelineno-10-8">8</a></span>
+<span class="normal"><a href="#__codelineno-10-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_apply_risk_category</span><span class="p">(</span><span class="n">question_category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;第 3 层：按风险类别收紧检索参数。&quot;&quot;&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>    <span class="k">if</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;pricing&quot;</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">faq_top_k</span><span class="p">)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span> <span class="mi">6</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">],</span> <span class="mf">0.84</span><span class="p">)</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_pricing_guard&quot;</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a>        <span class="k">return</span> <span class="n">params</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>为什么费用类需要特殊保护</strong>："退款多少钱"、"什么时候到账"这类问题，如果 FAQ 直出了一个相似但不准确的答案，后果很严重。策略上宁可多召回资料让模型基于上下文回答，也不能凭一个 0.75 分的 FAQ 直接承诺金额。</p>
+<p><strong>合规类 — 最严格保护</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
+<span class="normal"><a href="#__codelineno-11-2">2</a></span>
+<span class="normal"><a href="#__codelineno-11-3">3</a></span>
+<span class="normal"><a href="#__codelineno-11-4">4</a></span>
+<span class="normal"><a href="#__codelineno-11-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a>    <span class="k">elif</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;compliance&quot;</span><span class="p">:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span> <span class="mi">6</span><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;direct_threshold&#39;</span><span class="p">],</span> <span class="mf">0.86</span><span class="p">)</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_compliance_guard&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>为什么合规类阈值最高</strong>：合规判断涉及法律风险，不能只靠 FAQ 的标准回答。需要多条款交叉验证。<code>0.86</code> 是所有类别中最高的阈值。</p>
+<p><strong>排障类 — 扩大搜索</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
+<span class="normal"><a href="#__codelineno-12-2">2</a></span>
+<span class="normal"><a href="#__codelineno-12-3">3</a></span>
+<span class="normal"><a href="#__codelineno-12-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a>    <span class="k">elif</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;troubleshooting&quot;</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span> <span class="mi">6</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_troubleshooting_expanded&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>总结归纳类 — 多片段聚合</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span>
+<span class="normal"><a href="#__codelineno-13-2">2</a></span>
+<span class="normal"><a href="#__codelineno-13-3">3</a></span>
+<span class="normal"><a href="#__codelineno-13-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>    <span class="k">elif</span> <span class="n">question_category</span> <span class="o">==</span> <span class="s2">&quot;summary&quot;</span><span class="p">:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span> <span class="mi">6</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_summary_expanded&quot;</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="35">3.5 表格问题特殊处理<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1">1</a></span>
+<span class="normal"><a href="#__codelineno-14-2">2</a></span>
+<span class="normal"><a href="#__codelineno-14-3">3</a></span>
+<span class="normal"><a href="#__codelineno-14-4">4</a></span>
+<span class="normal"><a href="#__codelineno-14-5">5</a></span>
+<span class="normal"><a href="#__codelineno-14-6">6</a></span>
+<span class="normal"><a href="#__codelineno-14-7">7</a></span>
+<span class="normal"><a href="#__codelineno-14-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_apply_table_preference</span><span class="p">(</span><span class="n">prefer_table</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">run_doc</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;第 4 层：表格类问题扩大候选、关闭相似 FAQ 直出。&quot;&quot;&quot;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3"></a>    <span class="k">if</span> <span class="n">prefer_table</span> <span class="ow">and</span> <span class="n">run_doc</span><span class="p">:</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;doc_top_k&#39;</span><span class="p">],</span> <span class="n">settings</span><span class="o">.</span><span class="n">doc_complex_query_top_k</span><span class="p">)</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;final_context_top_n&#39;</span><span class="p">],</span> <span class="mi">7</span><span class="p">)</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;faq_direct_exact_only&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7"></a>        <span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_table_row_preferred&quot;</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8"></a>    <span class="k">return</span> <span class="n">params</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>为什么表格问题要禁用相似 FAQ 直出</strong>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1">1</a></span>
+<span class="normal"><a href="#__codelineno-15-2">2</a></span>
+<span class="normal"><a href="#__codelineno-15-3">3</a></span>
+<span class="normal"><a href="#__codelineno-15-4">4</a></span>
+<span class="normal"><a href="#__codelineno-15-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a>用户问：&quot;验收材料清单里测试报告那一行是什么状态&quot;
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a>FAQ 泛化回答：&quot;验收需要提交测试报告、施工照片、检测记录&quot;
+<a id="__codelineno-15-3" name="__codelineno-15-3"></a>→ 这个 FAQ 答的是&quot;需要哪些材料&quot;，不是&quot;某个具体字段的值&quot;
+<a id="__codelineno-15-4" name="__codelineno-15-4"></a>→ 相似分数可能不低（都含&quot;验收&quot;&quot;测试报告&quot;），但答非所问
+<a id="__codelineno-15-5" name="__codelineno-15-5"></a>→ 所以只允许精确匹配的 FAQ 直出，相似直出必须走文档 RAG
+</code></pre></div></td></tr></table></div>
+<p><code>prefer_table</code> 标志还会影响后续的上下文选择逻辑：在同等分数下，优先保留表格行而非普通文本段落。</p>
+<hr />
+<h2 id="_3">第四部分：动态阈值的设计哲学<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 阈值阶梯总览<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart LR
+    subgraph Ladder["FAQ 直出阈值阶梯"]
+        direction TB
+        L0["0.62 FAQ_QUERY<br/>标准问答，可信度高"]:::low
+        L1["0.72 默认值<br/>KNOWLEDGE_QUERY"]:::mid
+        L2["0.78 FOLLOW_UP<br/>追问信息不完整"]:::midhigh
+        L3["0.78+ 短问题<br/>歧义大，谨慎"]:::midhigh
+        L4["0.84 费用类<br/>涉及金额，必须谨慎"]:::high
+        L5["0.86 合规类<br/>涉及法律风险，最谨慎"]:::strict
+    end
+
+    subgraph Principle["核心原则"]
+        P["FAQ 误直出 比 '信息不足' 更危险"]
+        P1["信息不足 → 用户联系人工 → 安全"]
+        P2["误直出 → 自信地给出错误答案 → 危险"]
+    end
+
+    classDef low fill:#ECFDF5,stroke:#34D399,stroke-width:2px
+    classDef mid fill:#EFF6FF,stroke:#60A5FA,stroke-width:2px
+    classDef midhigh fill:#FFFBEB,stroke:#FBBF24,stroke-width:2px
+    classDef high fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px
+    classDef strict fill:#FEF2F2,stroke:#F87171,stroke-width:2px</div>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>最低阈值</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FAQ_QUERY</td>
+<td>0.62</td>
+<td>FAQ 标准答案可信，可以较低</td>
+</tr>
+<tr>
+<td>KNOWLEDGE_QUERY</td>
+<td>0.72（默认）</td>
+<td>标准值</td>
+</tr>
+<tr>
+<td>FOLLOW_UP</td>
+<td>0.78</td>
+<td>追问信息不完整，谨慎</td>
+</tr>
+<tr>
+<td>短问题</td>
+<td>0.78+</td>
+<td>歧义大，谨慎</td>
+</tr>
+<tr>
+<td>费用类</td>
+<td>0.84</td>
+<td>涉及金额，必须谨慎</td>
+</tr>
+<tr>
+<td>合规类</td>
+<td>0.86</td>
+<td>涉及法律风险，最谨慎</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42">4.2 一个贯穿始终的原则<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
+<p><strong>FAQ 误直出比"信息不足"更危险。</strong></p>
+<ul>
+<li><strong>信息不足</strong> → 提示用户联系人工客服 → 用户知道系统不能确定答案</li>
+<li><strong>FAQ 误直出</strong> → 系统自信地给出错误信息 → 用户被误导 → 可能产生严重后果</li>
+</ul>
+<p>这就是为什么在费用、合规、追问等场景下宁可提高阈值也不降低的原因。</p>
+<h3 id="43-reason">4.3 Reason 字段的意义<a class="headerlink" href="#43-reason" title="Permanent link">&para;</a></h3>
+<p>每个策略分支都有一个 <code>reason</code> 字符串，它会写入 LangSmith trace，并在必要时用于本地排查：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span>
+<span class="normal"><a href="#__codelineno-16-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="c1"># 举例</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a><span class="n">reason</span> <span class="o">=</span> <span class="s2">&quot;faq_first_short_query_guard_pricing_guard&quot;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3"></a><span class="c1"># 解读：这是一个 FAQ 倾向的问题，但因为是短问题+费用类，整体阈值提高了</span>
+</code></pre></div></td></tr></table></div>
+<p>这保证了<strong>可解释性</strong>：后续排查 bad case 时，可以直接看到这个请求为什么走了某套参数，而不是猜测。</p>
+<hr />
+<h2 id="_4">第五部分：检索计划与下游的衔接<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="build_retrieval_plan_1">build_retrieval_plan() 完整决策流程<a class="headerlink" href="#build_retrieval_plan_1" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Input(["query + IntentResult"]) --> Base["读取 Settings 基础参数<br/>faq_top_k, doc_top_k, threshold..."]
+
+    Base --> Check{"第 1 层：intent 类型？"}
+
+    Check -->|"直接答案"| NoRetrieval["run_faq=false<br/>run_doc=false<br/>threshold=1.0"]
+    Check -->|"FAQ_QUERY"| FaqFirst["doc_top_k 减半<br/>threshold = max(0.62, base-0.08)<br/>reason: faq_first"]
+    Check -->|"KNOWLEDGE_QUERY"| Knowledge["doc_top_k = 复杂查询值<br/>final_context_top_n ≥ 5<br/>reason: knowledge_doc_enriched"]
+    Check -->|"FOLLOW_UP"| FollowUp["faq_top_k ≥ 24<br/>doc_top_k = 复杂查询值<br/>threshold ≥ 0.78<br/>reason: follow_up"]
+
+    FaqFirst --> ShortGuard
+    Knowledge --> ShortGuard
+    FollowUp --> ShortGuard
+
+    ShortGuard{"第 2 层：is_short?<br/>且非 FOLLOW_UP"} -->|"是"| Short["收缩 doc_top_k<br/>提高 threshold ≥ 0.78"]
+    ShortGuard -->|"否"| Category
+
+    Short --> Category{"第 3 层：question_category?"}
+
+    Category -->|"pricing"| Pricing["threshold ≥ 0.84<br/>扩大文档候选<br/>reason: pricing_guard"]
+    Category -->|"compliance"| Compliance["threshold ≥ 0.86<br/>扩大文档候选<br/>reason: compliance_guard"]
+    Category -->|"troubleshooting"| TShooting["扩大文档候选<br/>reason: troubleshooting_expanded"]
+    Category -->|"summary"| Summary["扩大文档候选<br/>reason: summary_expanded"]
+    Category -->|"其他"| Table
+
+    Pricing --> Table{"第 4 层：prefer_table?"}
+    Compliance --> Table
+    TShooting --> Table
+    Summary --> Table
+
+    Table -->|"是"| TableYes["扩大 doc_top_k<br/>faq_direct_exact_only=true<br/>优先保留表格行"]
+    Table -->|"否"| Final
+
+    TableYes --> Final(["RetrievalPlan<br/>包含 reason 字段"])
+
+    style NoRetrieval fill:#FEF2F2,stroke:#DC2626
+    style FaqFirst fill:#ECFDF5,stroke:#059669
+    style Knowledge fill:#EFF6FF,stroke:#2563EB
+    style FollowUp fill:#FFFBEB,stroke:#D97706
+    style Pricing fill:#FEF3C7,stroke:#F59E0B
+    style Compliance fill:#FEF2F2,stroke:#F87171</div>
+<h3 id="51-rag">5.1 在 RAG 流程中的使用<a class="headerlink" href="#51-rag" title="Permanent link">&para;</a></h3>
+<p>上面流程图展示了 <code>build_retrieval_plan()</code> 内部的 4 层决策。但读者容易困惑的是：<strong><code>RetrievalPlan</code> 创建出来后，到底是怎么被下游函数消费的？</strong> 下面逐段展示代码中的实际衔接点。</p>
+<p><strong>Step 1 — plan 的创建：<code>prepare_retrieval()</code></strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-17-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-17-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-17-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-17-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-17-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-17-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-17-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-17-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-17-10">10</a></span>
+<span class="normal"><a href="#__codelineno-17-11">11</a></span>
+<span class="normal"><a href="#__codelineno-17-12">12</a></span>
+<span class="normal"><a href="#__codelineno-17-13">13</a></span>
+<span class="normal"><a href="#__codelineno-17-14">14</a></span>
+<span class="normal"><a href="#__codelineno-17-15">15</a></span>
+<span class="normal"><a href="#__codelineno-17-16">16</a></span>
+<span class="normal"><a href="#__codelineno-17-17">17</a></span>
+<span class="normal"><a href="#__codelineno-17-18">18</a></span>
+<span class="normal"><a href="#__codelineno-17-19">19</a></span>
+<span class="normal"><a href="#__codelineno-17-20">20</a></span>
+<span class="normal"><a href="#__codelineno-17-21">21</a></span>
+<span class="normal"><a href="#__codelineno-17-22">22</a></span>
+<span class="normal"><a href="#__codelineno-17-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a><span class="c1"># qa_core/pipeline/steps.py — prepare_retrieval()</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a><span class="c1"># 这一步在意图识别和查询改写之后，调用 build_retrieval_plan() 创建 plan，</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a><span class="c1"># 然后连同其他参数一起打包到 RetrievalPreparation 对象中。</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4"></a>
+<a id="__codelineno-17-5" name="__codelineno-17-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">prepare_retrieval</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6"></a>    <span class="o">...</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7"></a>    <span class="n">intent</span> <span class="o">=</span> <span class="n">classify_intent</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">scenario</span><span class="p">)</span>          <span class="c1"># 意图识别</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8"></a>    <span class="n">rewritten</span> <span class="o">=</span> <span class="n">rewrite_query_if_needed</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>    <span class="c1"># 查询改写</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9"></a>
+<a id="__codelineno-17-10" name="__codelineno-17-10"></a>    <span class="c1"># ★ plan 在此创建 — 对应上方流程图的第 1~4 层决策</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11"></a>    <span class="n">plan</span> <span class="o">=</span> <span class="n">build_retrieval_plan</span><span class="p">(</span><span class="n">rewritten</span><span class="p">,</span> <span class="n">intent</span><span class="p">)</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12"></a>
+<a id="__codelineno-17-13" name="__codelineno-17-13"></a>    <span class="c1"># plan.use_query_variants 控制是否生成同义检索表达</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14"></a>    <span class="n">variants</span> <span class="o">=</span> <span class="n">generate_query_variants</span><span class="p">(</span><span class="n">rewritten</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">use_query_variants</span><span class="p">)</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15"></a>
+<a id="__codelineno-17-16" name="__codelineno-17-16"></a>    <span class="c1"># 返回的统一参数包，后续所有步骤只读不写</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17"></a>    <span class="k">return</span> <span class="n">RetrievalPreparation</span><span class="p">(</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18"></a>        <span class="n">intent</span><span class="o">=</span><span class="n">intent</span><span class="p">,</span>
+<a id="__codelineno-17-19" name="__codelineno-17-19"></a>        <span class="n">rewritten_query</span><span class="o">=</span><span class="n">rewritten</span><span class="p">,</span>
+<a id="__codelineno-17-20" name="__codelineno-17-20"></a>        <span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">,</span>              <span class="c1"># ★ 检索计划（核心）</span>
+<a id="__codelineno-17-21" name="__codelineno-17-21"></a>        <span class="n">query_variants</span><span class="o">=</span><span class="n">variants</span><span class="p">,</span>
+<a id="__codelineno-17-22" name="__codelineno-17-22"></a>        <span class="o">...</span>
+<a id="__codelineno-17-23" name="__codelineno-17-23"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Step 2 — plan 的消费①：<code>search_faq()</code></strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-18-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-18-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-18-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-18-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-18-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-18-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-18-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-18-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-18-10">10</a></span>
+<span class="normal"><a href="#__codelineno-18-11">11</a></span>
+<span class="normal"><a href="#__codelineno-18-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a><span class="c1"># qa_core/pipeline/retrieval_steps.py — search_faq()</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a><span class="c1"># FAQ 检索从 prepared.plan 中读取 3 个字段，传到 MilvusHybridStore.search_many()</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">search_faq</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">prepared</span><span class="p">):</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">prepared</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">run_faq</span><span class="p">:</span>          <span class="c1"># ← 流程图 &quot;直接答案&quot; 分支 → False</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6"></a>        <span class="k">return</span> <span class="n">RetrievalResult</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7"></a>    <span class="k">return</span> <span class="n">get_faq_store</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="n">search_many</span><span class="p">(</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8"></a>        <span class="n">queries</span><span class="o">=</span><span class="n">prepared</span><span class="o">.</span><span class="n">query_variants</span><span class="p">,</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9"></a>        <span class="n">k</span><span class="o">=</span><span class="n">prepared</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">faq_top_k</span><span class="p">,</span>         <span class="c1"># ← 流程图决定的值（默认 20，短问题/追问可调）</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10"></a>        <span class="n">rerank</span><span class="o">=</span><span class="n">prepared</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">rerank</span><span class="p">,</span>       <span class="c1"># ← 始终 True，启用 CrossEncoder 重排</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11"></a>        <span class="o">...</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Step 3 — plan 的消费②：<code>get_faq_direct_answer()</code></strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-19-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-19-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-19-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-19-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-19-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-19-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-19-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-19-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-19-10">10</a></span>
+<span class="normal"><a href="#__codelineno-19-11">11</a></span>
+<span class="normal"><a href="#__codelineno-19-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="c1"># qa_core/pipeline/retrieval_steps.py — get_faq_direct_answer()</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2"></a><span class="c1"># 从 plan 中读取阈值，判断 FAQ 检索结果是否可以直接返回。</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_faq_direct_answer</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">prepared</span><span class="p">,</span> <span class="n">faq_result</span><span class="p">):</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5"></a>    <span class="c1"># faq_direct_exact_only 来自流程图的 prefer_table 分支 → True</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6"></a>    <span class="c1"># faq_direct_threshold 来自流程图的 FAQ_QUERY(0.62~)/pricing(0.84)/compliance(0.86) 分支</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7"></a>    <span class="n">threshold</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8"></a>        <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>  <span class="c1"># ← 只允许精确匹配（表格类问题）</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9"></a>        <span class="k">if</span> <span class="n">prepared</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">faq_direct_exact_only</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10"></a>        <span class="k">else</span> <span class="n">prepared</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">faq_direct_threshold</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11"></a>    <span class="p">)</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12"></a>    <span class="k">return</span> <span class="n">direct_faq_answer</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">faq_result</span><span class="o">.</span><span class="n">top_document</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong><code>direct_faq_answer()</code> 的实现</strong></p>
+<p>被调用的 <code>direct_faq_answer()</code> 定义在 <code>qa_core/pipeline/context.py</code> 中，判断 FAQ 结果是否可以不经过 LLM 直接返回标准答案。只允许两种情况：
+1. 用户问题和 FAQ 标准问题完全一致；
+2. 检索/重排分数达到当前 <code>RetrievalPlan</code> 给出的动态阈值。</p>
+<p>FAQ 答案通常是费用、流程、账号、合同等强口径内容，直出可以减少幻觉，但相似问题误直出风险很高，不能只要召回就返回。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-20-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-20-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-20-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-20-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-20-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-20-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-20-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-20-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-20-10">10</a></span>
+<span class="normal"><a href="#__codelineno-20-11">11</a></span>
+<span class="normal"><a href="#__codelineno-20-12">12</a></span>
+<span class="normal"><a href="#__codelineno-20-13">13</a></span>
+<span class="normal"><a href="#__codelineno-20-14">14</a></span>
+<span class="normal"><a href="#__codelineno-20-15">15</a></span>
+<span class="normal"><a href="#__codelineno-20-16">16</a></span>
+<span class="normal"><a href="#__codelineno-20-17">17</a></span>
+<span class="normal"><a href="#__codelineno-20-18">18</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">direct_faq_answer</span><span class="p">(</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2"></a>    <span class="n">original_query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">Document</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">score</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;判断 FAQ 是否可以不经过 LLM 直接返回标准答案。&quot;&quot;&quot;</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5"></a>    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6"></a>        <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7"></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8"></a>    <span class="n">answer</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;answer&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9"></a>    <span class="n">standard_question</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10"></a>        <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;standard_question&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">page_content</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11"></a>    <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">answer</span><span class="p">:</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13"></a>        <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14"></a>    <span class="k">if</span> <span class="n">original_query</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">standard_question</span><span class="p">:</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15"></a>        <span class="k">return</span> <span class="n">answer</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16"></a>    <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17"></a>        <span class="k">return</span> <span class="n">answer</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18"></a>    <span class="k">return</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>Step 4 — plan 的消费③：<code>select_context_docs()</code></strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-21-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-21-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-21-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-21-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-21-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-21-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-21-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-21-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-21-10">10</a></span>
+<span class="normal"><a href="#__codelineno-21-11">11</a></span>
+<span class="normal"><a href="#__codelineno-21-12">12</a></span>
+<span class="normal"><a href="#__codelineno-21-13">13</a></span>
+<span class="normal"><a href="#__codelineno-21-14">14</a></span>
+<span class="normal"><a href="#__codelineno-21-15">15</a></span>
+<span class="normal"><a href="#__codelineno-21-16">16</a></span>
+<span class="normal"><a href="#__codelineno-21-17">17</a></span>
+<span class="normal"><a href="#__codelineno-21-18">18</a></span>
+<span class="normal"><a href="#__codelineno-21-19">19</a></span>
+<span class="normal"><a href="#__codelineno-21-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1"></a><span class="c1"># qa_core/pipeline/context.py — select_context_docs()</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2"></a><span class="c1"># 这是 plan 被消费得最密集的地方，5 个字段同时生效。</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">select_context_docs</span><span class="p">(</span><span class="n">faq_hits</span><span class="p">,</span> <span class="n">doc_hits</span><span class="p">,</span> <span class="n">plan</span><span class="p">):</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5"></a>    <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">faq_hits</span><span class="p">:</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6"></a>        <span class="k">if</span> <span class="n">hit</span><span class="o">.</span><span class="n">score</span> <span class="o">&lt;</span> <span class="n">plan</span><span class="o">.</span><span class="n">min_context_score</span><span class="p">:</span>     <span class="c1"># ← 过滤低分命中</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7"></a>            <span class="k">continue</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">plan</span><span class="o">.</span><span class="n">final_context_top_n</span><span class="p">:</span>  <span class="c1"># ← 条数上限</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9"></a>            <span class="k">break</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">plan</span><span class="o">.</span><span class="n">max_context_doc_chars</span><span class="p">:</span>  <span class="c1"># ← 单条截断</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11"></a>            <span class="n">content</span> <span class="o">=</span> <span class="n">content</span><span class="p">[:</span><span class="n">plan</span><span class="o">.</span><span class="n">max_context_doc_chars</span><span class="p">]</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12"></a>        <span class="k">if</span> <span class="n">total_chars</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">plan</span><span class="o">.</span><span class="n">max_context_chars</span><span class="p">:</span>  <span class="c1"># ← 总量上限</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13"></a>            <span class="k">break</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14"></a>        <span class="n">selected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15"></a>
+<a id="__codelineno-21-16" name="__codelineno-21-16"></a>    <span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">prefer_table</span><span class="p">:</span>  <span class="c1"># ← 表格类问题：表格行排到普通正文前</span>
+<a id="__codelineno-21-17" name="__codelineno-21-17"></a>        <span class="n">doc_hits</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">doc_hits</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">h</span><span class="p">:</span> <span class="p">(</span>
+<a id="__codelineno-21-18" name="__codelineno-21-18"></a>            <span class="mi">0</span> <span class="k">if</span> <span class="n">is_table_document</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">document</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">h</span><span class="o">.</span><span class="n">score</span>
+<a id="__codelineno-21-19" name="__codelineno-21-19"></a>        <span class="p">))</span>
+<a id="__codelineno-21-20" name="__codelineno-21-20"></a>    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>数据流总结 — 从流程图到代码的定位指引：</strong></p>
+<table>
+<thead>
+<tr>
+<th>流程图分支</th>
+<th>产生的 plan 字段</th>
+<th>下游消费函数（文件:行号）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直接答案</td>
+<td><code>run_faq=False, run_doc=False</code></td>
+<td><code>retrieval_steps.py</code> search_faq / search_doc</td>
+</tr>
+<tr>
+<td>FAQ_QUERY</td>
+<td><code>faq_direct_threshold = max(0.62, base-0.08)</code></td>
+<td><code>retrieval_steps.py</code> get_faq_direct_answer</td>
+</tr>
+<tr>
+<td>FOLLOW_UP</td>
+<td><code>faq_top_k ≥ 24, threshold ≥ 0.78</code></td>
+<td><code>retrieval_steps.py</code> search_faq + get_faq_direct_answer</td>
+</tr>
+<tr>
+<td>pricing 类别</td>
+<td><code>threshold ≥ 0.84, final_context_top_n ≥ 6</code></td>
+<td><code>retrieval_steps.py</code> + <code>context.py</code> select_context_docs</td>
+</tr>
+<tr>
+<td>compliance 类别</td>
+<td><code>threshold ≥ 0.86, final_context_top_n ≥ 6</code></td>
+<td><code>retrieval_steps.py</code> + <code>context.py</code> select_context_docs</td>
+</tr>
+<tr>
+<td>prefer_table</td>
+<td><code>faq_direct_exact_only=True, doc_top_k 扩大</code></td>
+<td><code>retrieval_steps.py</code> + <code>context.py</code> select_context_docs</td>
+</tr>
+<tr>
+<td>所有分支</td>
+<td><code>use_query_variants</code></td>
+<td><code>steps.py</code> generate_query_variants</td>
+</tr>
+<tr>
+<td>所有分支</td>
+<td><code>reason</code></td>
+<td><code>steps.py</code> → retrieval_info → LangSmith trace</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-faq-store-doc-store">5.2 FAQ Store 和 Doc Store 的工厂模式<a class="headerlink" href="#52-faq-store-doc-store" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-22-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-22-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-22-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-22-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-22-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-22-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-22-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-22-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-22-10">10</a></span>
+<span class="normal"><a href="#__codelineno-22-11">11</a></span>
+<span class="normal"><a href="#__codelineno-22-12">12</a></span>
+<span class="normal"><a href="#__codelineno-22-13">13</a></span>
+<span class="normal"><a href="#__codelineno-22-14">14</a></span>
+<span class="normal"><a href="#__codelineno-22-15">15</a></span>
+<span class="normal"><a href="#__codelineno-22-16">16</a></span>
+<span class="normal"><a href="#__codelineno-22-17">17</a></span>
+<span class="normal"><a href="#__codelineno-22-18">18</a></span>
+<span class="normal"><a href="#__codelineno-22-19">19</a></span>
+<span class="normal"><a href="#__codelineno-22-20">20</a></span>
+<span class="normal"><a href="#__codelineno-22-21">21</a></span>
+<span class="normal"><a href="#__codelineno-22-22">22</a></span>
+<span class="normal"><a href="#__codelineno-22-23">23</a></span>
+<span class="normal"><a href="#__codelineno-22-24">24</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="c1"># qa_core/retrieval/factory.py</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4"></a><span class="c1"># 真正的缓存发生在 get_hybrid_store 级别。collection 连接是重量级对象，</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5"></a><span class="c1"># 只需按 collection_name 缓存一次即可复用。</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6"></a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_hybrid_store</span><span class="p">(</span><span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MilvusHybridStore</span><span class="p">:</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;按 collection_name 返回已缓存的 Milvus 混合检索封装。&quot;&quot;&quot;</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9"></a>    <span class="k">return</span> <span class="n">MilvusHybridStore</span><span class="p">(</span><span class="n">collection_name</span><span class="p">)</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10"></a>
+<a id="__codelineno-22-11" name="__codelineno-22-11"></a>
+<a id="__codelineno-22-12" name="__codelineno-22-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_faq_store</span><span class="p">(</span><span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MilvusHybridStore</span><span class="p">:</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;返回已缓存的 FAQ 集合封装。</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14"></a>
+<a id="__codelineno-22-15" name="__codelineno-22-15"></a><span class="sd">    不直接带 @lru_cache：当 collection_name 为 None 时会回落为当前</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16"></a><span class="sd">    active 场景的默认 FAQ collection，该默认值可能在运行时变化。</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17"></a><span class="sd">    真正的连接复用交给 get_hybrid_store 处理。</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19"></a>    <span class="k">return</span> <span class="n">get_hybrid_store</span><span class="p">(</span><span class="n">collection_name</span> <span class="ow">or</span> <span class="n">_active_scenario_collection</span><span class="p">(</span><span class="s2">&quot;faq&quot;</span><span class="p">))</span>
+<a id="__codelineno-22-20" name="__codelineno-22-20"></a>
+<a id="__codelineno-22-21" name="__codelineno-22-21"></a>
+<a id="__codelineno-22-22" name="__codelineno-22-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_doc_store</span><span class="p">(</span><span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MilvusHybridStore</span><span class="p">:</span>
+<a id="__codelineno-22-23" name="__codelineno-22-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;返回已缓存的文档集合封装。&quot;&quot;&quot;</span>
+<a id="__codelineno-22-24" name="__codelineno-22-24"></a>    <span class="k">return</span> <span class="n">get_hybrid_store</span><span class="p">(</span><span class="n">collection_name</span> <span class="ow">or</span> <span class="n">_active_scenario_collection</span><span class="p">(</span><span class="s2">&quot;doc&quot;</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+<blockquote>
+<p><strong>注意</strong>：缓存（<code>@lru_cache</code>）位于 <code>get_hybrid_store</code> 而非 <code>get_faq_store</code> / <code>get_doc_store</code> 上。两个高层函数接收可选的 <code>collection_name</code> 参数（而非 <code>scenario_id</code>），在未指定时自动回落为当前 active 场景的默认 collection。这样设计使得缓存 key 始终是 <code>collection_name</code> 字符串，避免了因 scenario 元数据变化导致的缓存膨胀；同时 <code>get_faq_store</code> / <code>get_doc_store</code> 本身保持无状态，便于在运行时切换默认场景。</p>
+</blockquote>
+<hr />
+<h2 id="_5">重点掌握<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>RetrievalPlan 的完整结构和每个字段的含义（run_faq/run_doc、faq_top_k/doc_top_k、rerank、faq_direct_threshold、final_context_top_n、use_query_variants 等）</td>
+<td>检索计划是整个 RAG 策略的数据核心</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>build_retrieval_plan() 的四层决策链：意图分支 → 短问题保护 → 问题类别保护 → 表格偏好</td>
+<td>理解动态检索策略如何逐层叠加</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>动态阈值设计哲学：FAQ_QUERY(0.62) → KNOWLEDGE_QUERY(0.72) → FOLLOW_UP(0.78) → 费用类(0.84) → 合规类(0.86)，FAQ 误直出比信息不足更危险</td>
+<td>面试高频，理解"宁可不说也不乱说"的原则</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>意图分支的四种策略：直接答案（不检索）、FAQ 优先（doc_top_k 减半）、知识咨询（扩大文档）、追问（提高阈值）</td>
+<td>意图到检索参数的映射逻辑</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>短问题保护（_apply_short_query_guard）：歧义大的短问题收缩检索范围、提高阈值</td>
+<td>防误判的重要保护机制</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>问题类别保护：费用类(0.84)需确认金额、合规类(0.86)不能自行判断、排障类扩大搜索</td>
+<td>高风险场景的特殊处理</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>reason 字段的可解释性设计（如 "faq_first_short_query_guard_pricing_guard"）</td>
+<td>Trace 排查时使用</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>表格问题（prefer_table）时禁用相似 FAQ 直出</td>
+<td>边缘场景的保护策略</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">本讲小结<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>检索策略不是全局常量</strong>，是根据意图、问题类别、问题长度动态生成的 RetrievalPlan</li>
+<li><strong>六个意图</strong>对应不同的检索参数：直接答案不检索、FAQ 优先低阈值、知识咨询扩大文档、追问提高阈值</li>
+<li><strong>问题类别保护</strong>：费用类(0.84)、合规类(0.86) — FAQ 误直出比信息不足更危险</li>
+<li><strong>短问题保护</strong>：歧义大的短问题提高阈值、收缩文档检索，但排除可通过历史改写的追问</li>
+<li><strong>表格问题</strong>：扩大文档候选，禁用相似 FAQ 直出，优先保留表格行</li>
+<li><strong>动态阈值</strong>的每一档都有原因，体现在 <code>reason</code> 字段中</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./05-query-rewrite-variants.html">查询改写与变体生成</a> — 追问改写、查询扩展、多轮对话历史管理</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/03-intent-classification.html"><i class="fas fa-arrow-left"></i> 03 意图分类</a>
+        <a class="pager-link next" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

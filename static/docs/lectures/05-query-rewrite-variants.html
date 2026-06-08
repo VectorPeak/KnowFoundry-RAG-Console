@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5讲：查询改写与变体生成 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="5">第5讲：查询改写与变体生成<a class="headerlink" href="#5" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./04-retrieval-strategy.html">检索策略与动态计划</a><br />
+<strong>下一讲</strong>：<a href="./06-milvus-hybrid-search.html">Milvus 混合检索深度解析</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解多轮对话中追问问题的处理机制</li>
+<li>掌握查询改写（Query Rewrite）的触发条件和工作原理</li>
+<li>理解查询变体（Query Variants）如何提升召回覆盖率</li>
+</ul>
+<hr />
+<blockquote>
+<h2 id="_2">本讲涉及的框架概念（快速锚点）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>本讲涉及 LLM 调用和对话历史管理。如果还没学第 11 讲（LangChain），这里给出最小概念：</p>
+<p><strong>ChatOpenAI.invoke(messages)</strong>：向 LLM 发送一个消息列表，等待完整返回。本讲用它把"审批呢"改写成"入职审批流程需要多长时间"。</p>
+<p><strong>消息类型</strong>：LangChain 用 <code>HumanMessage</code>（用户说的）、<code>AIMessage</code>（模型回的）、<code>SystemMessage</code>（系统指令）组织对话。改写时需要把前几轮的 HumanMessage 和 AIMessage 一起传给 LLM，它才知道"审批呢"指的是什么。</p>
+<p><strong>对话历史管理</strong>：本项目的 <code>SQLChatMessageHistory</code> 把对话存 MySQL。改写时从数据库取出最近 N 轮，拼成消息列表，加上改写指令，发给 LLM。</p>
+<p>深入原理见 <a href="./11-langchain-ecosystem.html">第11讲：LangChain 生态系统</a>。</p>
+</blockquote>
+<hr />
+<h2 id="_3">第一部分：前置知识 — 多轮对话中的指代消解<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 为什么追问需要特殊处理<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>在真实对话中，用户的后续问题往往依赖于前文的上下文：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>用户：入职流程有哪些步骤？
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>AI：入职流程包括：1. 提交材料 2. 签订合同 3. 部门审批 4. 领取工位...
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>用户：那审批需要多久？          ← 这是一个追问
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>      ↑ &quot;那审批&quot; 指的是什么审批？不结合历史无法理解
+</code></pre></div></td></tr></table></div>
+<p>如果直接把"那审批需要多久"发给 Milvus 做向量检索：
+- 检索到的可能是"请假审批"、"报销审批"、"采购审批"……
+- 因为向量只看到"审批"和"多久"，不知道上下文是"入职流程"</p>
+<p><strong>这就是追问改写的必要性</strong>：把依赖上下文的问题补全为独立的检索问题。</p>
+<h3 id="12">1.2 指代消解的概念<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<p><strong>指代消解（Anaphora Resolution）</strong> 是 NLP 的一个经典问题：确定代词或省略的主体指什么。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>&quot;那审批呢&quot; → &quot;那&quot; 指代的是 入职流程中的审批步骤
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>&quot;费用呢&quot;   → &quot;费用&quot; 需要结合上文确定是 入职费用 还是 培训费用
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>&quot;还有吗&quot;   → 需要结合上文确定在问什么&quot;还有&quot;
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="query-rewrite">第二部分：查询改写（Query Rewrite）<a class="headerlink" href="#query-rewrite" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 触发条件<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p>改写不是对所有问题都执行，有两个条件：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">rewrite_query_if_needed</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">history_messages</span><span class="p">,</span> <span class="n">should_rewrite</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">should_rewrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">history_messages</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>        <span class="k">return</span> <span class="n">query</span>  <span class="c1"># 直接返回原问题</span>
+</code></pre></div></td></tr></table></div>
+<ol>
+<li><strong><code>should_rewrite == True</code></strong>：由意图识别结果中的 <code>requires_rewrite</code> 控制</li>
+<li><strong><code>history_messages</code> 不为空</strong>：没有历史上下文就无法改写</li>
+</ol>
+<p><strong>哪些情况 <code>requires_rewrite</code> 为 True？</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="c1"># qa_core/intent/classifier.py — 触发 requires_rewrite 的场景</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="c1"># 场景 1：追问规则命中</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="k">if</span> <span class="n">history</span> <span class="ow">and</span> <span class="p">(</span><span class="n">FOLLOW_UP_HINTS</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mi">8</span><span class="p">):</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>    <span class="k">return</span> <span class="n">IntentResult</span><span class="p">(</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>        <span class="n">intent</span><span class="o">=</span><span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a>        <span class="n">requires_rewrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># ← 标记需要改写</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a>        <span class="o">...</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>    <span class="p">)</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a><span class="c1"># 场景 2：LLM 判断需要改写</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a><span class="k">return</span> <span class="n">IntentResult</span><span class="p">(</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>    <span class="n">intent</span><span class="o">=</span><span class="n">decision</span><span class="o">.</span><span class="n">intent</span><span class="p">,</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>    <span class="n">requires_rewrite</span><span class="o">=</span><span class="n">decision</span><span class="o">.</span><span class="n">requires_rewrite</span> <span class="ow">or</span> <span class="n">decision</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a>    <span class="o">...</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="22">2.2 改写实现<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span>
+<span class="normal"><a href="#__codelineno-4-18">18</a></span>
+<span class="normal"><a href="#__codelineno-4-19">19</a></span>
+<span class="normal"><a href="#__codelineno-4-20">20</a></span>
+<span class="normal"><a href="#__codelineno-4-21">21</a></span>
+<span class="normal"><a href="#__codelineno-4-22">22</a></span>
+<span class="normal"><a href="#__codelineno-4-23">23</a></span>
+<span class="normal"><a href="#__codelineno-4-24">24</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="c1"># qa_core/pipeline/rewrite.py</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">rewrite_query_if_needed</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">history_messages</span><span class="p">,</span> <span class="n">should_rewrite</span><span class="p">):</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">should_rewrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">history_messages</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>        <span class="k">return</span> <span class="n">query</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a>    <span class="c1"># 只取最近 8 条历史 — 聚焦当前话题</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="n">history_text</span> <span class="o">=</span> <span class="n">format_messages</span><span class="p">(</span><span class="n">history_messages</span><span class="p">[</span><span class="o">-</span><span class="mi">8</span><span class="p">:])</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>    <span class="n">llm</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 非流式，需要完整结果</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">REWRITE_SYSTEM_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a>        <span class="n">HumanMessage</span><span class="p">(</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a>            <span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;对话历史：</span><span class="se">\n</span><span class="si">{</span><span class="n">history_text</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a>                    <span class="sa">f</span><span class="s2">&quot;当前问题：</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a>                    <span class="sa">f</span><span class="s2">&quot;改写后的检索问题：&quot;</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a>        <span class="p">),</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19"></a>    <span class="p">])</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a>
+<a id="__codelineno-4-21" name="__codelineno-4-21"></a>    <span class="n">rewritten</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">rewritten</span><span class="p">:</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;查询改写返回空结果，无法生成独立检索问题。&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24"></a>    <span class="k">return</span> <span class="n">rewritten</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="23-prompt">2.3 改写 Prompt 设计<a class="headerlink" href="#23-prompt" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span>
+<span class="normal"><a href="#__codelineno-5-17">17</a></span>
+<span class="normal"><a href="#__codelineno-5-18">18</a></span>
+<span class="normal"><a href="#__codelineno-5-19">19</a></span>
+<span class="normal"><a href="#__codelineno-5-20">20</a></span>
+<span class="normal"><a href="#__codelineno-5-21">21</a></span>
+<span class="normal"><a href="#__codelineno-5-22">22</a></span>
+<span class="normal"><a href="#__codelineno-5-23">23</a></span>
+<span class="normal"><a href="#__codelineno-5-24">24</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="n">REWRITE_SYSTEM_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="s2">你是一个查询改写助手。你的任务是把用户的追问问题改写成独立的检索问题。</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="s2">规则：</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="s2">1. 如果问题已经可以独立理解，直接返回原问题</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="s2">2. 如果问题包含代词（那、这个、它、他们）或依赖上文，请结合对话历史补全</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="s2">3. 补全后的检索问题应该包含具体的实体和动作</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a><span class="s2">4. 只返回改写后的问题，不要加任何解释</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="s2">示例：</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="s2">对话历史：</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a><span class="s2">用户：入职流程有哪些步骤</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="s2">AI：入职流程包括提交材料、签订合同、部门审批...</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="s2">当前问题：那审批呢</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="s2">改写后的检索问题：入职流程中的审批步骤是什么</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18"></a><span class="s2">对话历史：</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19"></a><span class="s2">用户：API 限流怎么处理</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20"></a><span class="s2">AI：API 限流可以通过升级套餐或联系技术支持处理...</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22"></a><span class="s2">当前问题：升级套餐多少钱</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a><span class="s2">改写后的检索问题：API 限流相关套餐的升级费用是多少</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24"></a><span class="s2">&quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="24">2.4 为什么要限制历史长度<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="n">history_text</span> <span class="o">=</span> <span class="n">format_messages</span><span class="p">(</span><span class="n">history_messages</span><span class="p">[</span><span class="o">-</span><span class="mi">8</span><span class="p">:])</span>  <span class="c1"># 只取最近 8 条</span>
+</code></pre></div></td></tr></table></div>
+<ul>
+<li><strong>效率</strong>：发送给 LLM 的 token 数减少，改写延迟降低</li>
+<li><strong>聚焦</strong>：只取最近的对话，让改写聚焦当前追问主题</li>
+<li><strong>防止跑题</strong>：如果用户 14 轮之前问的是"入职"，现在问的是"报销"，取全部历史反而会让改写混淆</li>
+</ul>
+<h3 id="25">2.5 完整问题不改写的原则<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">should_rewrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">history_messages</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>    <span class="k">return</span> <span class="n">query</span>  <span class="c1"># 直接返回原问题，不做任何修改</span>
+</code></pre></div></td></tr></table></div>
+<p>对于完整、自包含的问题（如"入职流程有哪些步骤"、"API 密钥怎么生成"），保持原样是最好的做法。让 LLM 改写清晰的问题可能会导致"改偏"——原本明确的问题被改成模糊的。</p>
+<hr />
+<h2 id="query-variants">第三部分：查询变体（Query Variants）<a class="headerlink" href="#query-variants" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 为什么需要查询变体<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>用户的问题表述方式可能和知识库中的表述不一致。例如：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a>用户问：新人入职当天要带什么
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>知识库写：入职报到需提交的材料清单
+</code></pre></div></td></tr></table></div>
+<p>虽然语义相近（Embedding 能找到），但关键词完全不同（BM25 找不到了）。</p>
+<p><strong>查询变体</strong>的思路：把用户的原始问题扩展成多个等价表达，每个都去检索，提高命中率。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span>
+<span class="normal"><a href="#__codelineno-9-2">2</a></span>
+<span class="normal"><a href="#__codelineno-9-3">3</a></span>
+<span class="normal"><a href="#__codelineno-9-4">4</a></span>
+<span class="normal"><a href="#__codelineno-9-5">5</a></span>
+<span class="normal"><a href="#__codelineno-9-6">6</a></span>
+<span class="normal"><a href="#__codelineno-9-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="n">原始问题</span><span class="err">：</span><span class="s2">&quot;新人入职当天要带什么&quot;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a><span class="n">查询变体</span><span class="err">：</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>  <span class="mf">1.</span> <span class="s2">&quot;新人入职当天要带什么&quot;</span>        <span class="err">←</span> <span class="n">原问题</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>  <span class="mf">2.</span> <span class="s2">&quot;入职报到需要提交哪些材料&quot;</span>    <span class="err">←</span> <span class="n">正式表述</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>  <span class="mf">3.</span> <span class="s2">&quot;入职当天需要准备什么文件&quot;</span>    <span class="err">←</span> <span class="n">另一种问法</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>  <span class="mf">4.</span> <span class="s2">&quot;入职需要携带的证件和材料&quot;</span>    <span class="err">←</span> <span class="n">更具体的表述</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="32">3.2 两种生成方式<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<p><strong>方式 1：规则生成（本地，不用 LLM）</strong></p>
+<p>对于能从 scene TOML 中推断出 source 的短问题，使用关键词替换生成变体：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-10-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-10-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-10-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-10-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-10-10">10</a></span>
+<span class="normal"><a href="#__codelineno-10-11">11</a></span>
+<span class="normal"><a href="#__codelineno-10-12">12</a></span>
+<span class="normal"><a href="#__codelineno-10-13">13</a></span>
+<span class="normal"><a href="#__codelineno-10-14">14</a></span>
+<span class="normal"><a href="#__codelineno-10-15">15</a></span>
+<span class="normal"><a href="#__codelineno-10-16">16</a></span>
+<span class="normal"><a href="#__codelineno-10-17">17</a></span>
+<span class="normal"><a href="#__codelineno-10-18">18</a></span>
+<span class="normal"><a href="#__codelineno-10-19">19</a></span>
+<span class="normal"><a href="#__codelineno-10-20">20</a></span>
+<span class="normal"><a href="#__codelineno-10-21">21</a></span>
+<span class="normal"><a href="#__codelineno-10-22">22</a></span>
+<span class="normal"><a href="#__codelineno-10-23">23</a></span>
+<span class="normal"><a href="#__codelineno-10-24">24</a></span>
+<span class="normal"><a href="#__codelineno-10-25">25</a></span>
+<span class="normal"><a href="#__codelineno-10-26">26</a></span>
+<span class="normal"><a href="#__codelineno-10-27">27</a></span>
+<span class="normal"><a href="#__codelineno-10-28">28</a></span>
+<span class="normal"><a href="#__codelineno-10-29">29</a></span>
+<span class="normal"><a href="#__codelineno-10-30">30</a></span>
+<span class="normal"><a href="#__codelineno-10-31">31</a></span>
+<span class="normal"><a href="#__codelineno-10-32">32</a></span>
+<span class="normal"><a href="#__codelineno-10-33">33</a></span>
+<span class="normal"><a href="#__codelineno-10-34">34</a></span>
+<span class="normal"><a href="#__codelineno-10-35">35</a></span>
+<span class="normal"><a href="#__codelineno-10-36">36</a></span>
+<span class="normal"><a href="#__codelineno-10-37">37</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="c1"># qa_core/pipeline/query_variants.py</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_query_variants</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;返回&quot;原问题 + 少量同义检索表达&quot;。</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a><span class="sd">    该函数是召回增强，不是问题改写。返回值同时传给 FAQ 和文档集合的 search_many()。</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a><span class="sd">    生成策略分 3 层：</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="sd">    1. enabled=False 或配置关闭 → 直接返回 [原问题]</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a><span class="sd">    2. 短结构化问题 → 跳过扩展（已经足够清晰，扩展无收益）</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a><span class="sd">    3. 本地启发式命中 → 用关键词替换规则生成变体（快、稳定、不用 LLM）</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a><span class="sd">    4. 以上都不满足 → 调用 LLM 结构化输出生成变体</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14"></a>    <span class="n">cleaned</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">enabled</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cleaned</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">retrieval_variant_max</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">cleaned</span><span class="p">]</span>
+<a id="__codelineno-10-17" name="__codelineno-10-17"></a>
+<a id="__codelineno-10-18" name="__codelineno-10-18"></a>    <span class="k">if</span> <span class="n">_looks_like_short_structured_question</span><span class="p">(</span><span class="n">cleaned</span><span class="p">):</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">cleaned</span><span class="p">]</span>
+<a id="__codelineno-10-20" name="__codelineno-10-20"></a>
+<a id="__codelineno-10-21" name="__codelineno-10-21"></a>    <span class="n">heuristic_variants</span> <span class="o">=</span> <span class="n">_heuristic_variants</span><span class="p">(</span><span class="n">cleaned</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">retrieval_variant_max</span><span class="p">)</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">heuristic_variants</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23"></a>        <span class="k">return</span> <span class="n">heuristic_variants</span>
+<a id="__codelineno-10-24" name="__codelineno-10-24"></a>
+<a id="__codelineno-10-25" name="__codelineno-10-25"></a>    <span class="n">variants</span> <span class="o">=</span> <span class="p">[</span><span class="n">cleaned</span><span class="p">]</span>
+<a id="__codelineno-10-26" name="__codelineno-10-26"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">QueryVariants</span><span class="p">)</span>
+<a id="__codelineno-10-27" name="__codelineno-10-27"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28"></a>        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">QUERY_VARIANT_SYSTEM_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-10-29" name="__codelineno-10-29"></a>        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;原问题：</span><span class="si">{</span><span class="n">cleaned</span><span class="si">}</span><span class="se">\n</span><span class="s2">最多生成 </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">retrieval_variant_max</span><span class="si">}</span><span class="s2"> 条检索表达。&quot;</span><span class="p">),</span>
+<a id="__codelineno-10-30" name="__codelineno-10-30"></a>    <span class="p">])</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31"></a>    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">queries</span><span class="p">:</span>
+<a id="__codelineno-10-32" name="__codelineno-10-32"></a>        <span class="n">candidate</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-10-33" name="__codelineno-10-33"></a>        <span class="k">if</span> <span class="n">candidate</span> <span class="ow">and</span> <span class="n">candidate</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variants</span><span class="p">:</span>
+<a id="__codelineno-10-34" name="__codelineno-10-34"></a>            <span class="n">variants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+<a id="__codelineno-10-35" name="__codelineno-10-35"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variants</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">settings</span><span class="o">.</span><span class="n">retrieval_variant_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-10-36" name="__codelineno-10-36"></a>            <span class="k">break</span>
+<a id="__codelineno-10-37" name="__codelineno-10-37"></a>    <span class="k">return</span> <span class="n">variants</span>
+</code></pre></div></td></tr></table></div>
+<p>其中 <code>_heuristic_variants()</code> 是本地关键词替换规则，覆盖高频同义表达：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-11-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-11-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-11-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-11-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-11-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-11-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-11-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-11-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-11-10">10</a></span>
+<span class="normal"><a href="#__codelineno-11-11">11</a></span>
+<span class="normal"><a href="#__codelineno-11-12">12</a></span>
+<span class="normal"><a href="#__codelineno-11-13">13</a></span>
+<span class="normal"><a href="#__codelineno-11-14">14</a></span>
+<span class="normal"><a href="#__codelineno-11-15">15</a></span>
+<span class="normal"><a href="#__codelineno-11-16">16</a></span>
+<span class="normal"><a href="#__codelineno-11-17">17</a></span>
+<span class="normal"><a href="#__codelineno-11-18">18</a></span>
+<span class="normal"><a href="#__codelineno-11-19">19</a></span>
+<span class="normal"><a href="#__codelineno-11-20">20</a></span>
+<span class="normal"><a href="#__codelineno-11-21">21</a></span>
+<span class="normal"><a href="#__codelineno-11-22">22</a></span>
+<span class="normal"><a href="#__codelineno-11-23">23</a></span>
+<span class="normal"><a href="#__codelineno-11-24">24</a></span>
+<span class="normal"><a href="#__codelineno-11-25">25</a></span>
+<span class="normal"><a href="#__codelineno-11-26">26</a></span>
+<span class="normal"><a href="#__codelineno-11-27">27</a></span>
+<span class="normal"><a href="#__codelineno-11-28">28</a></span>
+<span class="normal"><a href="#__codelineno-11-29">29</a></span>
+<span class="normal"><a href="#__codelineno-11-30">30</a></span>
+<span class="normal"><a href="#__codelineno-11-31">31</a></span>
+<span class="normal"><a href="#__codelineno-11-32">32</a></span>
+<span class="normal"><a href="#__codelineno-11-33">33</a></span>
+<span class="normal"><a href="#__codelineno-11-34">34</a></span>
+<span class="normal"><a href="#__codelineno-11-35">35</a></span>
+<span class="normal"><a href="#__codelineno-11-36">36</a></span>
+<span class="normal"><a href="#__codelineno-11-37">37</a></span>
+<span class="normal"><a href="#__codelineno-11-38">38</a></span>
+<span class="normal"><a href="#__codelineno-11-39">39</a></span>
+<span class="normal"><a href="#__codelineno-11-40">40</a></span>
+<span class="normal"><a href="#__codelineno-11-41">41</a></span>
+<span class="normal"><a href="#__codelineno-11-42">42</a></span>
+<span class="normal"><a href="#__codelineno-11-43">43</a></span>
+<span class="normal"><a href="#__codelineno-11-44">44</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_heuristic_variants</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_extra</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;为高频业务知识/FAQ 说法生成低延迟的本地变体。&quot;&quot;&quot;</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>    <span class="n">variants</span> <span class="o">=</span> <span class="p">[</span><span class="n">query</span><span class="p">]</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a>    <span class="n">normalized</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">candidate</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;在保持顺序和上限的前提下，追加非空变体。&quot;&quot;&quot;</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8"></a>        <span class="n">candidate</span> <span class="o">=</span> <span class="n">candidate</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9"></a>        <span class="k">if</span> <span class="n">candidate</span> <span class="ow">and</span> <span class="n">candidate</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variants</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">variants</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_extra</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10"></a>            <span class="n">variants</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11"></a>
+<a id="__codelineno-11-12" name="__codelineno-11-12"></a>    <span class="k">if</span> <span class="s2">&quot;安装&quot;</span> <span class="ow">in</span> <span class="n">query</span> <span class="ow">or</span> <span class="s2">&quot;失败&quot;</span> <span class="ow">in</span> <span class="n">query</span> <span class="ow">or</span> <span class="s2">&quot;报错&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;失败&quot;</span><span class="p">,</span> <span class="s2">&quot;报错&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;报错&quot;</span><span class="p">,</span> <span class="s2">&quot;失败&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15"></a>    <span class="k">if</span> <span class="s2">&quot;流程&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;流程&quot;</span><span class="p">,</span> <span class="s2">&quot;SOP&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;流程&quot;</span><span class="p">,</span> <span class="s2">&quot;处理步骤&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18"></a>    <span class="k">if</span> <span class="s2">&quot;发票&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;发票&quot;</span><span class="p">,</span> <span class="s2">&quot;开票&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;发票&quot;</span><span class="p">,</span> <span class="s2">&quot;账单&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21"></a>    <span class="k">if</span> <span class="s2">&quot;开票&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;开票&quot;</span><span class="p">,</span> <span class="s2">&quot;发票&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-23" name="__codelineno-11-23"></a>    <span class="k">if</span> <span class="s2">&quot;告警&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;告警&quot;</span><span class="p">,</span> <span class="s2">&quot;报警&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;告警&quot;</span><span class="p">,</span> <span class="s2">&quot;异常&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26"></a>    <span class="k">if</span> <span class="s2">&quot;webhook&quot;</span> <span class="ow">in</span> <span class="n">normalized</span><span class="p">:</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;webhook&quot;</span><span class="p">,</span> <span class="s2">&quot;回调&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Webhook&quot;</span><span class="p">,</span> <span class="s2">&quot;回调&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-28" name="__codelineno-11-28"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Webhook&quot;</span><span class="p">,</span> <span class="s2">&quot;Webhook 回调&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;webhook&quot;</span><span class="p">,</span> <span class="s2">&quot;Webhook 回调&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-29" name="__codelineno-11-29"></a>    <span class="k">if</span> <span class="s2">&quot;资料&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-30" name="__codelineno-11-30"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;资料&quot;</span><span class="p">,</span> <span class="s2">&quot;材料&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-31" name="__codelineno-11-31"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;资料&quot;</span><span class="p">,</span> <span class="s2">&quot;记录&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-32" name="__codelineno-11-32"></a>    <span class="k">if</span> <span class="s2">&quot;材料&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;材料&quot;</span><span class="p">,</span> <span class="s2">&quot;资料&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-34" name="__codelineno-11-34"></a>    <span class="k">if</span> <span class="s2">&quot;流程&quot;</span> <span class="ow">in</span> <span class="n">query</span> <span class="ow">and</span> <span class="s2">&quot;怎么走&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-35" name="__codelineno-11-35"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;怎么走&quot;</span><span class="p">,</span> <span class="s2">&quot;有哪些步骤&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-36" name="__codelineno-11-36"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;流程&quot;</span><span class="p">,</span> <span class="s2">&quot;办理流程&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-37" name="__codelineno-11-37"></a>    <span class="k">if</span> <span class="s2">&quot;怎么排查&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-38" name="__codelineno-11-38"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;怎么排查&quot;</span><span class="p">,</span> <span class="s2">&quot;如何处理&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;怎么排查&quot;</span><span class="p">,</span> <span class="s2">&quot;处理步骤&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-40" name="__codelineno-11-40"></a>    <span class="k">if</span> <span class="s2">&quot;能不能&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-41" name="__codelineno-11-41"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;能不能&quot;</span><span class="p">,</span> <span class="s2">&quot;是否可以&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-42" name="__codelineno-11-42"></a>    <span class="k">if</span> <span class="s2">&quot;可以吗&quot;</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-11-43" name="__codelineno-11-43"></a>        <span class="n">add</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;可以吗&quot;</span><span class="p">,</span> <span class="s2">&quot;是否可以&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-44" name="__codelineno-11-44"></a>    <span class="k">return</span> <span class="n">variants</span>
+</code></pre></div></td></tr></table></div>
+<p>上面 <code>generate_query_variants()</code> 在调用本地启发式之前，先通过 <code>_looks_like_short_structured_question()</code> 判断问题是否已经足够结构化，避免对清晰短问题做无收益的 LLM 扩展：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-12-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-12-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-12-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-12-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-12-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-12-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-12-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-12-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-12-10">10</a></span>
+<span class="normal"><a href="#__codelineno-12-11">11</a></span>
+<span class="normal"><a href="#__codelineno-12-12">12</a></span>
+<span class="normal"><a href="#__codelineno-12-13">13</a></span>
+<span class="normal"><a href="#__codelineno-12-14">14</a></span>
+<span class="normal"><a href="#__codelineno-12-15">15</a></span>
+<span class="normal"><a href="#__codelineno-12-16">16</a></span>
+<span class="normal"><a href="#__codelineno-12-17">17</a></span>
+<span class="normal"><a href="#__codelineno-12-18">18</a></span>
+<span class="normal"><a href="#__codelineno-12-19">19</a></span>
+<span class="normal"><a href="#__codelineno-12-20">20</a></span>
+<span class="normal"><a href="#__codelineno-12-21">21</a></span>
+<span class="normal"><a href="#__codelineno-12-22">22</a></span>
+<span class="normal"><a href="#__codelineno-12-23">23</a></span>
+<span class="normal"><a href="#__codelineno-12-24">24</a></span>
+<span class="normal"><a href="#__codelineno-12-25">25</a></span>
+<span class="normal"><a href="#__codelineno-12-26">26</a></span>
+<span class="normal"><a href="#__codelineno-12-27">27</a></span>
+<span class="normal"><a href="#__codelineno-12-28">28</a></span>
+<span class="normal"><a href="#__codelineno-12-29">29</a></span>
+<span class="normal"><a href="#__codelineno-12-30">30</a></span>
+<span class="normal"><a href="#__codelineno-12-31">31</a></span>
+<span class="normal"><a href="#__codelineno-12-32">32</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="c1"># qa_core/pipeline/query_variants.py</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_looks_like_short_structured_question</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;判断一个问题是否已经足够结构化，不值得再调用 LLM 扩展检索表达。</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a><span class="sd">    使用场景：</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a><span class="sd">    - 问题已经短且清晰；</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a><span class="sd">    - 本地启发式没有命中额外高价值同义词；</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8"></a><span class="sd">    - 继续调用 LLM 只会增加尾延迟，而不会明显提高召回。</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10"></a><span class="sd">    这类问题在当前项目里主要是：</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11"></a><span class="sd">    - 流程/资料/材料/SOP 类标准问法；</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12"></a><span class="sd">    - &quot;怎么排查&quot;&quot;怎么处理&quot;&quot;能不能&quot;&quot;可以吗&quot;这类业务 FAQ 句式；</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13"></a><span class="sd">    - 已经带有明确业务主语的短句。</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15"></a>    <span class="n">compact</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">compact</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">compact</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">24</span><span class="p">:</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17"></a>        <span class="k">return</span> <span class="kc">False</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18"></a>    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19"></a>        <span class="n">marker</span> <span class="ow">in</span> <span class="n">compact</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20"></a>        <span class="k">for</span> <span class="n">marker</span> <span class="ow">in</span> <span class="p">(</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21"></a>            <span class="s2">&quot;怎么走&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22"></a>            <span class="s2">&quot;资料&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23"></a>            <span class="s2">&quot;材料&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24"></a>            <span class="s2">&quot;怎么排查&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25"></a>            <span class="s2">&quot;怎么处理&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26"></a>            <span class="s2">&quot;需要哪些&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27"></a>            <span class="s2">&quot;能不能&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28"></a>            <span class="s2">&quot;可以吗&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29"></a>            <span class="s2">&quot;是什么&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30"></a>            <span class="s2">&quot;要看什么&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31"></a>        <span class="p">)</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>判断逻辑：问题长度不超过 24 个字符，且包含流程类、FAQ 类的高频句式标记。命中时直接返回单查询 <code>[cleaned]</code>，不再走 LLM 扩展路径。</p>
+<p><strong>方式 2：LLM 生成（Pydantic 结构化输出，适用于本地规则未命中的情况）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-13-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-13-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-13-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-13-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-13-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-13-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-13-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-13-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-13-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>    <span class="c1"># 本地启发式未命中时，使用 Pydantic 结构化输出让 LLM 生成变体</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2"></a>    <span class="c1"># 注意：该逻辑是 generate_query_variants() 内部的内联实现，不是独立函数</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">heuristic_hit</span><span class="p">:</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">QueryVariants</span><span class="p">)</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6"></a>            <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">QUERY_VARIANT_SYSTEM_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7"></a>            <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;原问题：</span><span class="si">{</span><span class="n">cleaned</span><span class="si">}</span><span class="se">\n</span><span class="s2">最多生成 </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">retrieval_variant_max</span><span class="si">}</span><span class="s2"> 条检索表达。&quot;</span><span class="p">),</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8"></a>        <span class="p">])</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9"></a>        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">queries</span><span class="p">:</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10"></a>            <span class="o">...</span>  <span class="c1"># 去重、上限控制后追加到 variants 列表</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="33">3.3 什么时候不生成变体<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1">1</a></span>
+<span class="normal"><a href="#__codelineno-14-2">2</a></span>
+<span class="normal"><a href="#__codelineno-14-3">3</a></span>
+<span class="normal"><a href="#__codelineno-14-4">4</a></span>
+<span class="normal"><a href="#__codelineno-14-5">5</a></span>
+<span class="normal"><a href="#__codelineno-14-6">6</a></span>
+<span class="normal"><a href="#__codelineno-14-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a><span class="c1"># RetrievalPlan 是 frozen dataclass，use_query_variants 在 build_retrieval_plan() 构造时设定</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2"></a><span class="c1"># qa_core/retrieval/strategy.py</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3"></a><span class="n">plan</span> <span class="o">=</span> <span class="n">RetrievalPlan</span><span class="p">(</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4"></a>    <span class="o">...</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5"></a>    <span class="n">use_query_variants</span><span class="o">=</span><span class="n">intent</span><span class="o">.</span><span class="n">intent</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">,</span> <span class="s2">&quot;FOLLOW_UP&quot;</span><span class="p">},</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6"></a>    <span class="o">...</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>只在<strong>知识咨询</strong>和<strong>追问</strong>时启用。原因：</p>
+<ul>
+<li><strong>问候/直接答案/人工客服</strong>：不需要检索，自然不需要变体</li>
+<li><strong>FAQ 查询</strong>：FAQ 的标准问题通常较短且固定，变体可能引入噪音</li>
+<li><strong>知识咨询</strong>：域广，多角度检索有收益</li>
+<li><strong>追问</strong>：改写后的问题可能丢失了一些原问题的角度，变体可以补充</li>
+</ul>
+<hr />
+<h2 id="_4">第四部分：历史消息的压缩策略<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="41-llm">4.1 为什么不把全部历史发给 LLM<a class="headerlink" href="#41-llm" title="Permanent link">&para;</a></h3>
+<p>假设用户已经和系统对话了 50 轮：
+- 全部历史可能有好几千个 token
+- 每次请求（意图识别、改写、生成）都带完整历史 → 成本高、延迟高
+- 对话时间跨度长，早期的主题和当前问题可能已经无关</p>
+<h3 id="42">4.2 摘要 + 最近消息 策略<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-15-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-15-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-15-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-15-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-15-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-15-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-15-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-15-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-15-10">10</a></span>
+<span class="normal"><a href="#__codelineno-15-11">11</a></span>
+<span class="normal"><a href="#__codelineno-15-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="c1"># qa_core/memory/history.py — ChatHistoryStore 类</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3"></a>    <span class="c1"># 1. 读取已有会话摘要（从 MySQL 摘要表加载）</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4"></a>    <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5"></a>
+<a id="__codelineno-15-6" name="__codelineno-15-6"></a>    <span class="c1"># 2. 读取最近 8 条消息（由 settings.history_recent_messages 控制）</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7"></a>    <span class="n">recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_messages</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_recent_messages</span><span class="p">)</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8"></a>
+<a id="__codelineno-15-9" name="__codelineno-15-9"></a>    <span class="c1"># 3. 拼接：摘要作为 SystemMessage 放在前面</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10"></a>    <span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;历史摘要：</span><span class="si">{</span><span class="n">summary</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span> <span class="o">+</span> <span class="n">recent</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12"></a>    <span class="k">return</span> <span class="n">recent</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>摘要生成</strong>：当历史消息超过 <code>history_summary_after_messages</code>（默认 14 条），由 <code>refresh_summary_if_needed()</code> 在每轮回答结束后异步触发摘要刷新。实际代码拆分为两个方法：</p>
+<ul>
+<li><code>get_summary(session_id)</code> — 从 MySQL 摘要表读取已有摘要</li>
+<li><code>refresh_summary_if_needed(session_id)</code> — 判断消息数是否达标，达标则调用 LLM 生成摘要并通过 <code>save_summary()</code> 写入 MySQL</li>
+</ul>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-16-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-16-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-16-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-16-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-16-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-16-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-16-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-16-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-16-10">10</a></span>
+<span class="normal"><a href="#__codelineno-16-11">11</a></span>
+<span class="normal"><a href="#__codelineno-16-12">12</a></span>
+<span class="normal"><a href="#__codelineno-16-13">13</a></span>
+<span class="normal"><a href="#__codelineno-16-14">14</a></span>
+<span class="normal"><a href="#__codelineno-16-15">15</a></span>
+<span class="normal"><a href="#__codelineno-16-16">16</a></span>
+<span class="normal"><a href="#__codelineno-16-17">17</a></span>
+<span class="normal"><a href="#__codelineno-16-18">18</a></span>
+<span class="normal"><a href="#__codelineno-16-19">19</a></span>
+<span class="normal"><a href="#__codelineno-16-20">20</a></span>
+<span class="normal"><a href="#__codelineno-16-21">21</a></span>
+<span class="normal"><a href="#__codelineno-16-22">22</a></span>
+<span class="normal"><a href="#__codelineno-16-23">23</a></span>
+<span class="normal"><a href="#__codelineno-16-24">24</a></span>
+<span class="normal"><a href="#__codelineno-16-25">25</a></span>
+<span class="normal"><a href="#__codelineno-16-26">26</a></span>
+<span class="normal"><a href="#__codelineno-16-27">27</a></span>
+<span class="normal"><a href="#__codelineno-16-28">28</a></span>
+<span class="normal"><a href="#__codelineno-16-29">29</a></span>
+<span class="normal"><a href="#__codelineno-16-30">30</a></span>
+<span class="normal"><a href="#__codelineno-16-31">31</a></span>
+<span class="normal"><a href="#__codelineno-16-32">32</a></span>
+<span class="normal"><a href="#__codelineno-16-33">33</a></span>
+<span class="normal"><a href="#__codelineno-16-34">34</a></span>
+<span class="normal"><a href="#__codelineno-16-35">35</a></span>
+<span class="normal"><a href="#__codelineno-16-36">36</a></span>
+<span class="normal"><a href="#__codelineno-16-37">37</a></span>
+<span class="normal"><a href="#__codelineno-16-38">38</a></span>
+<span class="normal"><a href="#__codelineno-16-39">39</a></span>
+<span class="normal"><a href="#__codelineno-16-40">40</a></span>
+<span class="normal"><a href="#__codelineno-16-41">41</a></span>
+<span class="normal"><a href="#__codelineno-16-42">42</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="c1"># qa_core/memory/history.py — ChatHistoryStore 类</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;从 MySQL 摘要表加载当前会话的对话摘要。&quot;&quot;&quot;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_enabled</span><span class="p">:</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6"></a>        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">ensure_summary_table</span><span class="p">()</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8"></a>    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9"></a>        <span class="n">row</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10"></a>            <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT summary FROM </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">chat_summary_table_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11"></a>                 <span class="sa">f</span><span class="s2">&quot;WHERE session_id=:session_id&quot;</span><span class="p">),</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12"></a>            <span class="p">{</span><span class="s2">&quot;session_id&quot;</span><span class="p">:</span> <span class="n">session_id</span><span class="p">},</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13"></a>        <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">row</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15"></a>
+<a id="__codelineno-16-16" name="__codelineno-16-16"></a><span class="k">def</span><span class="w"> </span><span class="nf">refresh_summary_if_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;当消息数超过阈值时，用 LLM 生成/更新摘要并写入 MySQL。&quot;&quot;&quot;</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_enabled</span><span class="p">:</span>
+<a id="__codelineno-16-19" name="__codelineno-16-19"></a>        <span class="k">return</span>
+<a id="__codelineno-16-20" name="__codelineno-16-20"></a>    <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_messages</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+<a id="__codelineno-16-21" name="__codelineno-16-21"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_after_messages</span><span class="p">:</span>
+<a id="__codelineno-16-22" name="__codelineno-16-22"></a>        <span class="k">return</span>
+<a id="__codelineno-16-23" name="__codelineno-16-23"></a>
+<a id="__codelineno-16-24" name="__codelineno-16-24"></a>    <span class="c1"># 只总结&quot;较早历史&quot;，最近 N 条继续原文保留</span>
+<a id="__codelineno-16-25" name="__codelineno-16-25"></a>    <span class="n">older_messages</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_recent_messages</span><span class="p">]</span>
+<a id="__codelineno-16-26" name="__codelineno-16-26"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">older_messages</span><span class="p">:</span>
+<a id="__codelineno-16-27" name="__codelineno-16-27"></a>        <span class="k">return</span>
+<a id="__codelineno-16-28" name="__codelineno-16-28"></a>
+<a id="__codelineno-16-29" name="__codelineno-16-29"></a>    <span class="n">current_summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;无&quot;</span>
+<a id="__codelineno-16-30" name="__codelineno-16-30"></a>    <span class="n">history_text</span> <span class="o">=</span> <span class="n">format_messages</span><span class="p">(</span><span class="n">older_messages</span><span class="p">)</span>
+<a id="__codelineno-16-31" name="__codelineno-16-31"></a>    <span class="n">llm</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-16-32" name="__codelineno-16-32"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+<a id="__codelineno-16-33" name="__codelineno-16-33"></a>        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">HISTORY_SUMMARY_SYSTEM_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-16-34" name="__codelineno-16-34"></a>        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-16-35" name="__codelineno-16-35"></a>            <span class="sa">f</span><span class="s2">&quot;已有摘要：</span><span class="se">\n</span><span class="si">{</span><span class="n">current_summary</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-16-36" name="__codelineno-16-36"></a>            <span class="sa">f</span><span class="s2">&quot;新增历史：</span><span class="se">\n</span><span class="si">{</span><span class="n">history_text</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-16-37" name="__codelineno-16-37"></a>            <span class="sa">f</span><span class="s2">&quot;请输出不超过 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_max_chars</span><span class="si">}</span><span class="s2"> 字的更新摘要。&quot;</span>
+<a id="__codelineno-16-38" name="__codelineno-16-38"></a>        <span class="p">)),</span>
+<a id="__codelineno-16-39" name="__codelineno-16-39"></a>    <span class="p">])</span>
+<a id="__codelineno-16-40" name="__codelineno-16-40"></a>    <span class="n">summary</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_max_chars</span><span class="p">]</span>
+<a id="__codelineno-16-41" name="__codelineno-16-41"></a>    <span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+<a id="__codelineno-16-42" name="__codelineno-16-42"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="43">4.3 上下文窗口管理全景<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-17-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-17-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-17-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-17-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-17-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-17-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-17-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-17-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-17-10">10</a></span>
+<span class="normal"><a href="#__codelineno-17-11">11</a></span>
+<span class="normal"><a href="#__codelineno-17-12">12</a></span>
+<span class="normal"><a href="#__codelineno-17-13">13</a></span>
+<span class="normal"><a href="#__codelineno-17-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a>整个会话的上下文管理策略：
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a>时间轴 ──────────────────────────────────────────────&gt;
+<a id="__codelineno-17-4" name="__codelineno-17-4"></a>
+<a id="__codelineno-17-5" name="__codelineno-17-5"></a>轮次 1-8：全部保留在最近消息中
+<a id="__codelineno-17-6" name="__codelineno-17-6"></a>轮次 9-20：前 14 轮压缩为一段摘要 + 最近 8 轮完整保留
+<a id="__codelineno-17-7" name="__codelineno-17-7"></a>轮次 15+：摘要逐步更新 + 始终保留最近 8 轮
+<a id="__codelineno-17-8" name="__codelineno-17-8"></a>
+<a id="__codelineno-17-9" name="__codelineno-17-9"></a>发给 LLM 的内容：
+<a id="__codelineno-17-10" name="__codelineno-17-10"></a>┌────────────────────┐
+<a id="__codelineno-17-11" name="__codelineno-17-11"></a>│ 会话摘要（如果有）  │  ← 200-1200 字符
+<a id="__codelineno-17-12" name="__codelineno-17-12"></a>├────────────────────┤
+<a id="__codelineno-17-13" name="__codelineno-17-13"></a>│ 最近 8 条消息      │  ← 完整对话文本
+<a id="__codelineno-17-14" name="__codelineno-17-14"></a>└────────────────────┘
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_5">第五部分：改写+变体的完整流程<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h3 id="51-rag">5.1 在 RAG 链路中的位置<a class="headerlink" href="#51-rag" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Q["❓ 原始问题<br/>'那审批呢'"] --> Intent["🎯 意图识别"]
+    Intent --> RewriteCheck{"requires_rewrite?"}
+
+    RewriteCheck -->|"✅ 是"| Rewrite["📝 查询改写 (LLM)<br/>结合最近 8 条历史"]
+    Rewrite --> RWResult["'入职流程中的审批步骤是什么'"]
+
+    RewriteCheck -->|"❌ 否"| PlanCheck
+
+    RWResult --> Plan["📋 检索计划"]
+    Original["原问题 (无需改写)"] --> Plan
+
+    Plan --> VariantCheck{"use_query_variants?"}
+    VariantCheck -->|"✅ 是"| GenVariants["🔀 生成查询变体<br/>规则 / LLM"]
+    GenVariants --> Variants["变体1: 入职审批流程<br/>变体2: 部门审批时长<br/>变体3: 入职审批步骤"]
+
+    VariantCheck -->|"❌ 否"| SingleQ["仅用改写后问题"]
+    Variants --> MultiSearch["🔍 多查询并行检索"]
+    SingleQ --> MultiSearch
+
+    MultiSearch --> FAQ["FAQ 检索"]
+    MultiSearch --> Doc["文档检索"]
+    FAQ --> Merge["合并去重 → Rerank"]
+    Doc --> Merge
+    Merge --> Context["构建上下文 → LLM 生成"]
+
+    style Rewrite fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style GenVariants fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style MultiSearch fill:#FFFBEB,stroke:#D97706,stroke-width:2px</div>
+<p><strong>流程图中每个节点的代码定位：</strong></p>
+<table>
+<thead>
+<tr>
+<th>流程图节点</th>
+<th>对应函数（文件:行号）</th>
+<th>本讲对应章节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>意图识别</td>
+<td><code>classify_intent()</code> — <code>intent/classifier.py:101</code></td>
+<td>第 3 讲</td>
+</tr>
+<tr>
+<td>requires_rewrite?</td>
+<td><code>IntentResult.requires_rewrite</code> — <code>intent/classifier.py:77</code></td>
+<td>第 3 讲</td>
+</tr>
+<tr>
+<td>查询改写 (LLM)</td>
+<td><code>rewrite_query_if_needed()</code> — <code>pipeline/rewrite.py:20</code></td>
+<td><a href="#query-rewrite">第二部分</a></td>
+</tr>
+<tr>
+<td>检索计划</td>
+<td><code>build_retrieval_plan()</code> — <code>retrieval/strategy.py:65</code></td>
+<td>第 4 讲</td>
+</tr>
+<tr>
+<td>use_query_variants?</td>
+<td><code>RetrievalPlan.use_query_variants</code> — <code>retrieval/strategy.py:54</code></td>
+<td><a href="#33">3.3 节</a></td>
+</tr>
+<tr>
+<td>生成查询变体</td>
+<td><code>generate_query_variants()</code> — <code>pipeline/query_variants.py:58</code></td>
+<td><a href="#query-variants">第三部分</a></td>
+</tr>
+<tr>
+<td>多查询并行检索</td>
+<td><code>search_many()</code> — <code>retrieval/store.py:163</code></td>
+<td><a href="#53">5.3 节</a></td>
+</tr>
+<tr>
+<td>合并去重 → Rerank</td>
+<td><code>merge_hits_by_document()</code> + <code>rerank_hits()</code> — <code>retrieval/ranking.py:46,64</code></td>
+<td>第 6 讲</td>
+</tr>
+<tr>
+<td>构建上下文 → LLM 生成</td>
+<td><code>select_context_docs()</code> + <code>stream_llm_answer()</code> — <code>pipeline/context.py</code> + <code>pipeline/steps.py</code></td>
+<td>第 8 讲</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>阅读建议</strong>：对照上表，先在流程图中理解数据流向（"改写后的问题去哪里了""变体是在哪个节点生成的"），再按"对应章节"列跳转到具体代码。不要试图一次性读懂全部代码——按流程图节点逐个击破。</p>
+</blockquote>
+<h3 id="52">5.2 历史压缩策略<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart LR
+    subgraph Session["会话历史管理"]
+        direction TB
+        Rounds1["第 1-14 轮<br/>全部保留在最近消息"]
+        Rounds2["第 15+ 轮<br/>前 N 轮压缩为摘要<br/>+ 最近 8 轮完整保留"]
+    end
+
+    subgraph Context["发送给 LLM 的上下文"]
+        direction TB
+        Summary["📋 会话摘要<br/>200-1200 字符"]
+        Recent["💬 最近 8 条消息<br/>完整对话文本"]
+    end
+
+    Rounds1 --> Recent
+    Rounds2 --> Summary
+    Rounds2 --> Recent
+
+    style Session fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style Context fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p><strong>这张图解决了一个实际问题：LLM 的上下文窗口不是无限的，但对话可以无限进行下去。</strong></p>
+<p>左半部分（会话历史管理）展示了两阶段策略：</p>
+<ul>
+<li><strong>第 1-14 轮</strong>：所有消息完整保留。这时候对话还短，全部历史加起来不过几千 token，LLM 完全可以消化。</li>
+<li><strong>第 15 轮开始</strong>：前 N 轮压缩为一段 200-1200 字符的摘要，只保留最近 8 轮完整消息。压缩的触发条件是 <code>refresh_summary_if_needed()</code>，它在每轮问答结束后检查消息数——超过 <code>history_summary_after_messages</code>（默认 14 条）就用非流式 LLM 生成摘要，存到 MySQL 的摘要表。</li>
+</ul>
+<p>右半部分（发送给 LLM 的上下文）展示的是<strong>每次请求时拼给 LLM 的最终内容</strong>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1">1</a></span>
+<span class="normal"><a href="#__codelineno-18-2">2</a></span>
+<span class="normal"><a href="#__codelineno-18-3">3</a></span>
+<span class="normal"><a href="#__codelineno-18-4">4</a></span>
+<span class="normal"><a href="#__codelineno-18-5">5</a></span>
+<span class="normal"><a href="#__codelineno-18-6">6</a></span>
+<span class="normal"><a href="#__codelineno-18-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a>[System Prompt]
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a>   ↓
+<a id="__codelineno-18-3" name="__codelineno-18-3"></a>[会话摘要] ← 如果有（200-1200 字符，概括前十几轮的要点）
+<a id="__codelineno-18-4" name="__codelineno-18-4"></a>   ↓
+<a id="__codelineno-18-5" name="__codelineno-18-5"></a>[最近 8 条消息] ← 完整原文（保留措辞细节和指代关系）
+<a id="__codelineno-18-6" name="__codelineno-18-6"></a>   ↓
+<a id="__codelineno-18-7" name="__codelineno-18-7"></a>[当前问题] ← 用户刚发的问题
+</code></pre></div></td></tr></table></div>
+<p><strong>为什么是"摘要 + 最近 8 条"而不是"全部历史"？</strong> 如果 30 轮对话后还把全部历史发给 LLM，prompt 会膨胀到上万 token，不仅成本飙升，LLM 的注意力也会被稀释（中间偏早的对话细节会干扰当前问题的判断）。摘要把早期对话浓缩成一两句话，最近 8 条保留完整上下文——在"省 token"和"不丢信息"之间取得了平衡。</p>
+<p><strong>为什么最近保留 8 条而不是 3 条或 14 条？</strong> 3 条太少——多轮追问经常跨越 4-5 轮（"入职需要什么材料"→"身份证复印件可以吗"→"电子版行不行"→"多久能办好"→"提前准备可以吗"）。8 条能覆盖绝大多数多轮追问场景。14 条太长——多余的轮次对当前问题的检索帮助极小。</p>
+<p><strong>代码实现</strong>——两个核心方法对应上图的两个阶段：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-19-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-19-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-19-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-19-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-19-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-19-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-19-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-19-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-19-10">10</a></span>
+<span class="normal"><a href="#__codelineno-19-11">11</a></span>
+<span class="normal"><a href="#__codelineno-19-12">12</a></span>
+<span class="normal"><a href="#__codelineno-19-13">13</a></span>
+<span class="normal"><a href="#__codelineno-19-14">14</a></span>
+<span class="normal"><a href="#__codelineno-19-15">15</a></span>
+<span class="normal"><a href="#__codelineno-19-16">16</a></span>
+<span class="normal"><a href="#__codelineno-19-17">17</a></span>
+<span class="normal"><a href="#__codelineno-19-18">18</a></span>
+<span class="normal"><a href="#__codelineno-19-19">19</a></span>
+<span class="normal"><a href="#__codelineno-19-20">20</a></span>
+<span class="normal"><a href="#__codelineno-19-21">21</a></span>
+<span class="normal"><a href="#__codelineno-19-22">22</a></span>
+<span class="normal"><a href="#__codelineno-19-23">23</a></span>
+<span class="normal"><a href="#__codelineno-19-24">24</a></span>
+<span class="normal"><a href="#__codelineno-19-25">25</a></span>
+<span class="normal"><a href="#__codelineno-19-26">26</a></span>
+<span class="normal"><a href="#__codelineno-19-27">27</a></span>
+<span class="normal"><a href="#__codelineno-19-28">28</a></span>
+<span class="normal"><a href="#__codelineno-19-29">29</a></span>
+<span class="normal"><a href="#__codelineno-19-30">30</a></span>
+<span class="normal"><a href="#__codelineno-19-31">31</a></span>
+<span class="normal"><a href="#__codelineno-19-32">32</a></span>
+<span class="normal"><a href="#__codelineno-19-33">33</a></span>
+<span class="normal"><a href="#__codelineno-19-34">34</a></span>
+<span class="normal"><a href="#__codelineno-19-35">35</a></span>
+<span class="normal"><a href="#__codelineno-19-36">36</a></span>
+<span class="normal"><a href="#__codelineno-19-37">37</a></span>
+<span class="normal"><a href="#__codelineno-19-38">38</a></span>
+<span class="normal"><a href="#__codelineno-19-39">39</a></span>
+<span class="normal"><a href="#__codelineno-19-40">40</a></span>
+<span class="normal"><a href="#__codelineno-19-41">41</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="c1"># qa_core/memory/history.py — ChatHistoryStore 类</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_context_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseMessage</span><span class="p">]:</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;对应上图右半部分：拼给 LLM 的最终上下文。&quot;&quot;&quot;</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5"></a>    <span class="c1"># 读取已持久化的最近 N 条完整消息（默认 8 条）</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6"></a>    <span class="n">recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_messages</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_recent_messages</span><span class="p">)</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7"></a>    <span class="c1"># 从 MySQL 摘要表读取已有摘要</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8"></a>    <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9"></a>    <span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10"></a>        <span class="c1"># 摘要作为 SystemMessage 放在前面，让 rewrite 和 answer prompt</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11"></a>        <span class="c1"># 都能把它当作背景事实读取</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12"></a>        <span class="k">return</span> <span class="p">[</span><span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;历史摘要：</span><span class="si">{</span><span class="n">summary</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span> <span class="o">+</span> <span class="n">recent</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13"></a>    <span class="k">return</span> <span class="n">recent</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14"></a>
+<a id="__codelineno-19-15" name="__codelineno-19-15"></a><span class="k">def</span><span class="w"> </span><span class="nf">refresh_summary_if_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;对应上图左半部分：第 15+ 轮时触发摘要压缩。&quot;&quot;&quot;</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_enabled</span><span class="p">:</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18"></a>        <span class="k">return</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19"></a>    <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_messages</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
+<a id="__codelineno-19-20" name="__codelineno-19-20"></a>    <span class="c1"># 判断是否需要压缩：消息数 &lt; 阈值则跳过</span>
+<a id="__codelineno-19-21" name="__codelineno-19-21"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_after_messages</span><span class="p">:</span>
+<a id="__codelineno-19-22" name="__codelineno-19-22"></a>        <span class="k">return</span>
+<a id="__codelineno-19-23" name="__codelineno-19-23"></a>
+<a id="__codelineno-19-24" name="__codelineno-19-24"></a>    <span class="c1"># 只压缩&quot;较早历史&quot;，最近 N 条继续原文保留</span>
+<a id="__codelineno-19-25" name="__codelineno-19-25"></a>    <span class="n">older</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_recent_messages</span><span class="p">]</span>
+<a id="__codelineno-19-26" name="__codelineno-19-26"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">older</span><span class="p">:</span>
+<a id="__codelineno-19-27" name="__codelineno-19-27"></a>        <span class="k">return</span>
+<a id="__codelineno-19-28" name="__codelineno-19-28"></a>
+<a id="__codelineno-19-29" name="__codelineno-19-29"></a>    <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;无&quot;</span>
+<a id="__codelineno-19-30" name="__codelineno-19-30"></a>    <span class="n">llm</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>       <span class="c1"># 非流式，后台执行</span>
+<a id="__codelineno-19-31" name="__codelineno-19-31"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+<a id="__codelineno-19-32" name="__codelineno-19-32"></a>        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">HISTORY_SUMMARY_SYSTEM_PROMPT</span><span class="p">),</span>
+<a id="__codelineno-19-33" name="__codelineno-19-33"></a>        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-19-34" name="__codelineno-19-34"></a>            <span class="sa">f</span><span class="s2">&quot;已有摘要：</span><span class="se">\n</span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-19-35" name="__codelineno-19-35"></a>            <span class="sa">f</span><span class="s2">&quot;新增历史：</span><span class="se">\n</span><span class="si">{</span><span class="n">format_messages</span><span class="p">(</span><span class="n">older</span><span class="p">)</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-19-36" name="__codelineno-19-36"></a>            <span class="sa">f</span><span class="s2">&quot;请输出不超过 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_max_chars</span><span class="si">}</span><span class="s2"> 字的更新摘要。&quot;</span>
+<a id="__codelineno-19-37" name="__codelineno-19-37"></a>        <span class="p">)),</span>
+<a id="__codelineno-19-38" name="__codelineno-19-38"></a>    <span class="p">])</span>
+<a id="__codelineno-19-39" name="__codelineno-19-39"></a>    <span class="n">summary</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">history_summary_max_chars</span><span class="p">]</span>
+<a id="__codelineno-19-40" name="__codelineno-19-40"></a>    <span class="k">if</span> <span class="n">summary</span><span class="p">:</span>
+<a id="__codelineno-19-41" name="__codelineno-19-41"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">save_summary</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>   <span class="c1"># upsert 到 MySQL 摘要表</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>两个方法的调用时机</strong>：
+- <code>get_context_messages()</code> — 每次 RAG 请求开始时调用（在 <code>prepare_retrieval()</code> 内部），为意图识别和查询改写提供上下文
+- <code>refresh_summary_if_needed()</code> — 每轮问答结束后异步调用（通过 <code>_schedule_summary_refresh()</code> 在后台线程执行），不阻塞用户看到答案</p>
+<h3 id="53">5.3 检索时的用法<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-20-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-20-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-20-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-20-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-20-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-20-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-20-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-20-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-20-10">10</a></span>
+<span class="normal"><a href="#__codelineno-20-11">11</a></span>
+<span class="normal"><a href="#__codelineno-20-12">12</a></span>
+<span class="normal"><a href="#__codelineno-20-13">13</a></span>
+<span class="normal"><a href="#__codelineno-20-14">14</a></span>
+<span class="normal"><a href="#__codelineno-20-15">15</a></span>
+<span class="normal"><a href="#__codelineno-20-16">16</a></span>
+<span class="normal"><a href="#__codelineno-20-17">17</a></span>
+<span class="normal"><a href="#__codelineno-20-18">18</a></span>
+<span class="normal"><a href="#__codelineno-20-19">19</a></span>
+<span class="normal"><a href="#__codelineno-20-20">20</a></span>
+<span class="normal"><a href="#__codelineno-20-21">21</a></span>
+<span class="normal"><a href="#__codelineno-20-22">22</a></span>
+<span class="normal"><a href="#__codelineno-20-23">23</a></span>
+<span class="normal"><a href="#__codelineno-20-24">24</a></span>
+<span class="normal"><a href="#__codelineno-20-25">25</a></span>
+<span class="normal"><a href="#__codelineno-20-26">26</a></span>
+<span class="normal"><a href="#__codelineno-20-27">27</a></span>
+<span class="normal"><a href="#__codelineno-20-28">28</a></span>
+<span class="normal"><a href="#__codelineno-20-29">29</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="c1"># qa_core/retrieval/store.py — MilvusHybridStore 类</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">search_many</span><span class="p">(</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3"></a>    <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4"></a>    <span class="n">queries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5"></a>    <span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6"></a>    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7"></a>    <span class="n">source_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8"></a>    <span class="n">kb_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9"></a>    <span class="n">valid_sources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10"></a>    <span class="n">data_scope</span><span class="p">:</span> <span class="n">DataScope</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11"></a>    <span class="n">source_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;faq&quot;</span><span class="p">,</span> <span class="s2">&quot;doc&quot;</span><span class="p">],</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12"></a>    <span class="n">rerank</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RetrievalResult</span><span class="p">:</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;对多个查询变体分别检索，合并重复 chunk 后统一重排。</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15"></a>
+<a id="__codelineno-20-16" name="__codelineno-20-16"></a><span class="sd">    核心流程：</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17"></a><span class="sd">    1. 清洗查询变体 → 逐个变体做轻量检索（先不 rerank）</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18"></a><span class="sd">    2. 按 chunk_id/faq_id 合并重复命中，只保留最高分</span>
+<a id="__codelineno-20-19" name="__codelineno-20-19"></a><span class="sd">    3. 按分数排序 → 取候选上限 → CrossEncoder 统一重排</span>
+<a id="__codelineno-20-20" name="__codelineno-20-20"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-20-21" name="__codelineno-20-21"></a>    <span class="n">merged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RetrievalHit</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-20-22" name="__codelineno-20-22"></a>    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">normalize_queries</span><span class="p">(</span><span class="n">queries</span><span class="p">):</span>
+<a id="__codelineno-20-23" name="__codelineno-20-23"></a>        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">rerank</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-20-24" name="__codelineno-20-24"></a>        <span class="n">merge_hits_by_document</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">hits</span><span class="p">)</span>   <span class="c1"># 原地更新 dict</span>
+<a id="__codelineno-20-25" name="__codelineno-20-25"></a>
+<a id="__codelineno-20-26" name="__codelineno-20-26"></a>    <span class="n">hits</span> <span class="o">=</span> <span class="n">sort_hits_by_score</span><span class="p">(</span><span class="n">merged</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+<a id="__codelineno-20-27" name="__codelineno-20-27"></a>    <span class="k">if</span> <span class="n">rerank</span> <span class="ow">and</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-20-28" name="__codelineno-20-28"></a>        <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rerank</span><span class="p">(</span><span class="n">queries</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hits</span><span class="p">)</span>         <span class="c1"># 原问题作为 rerank query</span>
+<a id="__codelineno-20-29" name="__codelineno-20-29"></a>    <span class="k">return</span> <span class="n">RetrievalResult</span><span class="p">(</span><span class="n">hits</span><span class="o">=</span><span class="n">hits</span><span class="p">[:</span><span class="n">k</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>关键点：<code>merge_hits_by_document(merged: dict, hits: list)</code> 不是一个返回新列表的纯函数——它原地修改 <code>merged</code> 字典，以 <code>chunk_id</code>（或 <code>faq_id</code>）为 key，遇到同一文档的重复命中时只保留分数更高的那次。</p>
+<hr />
+<h2 id="_6">重点掌握<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>查询改写（Query Rewrite）的触发条件：requires_rewrite=True + 有历史消息</td>
+<td>多轮对话中指代消解的实现方式</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>查询变体（Query Variants）的作用：将原问题扩展为多个等价表达提高召回覆盖率</td>
+<td>召回增强的核心手段</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>历史压缩策略："摘要（200-1200 字符）+ 最近 8 条完整消息"，第 15 轮开始触发压缩</td>
+<td>管理 LLM 上下文窗口的关键设计</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>rewrite_query_if_needed() 的实现：非流式 LLM，聚焦最近 8 条历史，改写为独立检索问题</td>
+<td>理解改写模块的具体代码</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>变体生成的两种方式：本地启发式（关键词替换，快、免费）vs LLM 结构化输出（灵活）</td>
+<td>理解性能与灵活性的平衡</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>_looks_like_short_structured_question() 的判断逻辑：短问题且命中高频句式标记时跳过 LLM 扩展</td>
+<td>避免对清晰问题做无收益的 LLM 调用</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>完整问题不改写的原则：清晰的问题保持原样，防止"改偏"</td>
+<td>重要的设计约束</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>历史摘要的异步刷新机制（refresh_summary_if_needed）</td>
+<td>了解实现细节</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>search_many() 的多查询合并流程</td>
+<td>第 6 讲会深入</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">本讲小结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>追问改写</strong>只在 <code>requires_rewrite=True</code> 且有历史时执行，避免对所有问题增加 LLM 调用</li>
+<li>改写聚焦最近 8 条历史，使用非流式 LLM 生成独立的检索问题</li>
+<li><strong>完整问题不改写</strong>：清晰的问题保持原样，防止改写"改偏"</li>
+<li><strong>查询变体</strong>将问题扩展为多个等价表达，提高召回覆盖率</li>
+<li>变体生成有本地启发式和 LLM 结构化输出两种方式，最多生成 3 个变体控制检索成本</li>
+<li><strong>历史压缩</strong>采用"摘要 + 最近 8 条"策略，在召回质量和成本之间平衡</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./06-milvus-hybrid-search.html">Milvus 混合检索深度解析</a> — Dense + Sparse 检索实现、BM25 原理、过滤表达式构建</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/04-retrieval-strategy.html"><i class="fas fa-arrow-left"></i> 04 检索策略与动态计划</a>
+        <a class="pager-link next" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KnowForge RAG Platform 当前架构详细流程图 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="knowforge-rag-platform">KnowForge RAG Platform 当前架构详细流程图<a class="headerlink" href="#knowforge-rag-platform" title="Permanent link">&para;</a></h1>
+<p>本文档只描述优化后架构。边界是：<code>app.py + qa_core/api + qa_core</code> 是当前主链路；
+旧版 <code>mysql_qa</code>、<code>rag_qa</code> 代码已经从工程中移除，只在文档中保留迁移前实现对照，
+不进入在线请求主流程。</p>
+<h2 id="1">1. 总体架构<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart TD
+    User["浏览器用户"] --> Page["static/index.html"]
+    Page --> ScenariosApi["GET /api/scenarios"]
+    Page --> CreateSession["POST /api/create_session"]
+    Page --> Stream["WebSocket /api/stream"]
+    Page --> HistoryApi["GET /api/history/{session_id}"]
+    Page --> FeedbackApi["POST /api/feedback"]
+    Page --> DebugApi["POST /api/retrieval/debug"]
+    AdminPage["static/admin.html"] --> AdminApi["GET /api/admin/*"]
+
+    Stream --> ApiChat["qa_core.api.chat<br/>问答 / 历史 / 反馈 / debug"]
+    DebugApi --> ApiChat
+    HistoryApi --> ApiChat
+    FeedbackApi --> ApiChat
+    ScenariosApi --> ApiChat
+    CreateSession --> ApiPages["qa_core.api.pages<br/>页面 / 健康检查 / 会话"]
+    AdminApi --> ApiAdmin["qa_core.api.admin<br/>trace / 报告"]
+    KbApi["GET/POST /api/kb_versions*"] --> ApiVersions["qa_core.api.kb_versions<br/>版本查看 / 激活 / 归档"]
+
+    App["app.py 应用入口<br/>CORS / 静态资源 / 路由注册"] --> ApiPages
+    App --> ApiChat
+    App --> ApiAdmin
+    App --> ApiVersions
+    ApiChat --> Factory["qa_core.application.factory.get_qa_service"]
+    ApiChat --> ScenarioRegistry["qa_core.scenarios.registry.ScenarioRegistry"]
+    ApiAdmin --> AdminReports["qa_core.observability / ingestion_quality"]
+    Factory --> Service["qa_core.application.service.QAService"]
+
+    Service --> Scenario["qa_core.scenarios.registry.resolve_scenario"]
+    Service --> History["qa_core.memory.history.HistoryStore"]
+    Service --> Intent["qa_core.intent.classifier.classify_intent"]
+    Service --> Rewrite["qa_core.pipeline.rewrite.rewrite_query_if_needed"]
+    Service --> Plan["qa_core.retrieval.strategy.build_retrieval_plan"]
+    Service --> Variants["qa_core.pipeline.query_variants.generate_query_variants"]
+    Service --> PromptProfile["qa_core.prompts.selector.build_answer_prompt_profile"]
+    Service --> LLM["qa_core.llm.client.get_chat_model"]
+    Service --> DataScope["qa_core.governance.data_scope.DataScope"]
+    Service --> Retrieval["qa_core.retrieval.store.MilvusHybridStore"]
+    Service --> Trace["qa_core.observability.langsmith_adapter.record_query_trace"]
+
+    Retrieval --> MilvusFAQ["场景 FAQ Hybrid Collection"]
+    Retrieval --> MilvusDoc["场景 Doc Hybrid Collection"]
+    Retrieval --> Embedding["BGE-M3 Embedding"]
+    Retrieval --> Reranker["CrossEncoder Reranker"]
+
+    History --> MySQL["edu-mysql / MySQL<br/>chat_messages<br/>chat_session_summaries"]
+    FeedbackApi --> Feedback["qa_core.memory.feedback.FeedbackStore"]
+    Feedback --> MySQL
+    Trace --> TraceLog["LangSmith Trace"]
+    AdminReports --> TraceLog
+    AdminReports --> Reports["reports/ingestion<br/>reports/evaluation"]
+
+    LLM --> DashScope["DashScope OpenAI-compatible API"]
+    MilvusFAQ --> Milvus["edu-milvus 2.6.4"]
+    MilvusDoc --> Milvus</div>
+<h2 id="2">2. 在线问答主流程<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    participant U as 用户页面
+    participant WS as qa_core/api/chat.py /api/stream
+    participant S as QAService.stream_query
+    participant H as ChatHistoryStore
+    participant I as Intent
+    participant R as Retrieval
+    participant M as Milvus
+    participant L as ChatOpenAI
+    participant DB as MySQL
+    participant T as TraceLog
+
+    U->>WS: WebSocket 发送 query/session_id/scenario_id/source_filter/tenant_id/dataset_id
+    WS->>S: 创建同步事件生成器
+    S->>S: resolve_scenario(scenario_id)
+    S->>S: resolve_active_kb_version(scenario_id)
+    S->>S: resolve_data_scope(tenant_id, dataset_id, visibility, role)
+        S-->>U: start
+    S-->>U: status 正在识别问题意图
+    S->>H: 读取历史摘要 + 最近消息
+    H->>DB: SQLChatMessageHistory 查询
+    S->>I: classify_intent(query, history, scenario)
+
+    alt 问候 / 越界 / 人工客服
+        S-->>U: token 直接答案
+        S->>H: add_turn(question, answer)
+        H->>DB: 写入 HumanMessage + AIMessage
+        S->>T: record_qa_trace
+        S-->>U: end
+    else 需要 RAG
+        S->>S: rewrite_query_if_needed
+        S->>S: build_retrieval_plan
+        S->>S: generate_query_variants
+        S->>S: build_answer_prompt_profile
+
+    S-->>U: status 正在检索业务知识库
+        S->>R: FAQ search_many(query_variants, plan)
+        R->>M: FAQ dense + sparse hybrid search<br/>expr 包含 source/kb_version/data_scope
+        R->>R: 去重 + rerank
+
+        alt FAQ 高置信直出
+            S-->>U: token FAQ 标准答案
+            S->>H: add_turn(question, answer)
+            H->>DB: 写入历史
+            S->>T: record_qa_trace
+            S-->>U: end sources/retrieval/prompt_profile
+        else 文档 RAG
+            S-->>U: status 正在匹配相关业务资料
+            S->>R: Doc search_many(query_variants, plan)
+            R->>M: Doc dense + sparse hybrid search<br/>expr 包含 source/kb_version/data_scope
+            R->>R: 去重 + rerank
+            S->>S: _select_context_docs + _build_context
+            S-->>U: status 正在生成回答
+            S->>L: llm.stream(SystemMessage, HumanMessage)
+            loop 每个非空 token
+                L-->>S: token chunk
+                S-->>U: token
+            end
+            S->>H: add_turn(question, full_answer)
+            H->>DB: 写入历史
+            S->>T: record_qa_trace
+            S-->>U: end sources/intent/retrieval/prompt_profile
+        end
+    end
+
+    WS->>H: 后台 refresh_summary_if_needed
+    H->>DB: 写入或更新会话摘要</div>
+<h2 id="3">3. 检索与生成细节<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart TD
+    Q["用户问题"] --> Intent["意图识别<br/>GREETING / FAQ_QUERY / KNOWLEDGE_QUERY / FOLLOW_UP"]
+    Intent --> Direct{"是否直接回答"}
+    Direct -- 是 --> DirectAnswer["规则直答<br/>问候 / 越界 / 人工客服"]
+    Direct -- 否 --> Rewrite["追问改写<br/>只在 FOLLOW_UP 或 requires_rewrite 时执行"]
+
+    Rewrite --> Plan["动态检索计划 RetrievalPlan"]
+    Plan --> QueryVariants["原问题 + 等价查询变体<br/>规则命中则本地生成，否则用 LLM 结构化生成"]
+
+    QueryVariants --> FAQSearch["FAQ Hybrid Search"]
+    FAQSearch --> FAQRank["FAQ 去重 + rerank"]
+    FAQRank --> FAQDirect{"FAQ 是否高置信直出"}
+    FAQDirect -- 是 --> FAQAnswer["返回 metadata.answer"]
+
+    FAQDirect -- 否 --> DocSearch["Doc Hybrid Search"]
+    DocSearch --> DocRank["Doc 去重 + rerank"]
+    DocRank --> ContextSelect["上下文筛选<br/>FAQ 前 2 条 + 文档 min_context_score"]
+    ContextSelect --> ContextBuild["_build_context<br/>[1] 来源 + 内容"]
+
+    Intent --> Prompt["Prompt Profile<br/>faq_answer / knowledge_answer / follow_up / default"]
+    ContextBuild --> Generate["LLM 流式生成"]
+    Prompt --> Generate
+    Generate --> Save["写入 SQLChatMessageHistory"]
+    Save --> End["end 事件<br/>sources / intent / retrieval / prompt_profile"]</div>
+<h2 id="4">4. 检索诊断流程<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart TD
+    DebugReq["POST /api/retrieval/debug"] --> Thread["asyncio.to_thread<br/>避免阻塞事件循环"]
+    Thread --> Debug["QAService.debug_retrieval"]
+    Debug --> History["读取历史上下文"]
+    Debug --> Intent["意图识别"]
+    Intent --> Rewrite["追问改写"]
+    Rewrite --> Plan["检索计划"]
+    Plan --> Variants["查询变体"]
+    Variants --> FAQ["FAQ 检索"]
+    Variants --> Doc["Doc 检索"]
+    Intent --> Profile["Prompt Profile 选择"]
+    FAQ --> Response["返回诊断 JSON"]
+    Doc --> Response
+    Profile --> Response
+
+    Response --> Fields["query / rewritten_query / source_filter<br/>intent / retrieval_plan<br/>prompt_profile / faq_sources / doc_sources"]</div>
+<h2 id="5-faq">5. 文档与 FAQ 入库流程<a class="headerlink" href="#5-faq" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart TD
+    Docs["场景文档目录<br/>scenarios/*/data"] --> Rebuild["scripts/rebuild_kb_version.py"]
+    FAQCSV["场景 FAQ CSV<br/>scenarios/*/faq.csv"] --> Rebuild
+
+    Rebuild --> Indexing["qa_core.indexing.service.ingest_directory"]
+    Indexing --> Source["source 推断或显式传入<br/>当前场景 valid_sources"]
+    Indexing --> Scope["DataScope<br/>tenant_id / dataset_id / visibility / allowed_roles"]
+    Source --> Registry["DOCUMENT_LOADER_REGISTRY<br/>按后缀选择 loader"]
+    Registry --> Load["load_file"]
+    Load --> Normalize["normalize_documents<br/>补 source/file/doc_id/page_index/data_scope"]
+    Normalize --> Split["split_documents<br/>Markdown 标题增强 + 父子块"]
+    Split --> ChunkMeta["chunk metadata<br/>parent_id / parent_content / chunk_id"]
+    ChunkMeta --> Manifest{"文件 fingerprint 是否变化"}
+    Manifest -- 未变化 --> Skip["跳过，不重复入库"]
+    Manifest -- 已变化或 force --> DeleteOld["删除旧 chunk_ids"]
+    DeleteOld --> DocStore["Milvus Doc add_documents"]
+    DocStore --> ManifestSave["更新 .index_manifest/documents.json"]
+    Cleanup["scripts/cleanup_missing_docs.py"] --> ManifestScan["扫描 manifest 中本地路径不存在的记录"]
+    ManifestScan --> CleanupDryRun{"是否传入 --apply"}
+    CleanupDryRun -- 否 --> CleanupPreview["只输出将清理的文件和 chunk 数"]
+    CleanupDryRun -- 是 --> CleanupDelete["按 chunk_ids 删除 Milvus 旧 chunk<br/>并移除 manifest 记录"]
+
+    IngestFAQ --> FAQDocs["faq_documents_from_csv"]
+    FAQDocs --> FAQMeta["page_content=标准问题<br/>metadata.answer=标准答案<br/>metadata.data_scope=检索隔离字段"]
+    FAQMeta --> FAQStore["Milvus FAQ delete_ids + add_documents"]</div>
+<h2 id="6">6. 质量治理与管理流程<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart TD
+    Rebuild["scripts/rebuild_kb_version.py"] --> Ingest["FAQ + 文档入库"]
+    Rebuild --> Quality["qa_core.quality.ingestion.build_ingestion_quality_report"]
+    Quality --> IngestionReport["reports/ingestion/<scenario>/*.json"]
+
+    Eval["scripts/evaluate_core_chain.py"] --> Debug["QAService.debug_retrieval"]
+    Eval --> StreamEval["QAService.stream_query"]
+    Debug --> EvalReport["Recall@K / MRR / keyword coverage"]
+    StreamEval --> EvalReport
+    EvalReport --> EvaluationFiles["reports/evaluation/*.json"]
+
+    Online["QAService.preview_query / stream_query"] --> Trace["LangSmith Trace"]
+    Trace --> LangSmith["LangSmith Dataset / Evaluation / Annotation"]
+
+    Admin["/admin 状态页"] --> LangSmithApi["/api/admin/langsmith"]
+    Admin --> IngestionApi["/api/admin/ingestion_reports"]
+    Admin --> GateApi["/api/admin/gate_reports<br/>/api/admin/performance_reports"]
+    LangSmithApi --> LangSmith
+    IngestionApi --> IngestionReport
+    GateApi --> EvaluationFiles</div>
+<p>这部分能力补齐的是“可证明”和“可排查”：</p>
+<ul>
+<li>入库质量报告证明知识库资料是否解析成功、切分是否健康；</li>
+<li>评测报告证明检索策略和回答效果是否退化；</li>
+<li>LangSmith Trace 证明一次线上回答的意图、检索计划、来源和耗时；</li>
+<li>状态页只展示版本、入库、回归报告和 LangSmith 状态，便于面试演示和本地排查。</li>
+</ul>
+<h2 id="7">7. 运行依赖关系<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<div class="mermaid">flowchart LR
+    API["edu-rag-api<br/>FastAPI + qa_core"] --> MySQL["edu-rag-mysql<br/>history / summary / feedback"]
+    API --> Milvus["edu-rag-milvus<br/>FAQ / Doc hybrid search"]
+    Milvus --> Etcd["edu-rag-etcd"]
+    Milvus --> Minio["edu-rag-minio"]
+    API --> LocalModels["本地模型<br/>bge-m3<br/>bge-reranker-large"]
+    API --> LLMProvider["DashScope<br/>OpenAI-compatible LLM"]
+
+    Host["宿主机"] --> API8000["127.0.0.1:8000"]
+    Host --> Milvus19530["127.0.0.1:19530"]
+    Host --> MySQL3306["127.0.0.1:3306（标准 docker-compose.yml）"]
+    Host --> MySQL3307["127.0.0.1:3307（仅 docker-compose.milvus.yml）"]</div>
+<h2 id="8">8. 关键边界<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<ul>
+<li>在线问答不解析文件、不执行 OCR、不写入知识库。</li>
+<li>入库链路负责 loader、切分、metadata、manifest 和 Milvus 写入。</li>
+<li>本地文件删除后，通过 <code>scripts/cleanup_missing_docs.py</code> 离线清理旧 chunk；默认 dry-run，不在在线请求中触发。</li>
+<li>MySQL 只负责聊天历史、摘要、反馈，不承担 FAQ/文档检索。</li>
+<li>RedisSearch 不进入当前核心链路。</li>
+<li>旧 <code>mysql_qa</code> / <code>rag_qa</code> 代码已移除，不进入 <code>app.py -&gt; qa_core/api -&gt; qa_core</code> 主请求链路。</li>
+<li>配置主链路统一读取 <code>.env + scenario.toml</code>，不再引入额外配置入口。</li>
+<li><code>ADMIN_API_TOKEN</code> 是必需配置；问答/调试/反馈接口有轻量进程内限流。</li>
+<li>Milvus、MySQL、本地模型、LLM Key、场景配置和 active 知识库版本都是启动前置条件。</li>
+<li>业务场景已经冻结为 8 个，<code>scripts/check_project_guardrails.py</code> 会阻止继续新增未评审场景包。</li>
+<li>表格行解析和表格类检索已经进入一期主入库与检索闭环；复杂 OCR 仍是离线治理能力，必须人工复核后再通过资料提升、版本重建和入库质量检查进入 active 知识库。</li>
+<li>入库质量报告、召回评测和LangSmith 观测已经进入当前工程闭环，但都不在用户在线提问时触发高成本入库或评测。</li>
+</ul>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核心术语速查表 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="_1">核心术语速查表<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>这张表用于第一遍学习时快速对齐概念。建议先理解每个术语在项目里的职责，再回到对应讲义和代码细看实现。</p>
+<h2 id="rag">一、RAG 主链路术语<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>一句话解释</th>
+<th>项目里的体现</th>
+<th>学习重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAG</td>
+<td>先从知识库检索证据，再让大模型基于证据回答。</td>
+<td><code>qa_core/services/qa_service.py</code>、<code>qa_core/pipeline/</code></td>
+<td>不让模型凭空回答，核心是“证据优先”。</td>
+</tr>
+<tr>
+<td>意图识别</td>
+<td>判断用户问题属于课程咨询、政策解释、表格查询、费用承诺等哪类。</td>
+<td><code>qa_core/intent/</code></td>
+<td>意图会影响检索参数、Prompt 模板和风控规则。</td>
+</tr>
+<tr>
+<td>查询改写</td>
+<td>把口语化问题整理成更适合检索的表达。</td>
+<td><code>generate_query_variants()</code> 所在的查询改写逻辑</td>
+<td>改写不是替用户回答，而是提高召回。</td>
+</tr>
+<tr>
+<td>查询变体</td>
+<td>针对同一个问题生成多个检索表达。</td>
+<td>多路检索前的 query variants</td>
+<td>解决“用户说法”和“文档写法”不一致的问题。</td>
+</tr>
+<tr>
+<td>Dense 检索</td>
+<td>用向量相似度找语义接近的内容。</td>
+<td>BGE-M3 embedding + Milvus dense vector</td>
+<td>适合语义相近但关键词不同的问题。</td>
+</tr>
+<tr>
+<td>Sparse / BM25</td>
+<td>用词项匹配找关键词重合的内容。</td>
+<td>Milvus 2.6 Hybrid Search 中的 sparse 通道</td>
+<td>适合编号、术语、制度条款、表格字段等精确匹配。</td>
+</tr>
+<tr>
+<td>Hybrid Search</td>
+<td>同时使用 dense 和 sparse，再按权重融合。</td>
+<td>Milvus 混合检索</td>
+<td>兼顾语义召回和关键词召回。</td>
+</tr>
+<tr>
+<td>Reranker</td>
+<td>对初步召回结果重新排序。</td>
+<td>CrossEncoder reranker</td>
+<td>提升最终进入上下文的证据质量。</td>
+</tr>
+<tr>
+<td>Context Builder</td>
+<td>把召回文档整理成可给 LLM 使用的上下文。</td>
+<td>上下文构建模块</td>
+<td>控制来源编号、内容长度、表格优先级和引用格式。</td>
+</tr>
+<tr>
+<td>Prompt Profile</td>
+<td>针对不同问题类别使用不同提示词模板。</td>
+<td>Prompt profile 配置</td>
+<td>费用、就业承诺、政策、表格类问题不能用同一套回答口径。</td>
+</tr>
+<tr>
+<td>结构化输出</td>
+<td>要求回答有固定格式，比如结论、依据、风险、来源。</td>
+<td>Prompt 模板和输出约束</td>
+<td>降低答案随意性，便于面试讲“可控生成”。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">二、入库与资料治理术语<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>一句话解释</th>
+<th>项目里的体现</th>
+<th>学习重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loader 注册表</td>
+<td>按文件类型选择成熟的 LangChain Loader。</td>
+<td><code>qa_core/indexing/</code></td>
+<td>避免在业务代码里堆 <code>if suffix == ...</code>。</td>
+</tr>
+<tr>
+<td>文档标准化</td>
+<td>把不同来源的文件统一成 LangChain <code>Document</code>。</td>
+<td>入库预处理链路</td>
+<td>后续切分、向量化、检索都基于统一结构。</td>
+</tr>
+<tr>
+<td>Parent-Child Chunking</td>
+<td>父块保留完整上下文，子块用于精细检索。</td>
+<td>第 14 讲和切分模块</td>
+<td>解决 chunk 太大召回不准、太小上下文断裂的问题。</td>
+</tr>
+<tr>
+<td>FAQ 分支</td>
+<td>标准问答单独入库，命中高置信问题时可快速回答。</td>
+<td>FAQ CSV 入库和 FAQ 检索分支</td>
+<td>FAQ 是高确定性知识，不应完全混在正文里。</td>
+</tr>
+<tr>
+<td>Table Row</td>
+<td>Excel/CSV 每一行转成一个独立 <code>Document</code>。</td>
+<td><code>content_type=table_row</code></td>
+<td>表格问题要保留表头、工作表、行号和单元格键值。</td>
+</tr>
+<tr>
+<td><code>prefer_table</code></td>
+<td>判断当前问题是否更像表格、清单、台账查询。</td>
+<td>检索计划中的表格偏好</td>
+<td>命中后提高表格行召回优先级，并禁止相似 FAQ 抢答。</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td>从图片或扫描件中识别文字。</td>
+<td>复杂图文资料入库治理</td>
+<td>OCR 只解决“看见文字”，不等于理解图片含义。</td>
+</tr>
+<tr>
+<td>VLM</td>
+<td>视觉语言模型，用于理解图片、图表、截图里的语义。</td>
+<td>后续复杂资料治理规划</td>
+<td>VLM 适合解释图像区域、表格截图、流程图含义。</td>
+</tr>
+<tr>
+<td>图文混排</td>
+<td>同一份资料里同时有正文、图片、截图、表格。</td>
+<td>第 14 讲复杂图文资料治理</td>
+<td>属于多模态入库治理，不等于在线多模态聊天。</td>
+</tr>
+<tr>
+<td><code>image_text_block</code></td>
+<td>将 OCR/VLM 得到的图片文字块作为可检索证据入库。</td>
+<td>复杂图片资料的目标数据结构</td>
+<td>图片证据要记录页码、区域、识别方式和置信度。</td>
+</tr>
+<tr>
+<td>IndexManifest</td>
+<td>记录文件指纹、chunk 数量和入库时间的增量清单。</td>
+<td><code>.index_manifest/</code></td>
+<td>避免每次改一个文件都全量重建知识库。</td>
+</tr>
+<tr>
+<td>知识库版本</td>
+<td>每次入库生成候选版本，评测通过后再激活。</td>
+<td><code>KnowledgeBaseVersion</code></td>
+<td>支持回滚、对比、灰度和版本隔离。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">三、多场景与数据隔离术语<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>一句话解释</th>
+<th>项目里的体现</th>
+<th>学习重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>场景包</td>
+<td>一套独立的业务资料、Prompt、评测集和演示问题。</td>
+<td><code>scenarios/</code></td>
+<td>多场景教学不是堆功能，而是复用同一套 RAG 能力。</td>
+</tr>
+<tr>
+<td>DataScope</td>
+<td>一次检索允许访问的数据范围。</td>
+<td><code>qa_core/governance/data_scope.py</code></td>
+<td>防止跨租户、跨数据集、跨权限误召回。</td>
+</tr>
+<tr>
+<td><code>tenant_id</code></td>
+<td>租户标识。</td>
+<td>数据隔离 metadata</td>
+<td>多企业或多客户共用系统时必须隔离。</td>
+</tr>
+<tr>
+<td><code>dataset_id</code></td>
+<td>数据集标识。</td>
+<td>数据隔离 metadata</td>
+<td>同一租户下也可能有多个知识库。</td>
+</tr>
+<tr>
+<td><code>visibility</code></td>
+<td>数据可见级别，比如 public、internal、private。</td>
+<td>数据隔离 metadata</td>
+<td>决定资料是否对当前用户可见。</td>
+</tr>
+<tr>
+<td><code>allowed_roles</code></td>
+<td>允许访问资料的角色集合。</td>
+<td>数据隔离 metadata</td>
+<td>处理 HR、法务、财务等角色权限差异。</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>资料来源类别，比如 policy、contract、delivery。</td>
+<td>场景包 metadata</td>
+<td>让检索和回答能区分制度、合同、验收、理赔等资料。</td>
+</tr>
+<tr>
+<td>业务分类</td>
+<td>场景内部的二级分类。</td>
+<td><code>business_category</code></td>
+<td>用于更精细地调节检索权重和 Prompt。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">四、质量、评测与观测术语<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>一句话解释</th>
+<th>项目里的体现</th>
+<th>学习重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入库质量检查</td>
+<td>入库后先检查 chunk、metadata、低质量文本和异常文件。</td>
+<td>质量报告脚本和重建流程</td>
+<td>不合格知识不能直接激活。</td>
+</tr>
+<tr>
+<td>RAG 回归验收</td>
+<td>用标准问题集验证召回和回答质量。</td>
+<td><code>eval_sets/</code>、评测脚本</td>
+<td>防止改代码后 RAG 主链路悄悄退化。</td>
+</tr>
+<tr>
+<td>Recall@K</td>
+<td>前 K 个召回结果里是否包含正确证据。</td>
+<td>检索评测指标</td>
+<td>衡量“有没有把正确资料找出来”。</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>正确证据排名越靠前，分数越高。</td>
+<td>检索评测指标</td>
+<td>衡量“正确资料排得够不够靠前”。</td>
+</tr>
+<tr>
+<td>关键词覆盖</td>
+<td>答案是否覆盖评测问题要求的关键事实。</td>
+<td>答案评测指标</td>
+<td>比单纯看语义相似更适合教学项目。</td>
+</tr>
+<tr>
+<td>场景隔离率</td>
+<td>检索结果是否来自正确场景和数据域。</td>
+<td>多场景评测</td>
+<td>衡量数据隔离是否真的生效。</td>
+</tr>
+<tr>
+<td>Bad Case</td>
+<td>已知失败样例，比如召回错、答非所问、越权召回。</td>
+<td>Bad Case 记录和回归测试</td>
+<td>失败样例要沉淀成评测资产。</td>
+</tr>
+<tr>
+<td>LangSmith Trace</td>
+<td>记录一次问答经过了哪些阶段、耗时、命中哪些证据。</td>
+<td><code>qa_core/observability/langsmith_adapter.py</code></td>
+<td>排查“为什么没答好”的第一现场。</td>
+</tr>
+<tr>
+<td>历史报告复盘</td>
+<td>查看入库报告、评测报告、容量报告等历史结果。</td>
+<td><code>reports/</code></td>
+<td>方便复盘、对比版本和面试展示工程闭环。</td>
+</tr>
+<tr>
+<td>容量评估</td>
+<td>估算文档量、chunk 数、向量数量、检索耗时和存储压力。</td>
+<td>容量评估脚本</td>
+<td>判断当前架构能否支撑更大知识库。</td>
+</tr>
+<tr>
+<td>企业 overlay</td>
+<td>用更贴近企业真实资料的字段、噪声和术语覆盖样例数据。</td>
+<td>场景资料增强脚本</td>
+<td>让教学数据更像业务现场，但不扩散非核心功能。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">五、容易混淆的概念<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>容易混淆</th>
+<th>正确区分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OCR 和 VLM</td>
+<td>OCR 负责识别图片里的文字，VLM 负责理解图片里的语义。</td>
+</tr>
+<tr>
+<td>图文混排和多模态在线问答</td>
+<td>本项目一期重点是“多模态入库治理”，不是让用户上传图片后实时对话。</td>
+</tr>
+<tr>
+<td><code>table_row</code> 和普通 chunk</td>
+<td>表格行不递归切分，重点保留行号、表头和单元格键值；普通 chunk 主要保留正文语义。</td>
+</tr>
+<tr>
+<td>RAG 回归验收和单元测试</td>
+<td>单元测试验证代码逻辑，RAG 回归验收验证知识召回和答案质量。</td>
+</tr>
+<tr>
+<td>Rerank 和 Query Rewrite</td>
+<td>Query Rewrite 发生在检索前，Rerank 发生在召回后。</td>
+</tr>
+<tr>
+<td>场景包和新功能</td>
+<td>场景包主要复用同一套 RAG 能力，不应该把每个场景都做成一套新系统。</td>
+</tr>
+<tr>
+<td>企业 overlay 和真实生产接入</td>
+<td>overlay 是教学数据增强，真实生产接入还需要权限、审计、脱敏、SLA 和合规评审。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">六、面试表达模板<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>介绍任何一个术语时，可以按这四句话组织：</p>
+<ol>
+<li>它解决什么问题。</li>
+<li>项目里放在哪个链路。</li>
+<li>为什么不用更简单的方案。</li>
+<li>当前边界是什么，后续如何升级。</li>
+</ol>
+<p>示例：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>Excel/CSV 入库解决的是表格类资料按普通文本切分后行列关系丢失的问题。
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>项目里把每一行转成 LangChain Document，并记录 sheet_name、row_number、content_type=table_row。
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>这样检索时可以识别表格问题并启用 prefer_table，避免相似 FAQ 抢答。
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>一期只支持规范二维表，复杂合并单元格、截图表格和图表说明会进入后续 OCR/VLM 治理链路。
+</code></pre></div></td></tr></table></div>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

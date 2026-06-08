@@ -1,0 +1,192 @@
+/* ============================================================
+   responsive.css — Breakpoints, Mobile, Tablet Adaptations
+   ============================================================ */
+
+/* ---- Tablet: hide right panel ---- */
+@media (max-width: 1200px) {
+  .main-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .right-panel {
+    display: none;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Tablet small: single column ---- */
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    padding: var(--space-3);
+  }
+
+  .left-panel {
+    order: 2;
+  }
+
+  .chat-panel {
+    order: 1;
+    height: 65vh;
+  }
+
+  .split-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .diagnostic-grid.admin {
+    grid-template-columns: 1fr;
+  }
+
+  .review-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Mobile: stacked layout ---- */
+@media (max-width: 640px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Topbar stacks vertically */
+  .topbar {
+    height: auto;
+    min-height: 56px;
+    padding: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .brand-text {
+    font-size: var(--text-sm);
+  }
+
+  .topbar-center {
+    order: 3;
+    width: 100%;
+  }
+
+  .scenario-select {
+    width: 100%;
+  }
+
+  .topbar-actions {
+    justify-content: flex-end;
+  }
+
+  .topbar-actions .ghost-link span {
+    display: none;
+  }
+
+  /* Main layout */
+  .main-layout {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .chat-panel {
+    height: 60vh;
+  }
+
+  .chat-history {
+    padding: var(--space-3);
+  }
+
+  .chat-history .welcome-message {
+    padding-top: var(--space-4);
+  }
+
+  .message-content {
+    max-width: 92%;
+  }
+
+  /* Left panel */
+  .left-panel {
+    margin-top: var(--space-2);
+  }
+
+  /* Composer */
+  .composer {
+    padding: var(--space-2);
+  }
+
+  .composer-meta {
+    flex-wrap: wrap;
+  }
+
+  .composer-scope {
+    max-width: 100%;
+  }
+
+  .chat-context {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .context-tags {
+    justify-content: flex-start;
+  }
+
+  /* Admin */
+  .page {
+    padding: var(--space-3);
+  }
+
+  .toolbar-line {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .data-table-wrap {
+    margin: 0 calc(-1 * var(--space-3));
+  }
+}
+
+/* ---- Tiny screens ---- */
+@media (max-width: 380px) {
+  .toolbar-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .quality-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .message-content {
+    max-width: 96%;
+  }
+
+  .session-controls {
+    grid-template-columns: 1fr;
+  }
+}

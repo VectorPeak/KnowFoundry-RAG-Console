@@ -1,0 +1,27 @@
+scenario_id = "tender_contract_risk"
+display_name = "招投标与合同履约风控助手"
+industry = "招采合规与合同履约"
+description = "面向招标文件、投标响应、合同条款、交付验收和履约风险的知识问答场景。"
+assistant_name = "招投标履约风控助手"
+business_domain = "招投标合规、合同条款、交付计划、验收材料和履约风险控制"
+support_contact = "招采合规与法务团队"
+faq_collection = "tender_contract_risk_faq_hybrid_v1"
+doc_collection = "tender_contract_risk_doc_hybrid_v1"
+valid_sources = ["bidding", "contract", "delivery", "acceptance", "risk"]
+sample_questions = ["投标文件缺少授权书有什么风险？", "非标准付款条款需要谁复核？", "验收材料不完整怎么办？"]
+resume_project_name = "招投标合规与合同履约 RAG 风控平台"
+resume_keywords = ["招投标", "合同履约", "招采合规", "验收风险", "RAG", "风控问答"]
+
+[source_labels]
+bidding = "招投标合规"
+contract = "合同条款"
+delivery = "交付履约"
+acceptance = "验收管理"
+risk = "风险预警"
+
+[source_patterns]
+bidding = "招标|投标|标书|授权书|保证金|废标|评分|响应文件|资格审查|围标|串标"
+contract = "合同|条款|付款|违约|质保|法务|非标准|补充协议|责任|赔偿|先开票|开票后验收|税务|回款"
+delivery = "交付|里程碑|延期|排期|实施|上线|交付物|项目计划|进度"
+acceptance = "验收材料|验收单|验收报告|测试报告|签收|交接|回执"
+risk = "风险|预警|逾期|争议|索赔|变更|异常|整改|处罚|违约金"

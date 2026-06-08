@@ -1,0 +1,82 @@
+[
+  {
+    "case_id": "perf_enterprise_onboarding_doc",
+    "scenario_id": "enterprise_knowledge",
+    "source_filter": "hr",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "新人入职当天要准备什么？"
+  },
+  {
+    "case_id": "perf_saas_webhook_doc",
+    "scenario_id": "saas_support",
+    "source_filter": "integration",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "Webhook 调用失败如何排查？"
+  },
+  {
+    "case_id": "perf_equipment_temperature_faq",
+    "scenario_id": "equipment_ops",
+    "source_filter": "alarm",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "温度告警如何处理？"
+  },
+  {
+    "case_id": "perf_compliance_privacy_doc",
+    "scenario_id": "compliance_qa",
+    "source_filter": "privacy",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "对外共享个人信息前要确认什么？"
+  },
+  {
+    "case_id": "perf_cross_border_documentation_doc",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "documentation",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "商业发票和装箱单不一致怎么办？"
+  },
+  {
+    "case_id": "perf_tender_acceptance_faq",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "acceptance",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "验收材料不完整怎么办？"
+  },
+  {
+    "case_id": "perf_insurance_liability_faq",
+    "scenario_id": "insurance_claims",
+    "source_filter": "liability",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "事故是否属于保险责任如何判断？"
+  },
+  {
+    "case_id": "perf_engineering_table_rag",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "quality",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "隐蔽验收资料清单里施工照片是什么状态？"
+  }
+]

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旧版链路退场治理说明 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="_1">旧版链路退场治理说明<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>本文档只保留旧版链路的架构问题和退场结论。旧版 <code>mysql_qa</code>、<code>rag_qa</code>、<code>old_main.py</code>、
+<code>new_main.py</code> 等代码已经从工程目录中移除，不再作为可运行代码保留。</p>
+<h2 id="1">1. 当前结论<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>当前唯一主链路是：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span>
+<span class="normal"><a href="#__codelineno-0-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>app.py
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>  -&gt; qa_core.application.factory.get_qa_service
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>  -&gt; qa_core.application.service.QAService
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>  -&gt; qa_core.intent / qa_core.pipeline / qa_core.retrieval.strategy
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>  -&gt; qa_core.retrieval.store.MilvusHybridStore
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>  -&gt; qa_core.memory.history.HistoryStore
+</code></pre></div></td></tr></table></div>
+<p>旧链路不再保留运行入口，也不再提供环境变量开关恢复运行。这样做是为了降低学习成本，
+避免新同学误以为项目同时存在两套可选架构。</p>
+<h2 id="2">2. 旧版链路为什么退场<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>旧版链路大致是：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">5</a></span>
+<span class="normal"><a href="#__codelineno-1-6">6</a></span>
+<span class="normal"><a href="#__codelineno-1-7">7</a></span>
+<span class="normal"><a href="#__codelineno-1-8">8</a></span>
+<span class="normal"><a href="#__codelineno-1-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>old_main.py / new_main.py
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>  -&gt; mysql_qa.retrieval.BM25Search
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>  -&gt; Redis 缓存
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>  -&gt; MySQL FAQ 表
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>  -&gt; rag_qa.core.RagSystem
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>  -&gt; BERT QueryClassifier
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>  -&gt; LLM StrategySelector
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>  -&gt; rag_qa.core.VectorStore
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>  -&gt; 旧版 Milvus schema
+</code></pre></div></td></tr></table></div>
+<p>主要问题：</p>
+<ul>
+<li>MySQL、Redis、Milvus 三套知识状态需要同步，容易不一致。</li>
+<li>本地 <code>rank_bm25 + jieba</code> 已被 Milvus 2.6.x 内置 BM25 替代。</li>
+<li>RedisSearch 会引入第二套索引，不符合当前核心链路简化目标。</li>
+<li>旧版手写 Milvus schema 与当前 LangChain Milvus 集合不一致。</li>
+<li>BERT 分类器和 LLM 策略选择器增加启动成本和不可控性。</li>
+<li>旧版流式输出不是当前页面使用的 WebSocket 事件协议。</li>
+<li>旧历史表与当前 LangChain <code>SQLChatMessageHistory</code> 不是同一套。</li>
+<li>旧文档入库没有 <code>IndexManifest</code> 增量清单，容易重复或保留过期 chunk。</li>
+</ul>
+<p>因此，旧版代码的正确方向是删除，不是继续兼容或继续功能优化。</p>
+<h2 id="3">3. 保留什么<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>保留的是“架构演进说明”，不是旧代码：</p>
+<ul>
+<li>优化前问题分析归档：<code>docs/archive/optimization_implementation.md</code></li>
+<li>当前架构文档：<code>docs/PROJECT_ARCHITECTURE.md</code></li>
+<li>当前流程图：<code>docs/current_architecture_flow.md</code></li>
+</ul>
+<p>如果后续确实需要迁移历史数据，应通过当前脚本入口处理，例如：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-faq-csv</span> <span class="p">&lt;</span><span class="n">faq</span><span class="p">.</span><span class="n">csv</span><span class="p">&gt;</span> <span class="p">-</span><span class="n">-data-dir</span> <span class="p">&lt;</span><span class="n">data_dir</span><span class="p">&gt;</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+</code></pre></div></td></tr></table></div>
+<p>不要再恢复旧 BM25、旧 RedisSearch 或旧 RAG 编排器。</p>
+<h2 id="4">4. 验收方式<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>当前主链路验收：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
+<span class="normal"><a href="#__codelineno-3-2">2</a></span>
+<span class="normal"><a href="#__codelineno-3-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">compileall</span> <span class="n">app</span><span class="p">.</span><span class="n">py</span> <span class="n">qa_core</span> <span class="n">scripts</span> <span class="n">tests</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span> <span class="n">-q</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_langchain_stack</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div></td></tr></table></div>
+<p>目录边界验收：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="nb">Get-ChildItem</span>
+</code></pre></div></td></tr></table></div>
+<p>预期结果：根目录只保留当前主链路、配置、文档、脚本、场景包、模型和测试目录，不再出现旧版代码目录或旧版入口文件。</p>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

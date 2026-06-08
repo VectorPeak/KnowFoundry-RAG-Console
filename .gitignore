@@ -1,0 +1,35 @@
+# 本地环境和密钥
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.compose.example
+
+# Python 缓存与虚拟环境
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# 运行产物
+logs/
+reports/
+.index_manifest/
+
+# 本地大模型和向量库/数据库卷
+models/
+volumes/
+milvus_data/
+mysql_data/
+minio_data/
+etcd_data/
+
+# 编辑器和系统文件
+.claude/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

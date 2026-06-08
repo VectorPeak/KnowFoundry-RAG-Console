@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第11讲 笔记：LangChain 生态系统 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/pipeline-demo.html">🎬 流程动画演示</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-retrieval-strategy.html">05 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-query-rewrite-variants.html">06 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-milvus-hybrid-search.html">07 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-qaservice-orchestration.html">08 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-rag-pipeline.html">09 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-prompt-engineering.html">10 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/19-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+</ul></li>
+
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+
+<h1 id="11-langchain">第11讲 笔记：LangChain 生态系统<a class="headerlink" href="#11-langchain" title="Permanent link">&para;</a></h1>
+
+<h2 id="_1">一、学习目标（可验证）<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li><input type="checkbox"> 能说出 LangChain 的三大核心抽象（Model/Chain/Agent）及在本项目中的使用策略</li>
+<li><input type="checkbox"> 能解释 Runnable 接口的三个核心方法（invoke/stream/batch）及各自适用场景</li>
+<li><input type="checkbox"> 能写出 LCEL 管道符 <code>|</code> 串联 prompt → model → parser 的代码，并解释本项目为何不用</li>
+<li><input type="checkbox"> 能区分 ChatOpenAI 三种调用模式：invoke（非流式）、stream（流式）、with_structured_output（Pydantic 约束）</li>
+<li><input type="checkbox"> 能说出 SystemMessage/HumanMessage/AIMessage 与 OpenAI API role 的映射关系</li>
+<li><input type="checkbox"> 能解释 ChatPromptTemplate + MessagesPlaceholder 如何构建带动态对话历史的 Prompt</li>
+<li><input type="checkbox"> 能说明 Document Loader 注册表模式的设计思路和扩展方式</li>
+<li><input type="checkbox"> 能解释 RecursiveCharacterTextSplitter 递归降级切分算法和父子块策略的价值</li>
+</ul>
+
+<h2 id="_2">二、知识点详解<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+
+<h3 id="_2_1">2.1 LangChain 核心定位与三大抽象<a class="headerlink" href="#_2_1" title="Permanent link">&para;</a></h3>
+<p><strong>是什么</strong>：LangChain 不是模型，而是 LLM 应用开发框架。它将对话历史、文档加载、文本切分、向量存储、提示模板等环节做标准化封装。三大抽象按灵活性从低到高：</p>
+<pre><code>Model（模型） → Chain（链） → Agent（智能体）
+统一调用接口    管道串联组件    LLM 自主决策下一步</code></pre>
+<p><strong>本项目使用策略</strong>：✅ 全面使用 Model 层（ChatOpenAI 封装 DashScope）；⚠️ 部分使用 Chain 底层组件（不用管道符串联）；🔮 二期规划 Agent 层（LangGraph 动态工具调用）。</p>
+
+<h3 id="_2_2">2.2 Runnable 统一接口<a class="headerlink" href="#_2_2" title="Permanent link">&para;</a></h3>
+<p><strong>是什么</strong>：LangChain 所有组件都实现相同接口——<code>invoke()</code>（等完整结果）、<code>stream()</code>（逐 token 流式输出）、<code>batch()</code>（并行处理多个输入）。</p>
+<p><strong>为什么需要</strong>：早期不同组件调用方式不同（<code>llm.predict()</code>、<code>chain.run()</code>、<code>retriever.get_relevant_documents()</code>），换组件就要换 API。Runnable 统一了这一切。</p>
+
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen-plus&quot;</span><span class="p">)</span>
+
+<span class="c1"># invoke：等完整结果（用于意图识别等需要完整结果继续下一步的场景）</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span><span class="n">HumanMessage</span><span class="p">(</span><span class="s2">&quot;入职流程有哪些步骤&quot;</span><span class="p">)])</span>
+<span class="c1"># → AIMessage(content=&quot;入职流程包括：1. 提交材料...&quot;)</span>
+
+<span class="c1"># stream：逐个 token 返回（用于前端实时渲染）</span>
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">stream</span><span class="p">([</span><span class="n">HumanMessage</span><span class="p">(</span><span class="s2">&quot;入职流程有哪些步骤&quot;</span><span class="p">)]):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>  <span class="c1"># 50ms→&quot;入&quot;, 100ms→&quot;职&quot;, ...</span>
+
+<span class="c1"># batch：并行处理多个问题（用于批量评估、测试）</span>
+<span class="n">responses</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">batch</span><span class="p">([</span>
+    <span class="p">[</span><span class="n">HumanMessage</span><span class="p">(</span><span class="s2">&quot;入职流程&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="n">HumanMessage</span><span class="p">(</span><span class="s2">&quot;报销规则&quot;</span><span class="p">)],</span>
+<span class="p">])</span>  <span class="c1"># → [AIMessage, AIMessage]</span>
+</code></pre></div></td></tr></table></div>
+
+<h3 id="_2_3">2.3 LCEL 管道符与为何本项目不用<a class="headerlink" href="#_2_3" title="Permanent link">&para;</a></h3>
+<p><strong>LCEL（LangChain Expression Language）</strong>用 <code>|</code> 管道符串联 Runnable：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="n">chain</span> <span class="o">=</span> <span class="n">prompt</span> <span class="o">|</span> <span class="n">model</span> <span class="o">|</span> <span class="n">parser</span>
+<span class="c1"># 数据流：prompt.invoke(input) → model.invoke(prompt_output) → parser.invoke(model_output)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>本项目为什么不用</strong>：四个原因——① RAG 有 FAQ 直出/文档RAG/信息不足/直接答案等多种分支，不适合线性管道；② 自编流程每一步都有 <code>reason</code> 字段可解释；③ 每阶段输入输出可单独调试；④ RAG 需要在阶段之间做动态决策（FAQ 命中直接返回、检索不足追加搜索）。</p>
+
+<h3 id="_2_4">2.4 ChatOpenAI 三种调用模式<a class="headerlink" href="#_2_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead><tr><th>模式</th><th>方法</th><th>适用场景</th><th>本项目用途</th></tr></thead>
+<tbody>
+<tr><td>非流式</td><td><code>invoke()</code></td><td>需要完整结果才能继续</td><td>意图识别、查询改写、历史摘要</td></tr>
+<tr><td>流式</td><td><code>stream()</code></td><td>前端实时渲染</td><td>最终答案生成（WebSocket 逐 token 推送）</td></tr>
+<tr><td>结构化输出</td><td><code>with_structured_output()</code></td><td>需要 LLM 严格按字段返回</td><td>意图分类（Pydantic 模型校验）</td></tr>
+</tbody>
+</table>
+
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 1</span>
+<span class="normal"> 2</span>
+<span class="normal"> 3</span>
+<span class="normal"> 4</span>
+<span class="normal"> 5</span>
+<span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1"># qa_core/llm/client.py — 工厂函数（进程级缓存）</span>
+<span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># streaming=True 和 False 各缓一份</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatOpenAI</span><span class="p">:</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ChatOpenAI</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_model</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_api_key</span><span class="p">,</span>
+        <span class="n">base_url</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_base_url</span><span class="p">,</span>
+        <span class="n">temperature</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_temperature</span><span class="p">,</span>
+        <span class="n">streaming</span><span class="o">=</span><span class="n">streaming</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p class="source-ref">📁 完整源码：<code>qa_core/llm/client.py</code> → <code>get_chat_model()</code></p>
+
+<p><strong>Structured Output 工作原理</strong>：LangChain 将 Pydantic 模型的 JSON Schema 注入 System Prompt → LLM 按 Schema 返回 JSON → Pydantic 自动校验。枚举值超范围直接报错，不需要手写正则。</p>
+
+<h3 id="_2_5">2.5 Message 类型系统<a class="headerlink" href="#_2_5" title="Permanent link">&para;</a></h3>
+<table>
+<thead><tr><th>LangChain 类</th><th>OpenAI API role</th><th>用途</th></tr></thead>
+<tbody>
+<tr><td><code>SystemMessage</code></td><td><code>system</code></td><td>定义 AI 角色和行为边界</td></tr>
+<tr><td><code>HumanMessage</code></td><td><code>user</code></td><td>用户说的话</td></tr>
+<tr><td><code>AIMessage</code></td><td><code>assistant</code></td><td>AI 的回答（多轮对话历史）</td></tr>
+</tbody>
+</table>
+<p><strong>关键理解</strong>：LLM 是无状态的——每次请求必须完整发送历史消息列表。这就是多轮对话的本质：把 `[System, User1, AI1, User2, AI2, User3]` 全部发给 LLM，让它"记住"上下文。</p>
+
+<h3 id="_2_6">2.6 Prompt Templates 与 MessagesPlaceholder<a class="headerlink" href="#_2_6" title="Permanent link">&para;</a></h3>
+<p><strong>ChatPromptTemplate</strong>：用模板变量管理 System/User Prompt，变量在运行时从场景 TOML 配置注入，使同一套模板可用于全部 8 个行业场景。</p>
+<p><strong>MessagesPlaceholder</strong>：当消息数量不固定时（多轮对话历史），在模板中留一个"消息列表"插槽，调用时传入 <code>[HumanMessage(...), AIMessage(...), ...]</code> 列表自动展开。</p>
+<p><strong>本项目 PromptProfile 数据类</strong>：<code>qa_core/prompts/profiles.py</code> 用 frozen dataclass 管理多档位模板（FAQ_QUERY / KNOWLEDGE_QUERY / FOLLOW_UP），防止运行时篡改。</p>
+
+<h3 id="_2_7">2.7 SQLChatMessageHistory — 对话历史持久化<a class="headerlink" href="#_2_7" title="Permanent link">&para;</a></h3>
+<p>LangChain 的 MySQL 对话历史适配器——一行代码替代手写 CRUD，按 session_id 隔离会话，支持历史摘要压缩。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1"># qa_core/memory/history.py — 封装使用</span>
+<span class="n">history</span> <span class="o">=</span> <span class="n">SQLChatMessageHistory</span><span class="p">(</span>
+    <span class="n">session_id</span><span class="o">=</span><span class="s2">&quot;session_abc123&quot;</span><span class="p">,</span>
+    <span class="n">connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>  <span class="c1"># SQLAlchemy 引擎</span>
+<span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>MySQL 角色边界：聊天历史 ✅ / 会话摘要 ✅ / 用户反馈 ✅ — FAQ 检索 ❌ / 文档检索 ❌ / 向量相似度 ❌（这些走 Milvus）。</p>
+
+<h3 id="_2_8">2.8 Document Loaders — 注册表模式<a class="headerlink" href="#_2_8" title="Permanent link">&para;</a></h3>
+<p><strong>设计思路</strong>：按文件扩展名自动匹配加载器（PDF→PyPDFLoader, Word→Docx2txtLoader, Markdown→TextLoader, Excel→自定义表格加载器），新增格式只需加一条注册项 <code>DocumentLoaderSpec(suffixes=(".xyz",), factory=_xyz_loader, ...)</code>，主流程零修改。符合开闭原则——对扩展开放，对修改关闭。</p>
+<p class="source-ref">📁 完整源码：<code>qa_core/indexing/document_loaders.py</code></p>
+
+<h3 id="_2_9">2.9 Text Splitters — 文档切分<a class="headerlink" href="#_2_9" title="Permanent link">&para;</a></h3>
+<p><strong>RecursiveCharacterTextSplitter 递归降级切分</strong>：按优先级尝试分隔符——<code>\n\n</code>（段落）→ <code>\n</code>（换行）→ <code>。</code>（句子）→ <code>，</code>（短语）→ 空格 → 字符（最后手段）。优先在语义边界切分，字符截断是最后的应急手段。</p>
+<p><strong>父子块策略</strong>：子块（500 字符）存入 Milvus 做精确召回；父块（2000 字符）存于子块 <code>metadata.parent_content</code>——检索命中子块后，LLM 看到的是父块的完整上下文。精确 + 完整兼得。</p>
+<p class="source-ref">📁 完整源码：<code>qa_core/indexing/chunking.py</code> → <code>split_documents()</code></p>
+
+<h3 id="_2_10">2.10 自研 vs 拥抱生态<a class="headerlink" href="#_2_10" title="Permanent link">&para;</a></h3>
+<table>
+<thead><tr><th>如果自研</th><th>采用 LangChain</th></tr></thead>
+<tbody>
+<tr><td>手写 Milvus schema + pymilvus</td><td>LangChain Milvus 自动管理</td></tr>
+<tr><td>手写消息表 + SQL CRUD</td><td>SQLChatMessageHistory 自动化</td></tr>
+<tr><td>手写每种文件格式的加载器</td><td>100+ Document Loaders</td></tr>
+<tr><td>手写文本切分逻辑</td><td>RecursiveCharacterTextSplitter</td></tr>
+<tr><td>手写 LLM API 调用 + 重试</td><td>ChatOpenAI 自带重试</td></tr>
+</tbody>
+</table>
+<p>但<strong>不完全依赖 LangChain 高层 Chain</strong>：不使用 <code>RetrievalQA</code> 等黑盒，因为 RAG 有分支逻辑、动态阈值、可解释性需求，不适合线性管道。</p>
+
+<h2 id="_3">三、常见面试题<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+
+<p><strong>Q1：Runnable 统一接口解决了什么问题？</strong></p>
+<blockquote>早期不同组件调用方式不同（llm.predict()、chain.run()），换组件就换 API。Runnable 统一为 invoke(完整)/stream(流式)/batch(并行)，所有组件调用方式一样，可灵活替换和组合。</blockquote>
+
+<p><strong>Q2：with_structured_output 相比手写正则有什么优势？</strong></p>
+<blockquote>手写正则三大问题：LLM 返回格式不稳定（有时中文有时英文）；字段约束无法强制执行（confidence 0-1、intent 枚举值）；每次改 schema 都要重写正则。with_structured_output 将 Pydantic Schema 注入 System Prompt，Pydantic 自动校验——枚举值超范围直接报错，schema 变更只改模型不改解析逻辑。</blockquote>
+
+<p><strong>Q3：为什么不用 LCEL 管道符串联 RAG 流程？</strong></p>
+<blockquote>四个原因：① 分支复杂（FAQ 直出/文档RAG/信息不足/直接答案）；② 可解释性（每步有 reason 字段）；③ 调试友好（每阶段输入输出可单独检查）；④ 动态决策（FAQ 命中直接返回、检索不足追加搜索）。LCEL 适合简单线性链，不适合有决策逻辑的工程链路。</blockquote>
+
+<p><strong>Q4：注册表模式和 if/elif 分支有什么区别？</strong></p>
+<blockquote>if/elif 把每种格式写死在主流程中。注册表模式把"后缀→工厂函数"映射集中管理，新增格式加一条注册项，主流程只查表不关心具体类型。对扩展开放，对修改关闭——开闭原则。</blockquote>
+
+<p><strong>Q5：父子块切分策略的价值？</strong></p>
+<blockquote>单一切块矛盾：chunk 太大→检索不精确；chunk 太小→LLM 上下文断裂。父子块解决：子块（500字）精确召回命中；父块（2000字）从 metadata.parent_content 展开给 LLM 完整上下文。精确 + 完整兼得。</blockquote>
+
+<p><strong>Q6：ChatPromptTemplate 的 MessagesPlaceholder 解决了什么问题？</strong></p>
+<blockquote>普通模板变量只能是字符串，但多轮对话历史长度不固定（可能是 2 条也可能是 20 条消息）。MessagesPlaceholder 在模板中留"消息列表"插槽，调用时传入完整 Message 列表自动展开。同一模板既能处理首轮提问（history=[]），也能处理多轮追问。</blockquote>
+
+<h2 id="_4">四、速查卡<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead><tr><th>术语</th><th>一句话定义</th></tr></thead>
+<tbody>
+<tr><td>LangChain</td><td>LLM 应用开发框架，标准化封装对话历史、文档加载、向量存储、提示模板、输出解析</td></tr>
+<tr><td>Runnable</td><td>LangChain 统一调用接口：invoke(完整)/stream(流式)/batch(并行)，所有组件实现相同方法</td></tr>
+<tr><td>LCEL</td><td>LangChain 表达式语言，用 <code>|</code> 管道符串联多个 Runnable 成链</td></tr>
+<tr><td>ChatOpenAI</td><td>LangChain 对 OpenAI 兼容接口的封装类，本项目用它统一接入 DashScope 等模型</td></tr>
+<tr><td>SystemMessage</td><td>映射 OpenAI <code>role:system</code>，定义 AI 角色和行为边界</td></tr>
+<tr><td>HumanMessage</td><td>映射 OpenAI <code>role:user</code>，用户说的话</td></tr>
+<tr><td>AIMessage</td><td>映射 OpenAI <code>role:assistant</code>，AI 的回复（多轮对话历史）</td></tr>
+<tr><td>ChatPromptTemplate</td><td>多角色 Prompt 模板，支持 System/User/AI 等多条消息模板化</td></tr>
+<tr><td>MessagesPlaceholder</td><td>模板中的"消息列表"插槽，用于动态插入不固定数量的多轮对话历史</td></tr>
+<tr><td>with_structured_output</td><td>用 Pydantic 模型强制约束 LLM 输出 JSON Schema，自动校验</td></tr>
+<tr><td>SQLChatMessageHistory</td><td>LangChain 的 MySQL 对话历史适配器，按 session_id 隔离，自动 CRUD</td></tr>
+<tr><td>注册表模式</td><td>后缀→工厂函数的映射表，新增文件类型只加一条注册，不改主流程</td></tr>
+<tr><td>RecursiveCharacterTextSplitter</td><td>递归降级切分器：段落→句子→短语→字符，优先在语义边界切分</td></tr>
+<tr><td>父子块策略</td><td>子块（500字）精确检索 + 父块（2000字）提供 LLM 完整上下文</td></tr>
+<tr><td>Prompt Profile</td><td>按意图类型预设的 System+User Prompt 模板组合，frozen dataclass 防运行时篡改</td></tr>
+<tr><td>@lru_cache</td><td>进程级缓存装饰器，模型/Store 等重资源只加载一次</td></tr>
+</tbody>
+</table>
+
+<h2 id="_5">五、练习题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>对比 invoke 和 stream</strong>：用 <code>get_chat_model(streaming=False).invoke()</code> 和 <code>get_chat_model(streaming=True).stream()</code> 分别调用同一个问题，观察返回方式的差异。</li>
+<li><strong>探索 structured output</strong>：在 <code>IntentLLMDecision</code> 中新增一个字段（如 <code>urgency: Literal["low", "medium", "high"]</code>），观察 LLM 返回的 JSON 是否自动包含该字段。</li>
+<li><strong>新增文件格式</strong>：按照注册表模式，为 <code>.json</code> 文件编写一个 loader 工厂函数并注册到 <code>DOCUMENT_LOADER_SPECS</code>，验证 <code>load_file()</code> 能否正确处理。</li>
+<li><strong>chunk 大小实验</strong>：修改 <code>child_chunk_size</code> 为 200/500/1000 分别切分同一篇长文档，观察不同大小下检索结果的精确度和上下文完整性差异。</li>
+</ol>
+
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/notes/10-app-entry-preflight.html"><i class="fas fa-arrow-left"></i> 10 应用入口与校验</a>
+        <a class="pager-link next" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

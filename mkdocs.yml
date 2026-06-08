@@ -1,0 +1,107 @@
+site_name: KnowForge RAG Platform — 系统讲义
+site_description: 基于 LangChain + Milvus Hybrid Search 的 KnowForge RAG Platform — 18 讲系统课程
+docs_dir: docs
+site_dir: site
+use_directory_urls: false
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换至深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换至浅色模式
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - tables
+  - pymdownx.highlight:
+      anchor_linenums: true
+      linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid_formatter.mermaid_div_format
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search:
+      lang: zh
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+  - assets/javascripts/mermaid-init.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - 首页: index.md
+  - 🎬 流程动画演示: animation/pipeline-demo.html
+  - 课程大纲: course-outline.md
+  - 标准演示 Runbook: standard_demo_runbook.md
+  - 第一阶段：基础概念:
+      - 01 项目概述与环境搭建: 01-project-overview.md
+      - 02 RAG 核心概念深入: 02-rag-fundamentals.md
+  - 第二阶段：核心 RAG 链路:
+      - 03 LangChain 生态系统: 03-langchain-ecosystem.md
+      - 04 Milvus 索引机制与基本操作: 04-milvus-index-and-operations.md
+      - 05 意图分类: 05-intent-classification.md
+      - 06 检索策略与动态计划: 06-retrieval-strategy.md
+      - 07 查询改写与变体生成: 07-query-rewrite-variants.md
+      - 08 Milvus 混合检索: 08-milvus-hybrid-search.md
+      - 09 QAService 核心编排: 09-qaservice-orchestration.md
+      - 10 RAG Pipeline 主流程: 10-rag-pipeline.md
+      - 11 Prompt 工程与 Profile 系统: 11-prompt-engineering.md
+  - 第三阶段：Web 服务基础设施:
+      - 12 FastAPI 与异步 Web 框架: 12-fastapi-async.md
+      - 13 应用入口与环境前置校验: 13-app-entry-preflight.md
+  - 第四阶段：治理与运维:
+      - 14 知识库多版本管理: 14-kb-versioning.md
+      - 15 数据隔离与多租户: 15-data-isolation.md
+      - 16 文档入库与索引链路: 16-ingestion-pipeline.md
+      - 17 RAG 回归验收与入库质量: 17-quality-evaluation.md
+      - 18 测试与接口验收: 18-testing-system.md
+      - 19 LangSmith 观测与 Trace: 19-observability-tracing.md
+  - 技术附录:
+      - A Pydantic 数据校验与 Settings 管理: appendix/appendix-a-pydantic.md
+      - B SHA256 文件指纹: appendix/appendix-b-sha256-fingerprint.md
+      - C HNSW 索引参数调优: appendix/appendix-c-hnsw-index.md
+      - D CrossEncoder Reranker 原理: appendix/appendix-d-crossencoder-reranker.md
+      - E RecursiveCharacterTextSplitter: appendix/appendix-e-recursive-splitter.md
+      - F Milvus 索引与操作详解: appendix/appendix-f-milvus-index-and-operations.md
+      - G Embedding 模型选型: appendix/appendix-g-embedding-models.md
+      - H 文档切分策略 Parent-Child Chunking: appendix/appendix-h-chunking-strategy.md
+      - I 项目工具类开发详解: appendix/appendix-i-tool-foundations.md
+  - 复习笔记:
+      - 笔记目录: notes/index.md
+      - 01 项目概述: notes/01-project-overview.md
+      - 02 RAG 核心概念: notes/02-rag-fundamentals.md
+      - 03 LangChain 生态系统: notes/03-langchain-ecosystem.md

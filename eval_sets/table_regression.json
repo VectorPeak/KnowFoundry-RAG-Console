@@ -1,0 +1,54 @@
+[
+  {
+    "case_id": "engineering_hidden_acceptance_table_row",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "quality",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "隐蔽验收资料清单里施工照片是什么状态？",
+    "expected_hit_type": "rag",
+    "expected_keywords": ["施工照片", "必需", "隐蔽部位"],
+    "expected_source_contains": ["hidden_acceptance_materials.csv", "施工照片"]
+  },
+  {
+    "case_id": "tender_acceptance_table_row",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "acceptance",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "验收清单里测试报告是否必需，对回款有什么影响？",
+    "expected_hit_type": "rag",
+    "expected_keywords": ["测试报告", "必需", "合同验收标准"],
+    "expected_source_contains": ["acceptance_checklist.csv", "测试报告"]
+  },
+  {
+    "case_id": "insurance_claim_material_table_row",
+    "scenario_id": "insurance_claims",
+    "source_filter": "claim_material",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "理赔材料审核表里银行卡信息不一致时怎么处理？",
+    "expected_hit_type": "rag",
+    "expected_keywords": ["银行卡信息", "账户名", "人工复核"],
+    "expected_source_contains": ["claim_material_review.csv", "银行卡信息"]
+  },
+  {
+    "case_id": "cross_border_document_table_row",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "documentation",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "单证一致性表里装箱单需要核对哪些字段？",
+    "expected_hit_type": "rag",
+    "expected_keywords": ["装箱单", "数量", "毛净重", "提单"],
+    "expected_source_contains": ["document_consistency_check.csv", "装箱单"]
+  }
+]

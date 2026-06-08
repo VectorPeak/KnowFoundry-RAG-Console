@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KnowForge RAG Pipeline — 执行流程动画演示</title>
+<style>
+:root {
+  --bg:#0b1120; --card:#131c2e; --border:#1e2d4a; --text:#e2e8f0; --muted:#8899b4;
+  --accent:#38bdf8; --accent2:#818cf8; --success:#34d399; --warn:#fbbf24; --err:#f87171;
+  --milvus:#06b6d4; --embed:#a78bfa; --rerank:#f59e0b; --llm:#ec4899; --mysql:#84cc16;
+  --fs-xs:.68rem; --fs-sm:.74rem; --fs-md:.82rem; --fs-lg:.95rem;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:#080d18;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.header h1{font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.controls button{padding:7px 14px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;font-size:var(--fs-sm);transition:all .2s;white-space:nowrap}
+.controls button:hover{background:#1e3050}
+.controls button.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.controls select{padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);font-size:var(--fs-sm)}
+.speed-label{font-size:var(--fs-xs);color:var(--muted);min-width:28px;text-align:center}
+
+.main-container{max-width:1300px;margin:0 auto;padding:14px 18px;display:grid;grid-template-columns:260px 1fr 170px;grid-template-rows:auto auto auto auto;gap:10px}
+
+/* Entry layer */
+.entry-row{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:0;padding:10px 0;flex-wrap:wrap;font-size:var(--fs-sm)}
+.entry-node{padding:8px 16px;border-radius:9px;font-weight:600;text-align:center;font-size:var(--fs-xs);border:2px solid var(--border);background:var(--card);transition:all .4s}
+.entry-node.highlight{border-color:var(--accent);box-shadow:0 0 14px rgba(56,189,248,.35)}
+.entry-arrow{font-size:1.1rem;color:var(--muted);margin:0 5px;transition:all .4s}
+.entry-arrow.lit{color:var(--accent)}
+.dual-badges{grid-column:1/-1;display:flex;gap:10px;justify-content:center;margin-bottom:4px}
+.dual-badges span{padding:4px 10px;border-radius:5px;font-size:var(--fs-xs)}
+.dual-badges .path-a{background:#13203b;border:1px solid #3b82f6;color:#93c5fd}
+.dual-badges .path-b{background:#131c2e;border:1px solid var(--accent2);color:#a5b4fc;opacity:.5;transition:all .4s}
+.dual-badges .path-b.active{opacity:1;box-shadow:0 0 10px rgba(129,140,248,.3)}
+
+/* Stage row */
+.stage-row{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.stage-card{background:var(--card);border:2px solid var(--border);border-radius:11px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .45s;min-height:105px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.stage-card .num{font-size:1.5rem;font-weight:800;color:var(--border);transition:all .4s}
+.stage-card .title{font-size:var(--fs-xs);color:var(--muted);margin-top:3px;transition:all .4s;line-height:1.2}
+.stage-card .sub{font-size:.6rem;color:#3b5070;margin-top:2px}
+.stage-card .mini-badge{display:none;font-size:.55rem;padding:2px 6px;border-radius:4px;margin-top:4px}
+.stage-card.active{border-color:var(--accent);box-shadow:0 0 24px rgba(56,189,248,.3);transform:translateY(-5px);z-index:2}
+.stage-card.active .num{color:var(--accent)}
+.stage-card.active .title{color:var(--text)}
+.stage-card.active .mini-badge{display:block;background:rgba(56,189,248,.15);color:var(--accent)}
+.stage-card.done{border-color:#0f4a3a;opacity:.65}
+.stage-card.done .num{color:var(--success)}
+.stage-card.skipped{border-color:#5c3d0e;opacity:.45;text-decoration:line-through;text-decoration-color:#5c3d0e}
+.stage-card.skipped .num{color:var(--warn)}
+@keyframes pulse{0%,100%{box-shadow:0 0 24px rgba(56,189,248,.3)}50%{box-shadow:0 0 48px rgba(56,189,248,.55)}}
+.stage-card.active{animation:pulse 1.4s infinite}
+
+/* Progress */
+.progress-row{grid-column:1/-1;display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--success));transition:width .6s;border-radius:2px}
+.progress-label{font-size:var(--fs-xs);color:var(--muted);min-width:60px;text-align:right}
+
+/* Log panel */
+.log-panel{grid-column:1;grid-row:4;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;max-height:420px;overflow-y:auto;font-size:var(--fs-xs)}
+.log-panel h4{color:var(--muted);margin-bottom:8px;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1px}
+.log-entry{padding:5px 8px;margin-bottom:4px;border-radius:5px;border-left:3px solid transparent;font-size:var(--fs-xs);line-height:1.5;animation:fadeIn .3s}
+.log-entry.info{border-left-color:var(--accent);background:rgba(56,189,248,.05)}
+.log-entry.success{border-left-color:var(--success);background:rgba(52,211,153,.05)}
+.log-entry.warn{border-left-color:var(--warn);background:rgba(251,191,36,.05)}
+.log-entry.error{border-left-color:var(--err);background:rgba(248,113,113,.05)}
+.log-time{color:var(--muted);margin-right:6px;font-family:monospace}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+
+/* Info panel */
+.info-panel{grid-column:2;grid-row:4;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;min-height:160px}
+.info-panel h3{font-size:var(--fs-md);color:var(--accent);margin-bottom:6px}
+.info-panel .desc{font-size:var(--fs-sm);color:var(--muted);line-height:1.7;margin-bottom:8px}
+.info-panel .step-list{list-style:none;padding:0}
+.info-panel .step-list li{font-size:var(--fs-xs);color:var(--text);padding:3px 0;padding-left:16px;position:relative;line-height:1.5}
+.info-panel .step-list li::before{content:'▸';position:absolute;left:0;color:var(--accent);font-size:.6rem;top:5px}
+.info-panel .data-kv{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.info-panel .data-kv .kv{font-size:var(--fs-xs);padding:5px 9px;border-radius:6px;background:#080d18;border:1px solid var(--border)}
+.info-panel .code-ref{font-family:'Cascadia Code',Consolas,monospace;font-size:var(--fs-xs);color:var(--accent);margin-top:8px;background:#080d18;padding:6px 10px;border-radius:6px;display:inline-block}
+
+/* Component sidebar */
+.comp-col{grid-column:3;grid-row:4;display:flex;flex-direction:column;gap:7px}
+.comp-node{padding:9px 10px;border-radius:9px;border:2px solid transparent;font-size:var(--fs-xs);font-weight:600;text-align:center;transition:all .35s;opacity:.35;background:var(--card)}
+.comp-node.milvus{border-color:var(--milvus);color:var(--milvus)}
+.comp-node.embed{border-color:var(--embed);color:var(--embed)}
+.comp-node.rerank{border-color:var(--rerank);color:var(--rerank)}
+.comp-node.llm{border-color:var(--llm);color:var(--llm)}
+.comp-node.mysql{border-color:var(--mysql);color:var(--mysql)}
+.comp-node.lit{opacity:1;box-shadow:0 0 18px currentColor;transform:scale(1.04)}
+.comp-node .comp-role{display:block;font-size:.6rem;font-weight:400;opacity:.7;margin-top:2px}
+
+/* Step indicator dots */
+.step-dots{display:flex;gap:3px;justify-content:center;margin-top:6px}
+.step-dots .dot{width:5px;height:5px;border-radius:50%;background:var(--border)}
+.step-dots .dot.done{background:var(--success)}
+.step-dots .dot.cur{background:var(--accent)}
+.step-dots .dot.skip{background:var(--warn)}
+
+.tooltip{display:none;position:fixed;background:#080d18;border:1px solid var(--accent);border-radius:10px;padding:14px;max-width:360px;z-index:100;font-size:var(--fs-xs);line-height:1.6;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.tooltip.show{display:block}
+.tooltip .code{font-family:'Cascadia Code',Consolas,monospace;font-size:.65rem;color:var(--accent);margin-top:6px;background:#0b1120;padding:6px 8px;border-radius:6px;white-space:pre-wrap}
+
+.sub-stage-indicator{grid-column:1/-1;text-align:center;font-size:var(--fs-xs);color:var(--muted);min-height:20px;margin-top:2px}
+
+@media(max-width:1000px){
+  .main-container{grid-template-columns:1fr;max-width:100%}
+  .log-panel{grid-column:1;grid-row:auto;max-height:200px}
+  .info-panel{grid-column:1;grid-row:auto}
+  .comp-col{grid-column:1;grid-row:auto;flex-direction:row;flex-wrap:wrap}
+  .stage-row{grid-template-columns:repeat(4,1fr)}
+  .entry-row{gap:2px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>▸ KnowForge RAG Pipeline — 执行流程动画</h1>
+  <div class="controls">
+    <select id="scenarioSelect">
+      <option value="full">📖 完整知识问答（7阶段）</option>
+      <option value="faq">⚡ FAQ 精确匹配直达</option>
+      <option value="oob">🚫 越界问题拒绝</option>
+      <option value="followup">💬 多轮追问</option>
+    </select>
+    <button id="playBtn" onclick="togglePlay()">▶ 播放</button>
+    <button id="stepBtn" onclick="stepForward()" title="单步前进">⏭ 单步</button>
+    <button onclick="setSpeed(1)">1×</button>
+    <button onclick="setSpeed(2)">2×</button>
+    <button onclick="setSpeed(4)">4×</button>
+    <span class="speed-label" id="speedBadge">1×</span>
+    <button onclick="resetAll()" title="重置">↺</button>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- Entry layer -->
+  <div class="entry-row" id="entryRow">
+    <div class="entry-node" id="enBrowser">🌐 浏览器</div><span class="entry-arrow" id="ea1">→</span>
+    <div class="entry-node" id="enFastAPI">📡 FastAPI:443</div><span class="entry-arrow" id="ea2">→</span>
+    <div class="entry-node" id="enService">⚙️ QAService</div><span class="entry-arrow" id="ea3">→</span>
+    <div class="entry-node" id="enWS">🔌 WebSocket</div><span class="entry-arrow" id="ea4">→</span>
+    <div class="entry-node" id="enStream">⚡ stream_query()</div>
+  </div>
+  <div class="dual-badges">
+    <span class="path-a" id="pathA">路径 A · HTTP POST /api/query（同步预检）</span>
+    <span class="path-b" id="pathB">路径 B · WS /api/stream（流式 RAG 主链路）</span>
+  </div>
+
+  <!-- Stage cards -->
+  <div class="stage-row" id="stageRow">
+    <div class="stage-card" data-stage="0">
+      <div class="num">0</div><div class="title">🏗️ 创建运行时上下文</div><div class="sub">Context Init</div>
+      <div class="mini-badge">场景·数据域·KB版本</div>
+    </div>
+    <div class="stage-card" data-stage="1">
+      <div class="num">1</div><div class="title">⚡ FAQ 精确匹配</div><div class="sub">Fast Path</div>
+      <div class="mini-badge">字符串精确比对</div>
+    </div>
+    <div class="stage-card" data-stage="2">
+      <div class="num">2</div><div class="title">🧠 意图·改写·计划</div><div class="sub">Intent+Rewrite+Plan</div>
+      <div class="mini-badge">LLM分类·变体生成</div>
+    </div>
+    <div class="stage-card" data-stage="3">
+      <div class="num">3</div><div class="title">🚫 非RAG判定</div><div class="sub">Gate Check</div>
+      <div class="mini-badge">问候/越界/转人工</div>
+    </div>
+    <div class="stage-card" data-stage="4">
+      <div class="num">4</div><div class="title">📋 FAQ 混合检索</div><div class="sub">FAQ Hybrid Search</div>
+      <div class="mini-badge">Dense+Sparse→去重→置信度</div>
+    </div>
+    <div class="stage-card" data-stage="5">
+      <div class="num">5</div><div class="title">📄 文档检索·重排</div><div class="sub">Doc+Rerank+Context</div>
+      <div class="mini-badge">Hybrid→Reranker→Top5</div>
+    </div>
+    <div class="stage-card" data-stage="6">
+      <div class="num">6</div><div class="title">🤖 LLM 生成·收尾</div><div class="sub">Generate+Save+Trace</div>
+      <div class="mini-badge">Stream→引用增强→存储</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-row">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <span class="progress-label" id="progressLabel">0/7</span>
+  </div>
+
+  <!-- Sub-stage indicator -->
+  <div class="sub-stage-indicator" id="subStageInd"></div>
+
+  <!-- Log panel -->
+  <div class="log-panel" id="logPanel">
+    <h4>📜 执行日志</h4>
+    <div id="logEntries"><div class="log-entry info"><span class="log-time">--:--:--</span>等待开始 — 选择一个场景并点击 ▶ 播放</div></div>
+  </div>
+
+  <!-- Info panel -->
+  <div class="info-panel" id="infoPanel">
+    <h3>📌 如何使用此演示</h3>
+    <div class="desc">
+      <strong>▶ 播放</strong>：自动播放完整流程，每个阶段停留展示细节<br>
+      <strong>⏭ 单步</strong>：逐个子步骤手动前进，适合课堂讲解<br>
+      <strong>点击阶段卡片</strong>：查看该阶段对应的源码位置<br>
+      <strong>右侧组件栈</strong>：被调用时自动点亮
+    </div>
+    <div class="desc" style="color:var(--warn)">当前共4种预设场景，覆盖了系统最常见的3条代码路径。</div>
+  </div>
+
+  <!-- Component sidebar -->
+  <div class="comp-col" id="compCol">
+    <div class="comp-node milvus">🗄️ Milvus 2.6<span class="comp-role">向量存储·混合检索</span></div>
+    <div class="comp-node embed">🧮 BGE-M3<span class="comp-role">Embedding·1024维</span></div>
+    <div class="comp-node rerank">⚖️ BGE Reranker<span class="comp-role">CrossEncoder精排</span></div>
+    <div class="comp-node llm">🤖 LLM qwen-plus<span class="comp-role">DashScope·OpenAI兼容</span></div>
+    <div class="comp-node mysql">🗃️ MySQL 8.0<span class="comp-role">历史·摘要·反馈</span></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const stages=document.querySelectorAll('.stage-card');
+const logEntries=document.getElementById('logEntries');
+const infoPanel=document.getElementById('infoPanel');
+const progressFill=document.getElementById('progressFill');
+const progressLabel=document.getElementById('progressLabel');
+const subStageInd=document.getElementById('subStageInd');
+const tooltip=document.getElementById('tooltip');
+const comps=document.querySelectorAll('.comp-node');
+const pathB=document.getElementById('pathB');
+let currentStage=-1,currentSub=0,playing=false,speed=1,timer=null,scenario='full';
+let timeline=[],totalSteps=0;
+
+function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0')}
+function addLog(msg,type='info'){const e=document.createElement('div');e.className='log-entry '+type;e.innerHTML='<span class="log-time">'+now()+'</span>'+msg;logEntries.prepend(e);if(logEntries.children.length>60)logEntries.lastChild.remove()}
+
+function buildTimeline(){
+  const entryHL=i=>{document.querySelectorAll('.entry-node').forEach(n=>n.classList.remove('highlight'));document.querySelectorAll('.entry-arrow').forEach(n=>n.classList.remove('lit'));pathB.classList.remove('active');};
+  const compsLit=ns=>{comps.forEach(c=>c.classList.remove('lit'));(ns||[]).forEach(n=>{const e=document.querySelector('.comp-node.'+n);if(e)e.classList.add('lit')})};
+  const info=(title,desc,steps,kvs,code)=>
+    '<h3>'+title+'</h3><div class="desc">'+desc+'</div>'+
+    (steps?'<ul class="step-list">'+steps.map(s=>'<li>'+s+'</li>').join('')+'</ul>':'')+
+    (kvs?'<div class="data-kv">'+kvs.map(k=>'<span class="kv">'+k+'</span>').join('')+'</div>':'')+
+    (code?'<div class="code-ref">📁 '+code+'</div>':'');
+  const prog=(i)=>{const p=(i/totalSteps*100).toFixed(0);progressFill.style.width=p+'%';progressLabel.textContent=i+'/'+totalSteps};
+
+  if(scenario==='full'){
+    timeline=[
+      {stage:0,sub:0,entry:()=>{entryHL();document.getElementById('enBrowser').classList.add('highlight');},comps:[],info:info('🌐 用户发起请求','用户在浏览器中输入问题：<b>"入职流程包含哪些步骤？"</b>，选择业务分类为"HR 制度"，点击发送。前端构造 JSON 请求体。',['用户输入 → 前端 JavaScript fetch()','请求体：{query:"入职流程包含哪些步骤？", source_filter:"hr", session_id:"abc123"}','目标端点：POST /api/query'],['query=入职流程包含哪些步骤？','source_filter=hr'],'浏览器 → FastAPI'),log:'🌐 用户发起 HTTP POST /api/query — query="入职流程包含哪些步骤？"'},
+      {stage:0,sub:1,entry:()=>{entryHL();document.getElementById('enFastAPI').classList.add('highlight');document.getElementById('ea1').classList.add('lit');},comps:[],info:info('📡 FastAPI 接收请求','FastAPI 路由层接收 POST /api/query。执行限流检查（check_rate_limit）、提取客户端标识（client_key）、反序列化 QueryRequest Pydantic 模型。',['APIRouter → POST /api/query → query_request()','check_rate_limit(client_key) 令牌桶限流','QueryRequest(query, source_filter, session_id) Pydantic 自动校验'],['限流：通过','session_id=abc123'],'qa_core/api/chat.py:query_request()'),log:'📡 FastAPI 接收 → 限流校验通过 → 构建 QueryServiceContext'},
+      {stage:0,sub:2,entry:()=>{entryHL();document.getElementById('enService').classList.add('highlight');document.getElementById('ea2').classList.add('lit');},comps:[],info:info('⚙️ QAService.preview_query() 预检','QAService 开始 preview_query() 同步预检管线：解析场景配置 → 构建数据隔离域 → 校验 source_filter 白名单 → 加载会话历史 → 意图分类。',['resolve_scenario("enterprise_knowledge") → ScenarioDefinition','resolve_data_scope() → DataScope(tenant/dataset/visibility/role)','validate_source_filter("hr") → 白名单校验通过','get_context_messages("abc123") → 历史消息列表','classify_intent() → 规则匹配+LLM分类 → KNOWLEDGE_QUERY'],['场景：enterprise_knowledge','数据域：default/dataset_01/internal','意图：KNOWLEDGE_QUERY'],'qa_core/application/service.py:preview_query()'),log:'⚙️ preview_query() → scenario=enterprise_knowledge → intent=KNOWLEDGE_QUERY → 非直答，返回 None'},
+      {stage:0,sub:3,entry:()=>{document.getElementById('enWS').classList.add('highlight');document.getElementById('ea3').classList.add('lit');pathB.classList.add('active');},comps:[],info:info('🔀 切换至 WebSocket 流式通道','preview_query() 判断意图 KNOWLEDGE_QUERY 不属于问候/越界/转人工 → 返回 None。前端收到 None 后自动建立 WebSocket 连接 /api/stream，发送相同参数。',['前端：if (preview_result === null) → new WebSocket("/api/stream")','API层：ws_endpoint() 接收 WebSocket 升级请求','限流 + 参数解析 → QAService.stream_query() 生成器启动'],['切换原因：复杂问题需RAG全链路','WebSocket状态：已连接'],'qa_core/api/chat.py:ws_endpoint()'),log:'🔀 前端切换 WebSocket → /api/stream → stream_query() 生成器启动'},
+      {stage:0,sub:4,entry:()=>{document.getElementById('enStream').classList.add('highlight');document.getElementById('ea4').classList.add('lit');},comps:[],info:info('🏗️ Stage 0：create_query_context()','创建 RAGQueryContext 运行时上下文对象。这个对象贯穿后续所有阶段，携带场景配置、数据域、会话信息、trace_id、知识库版本等全局状态。',['resolve_active_kb_version() → "v2" (ACTIVE)','生成 trace_id = uuid4()','RAGQueryContext(scenario, data_scope, session_id, trace_id, kb_version)','yield start_event → 前端收到"请求已接收"'],['KB版本：v2 (ACTIVE)','trace_id：a1b2c3d4-...','会话：abc123(第3轮)'],'qa_core/pipeline/rag.py:stream_query():72'),log:'🏗️ Stage 0 完成 → KB版本=v2 → trace_id=a1b2c3d4 → yield start_event'},
+
+      {stage:1,sub:0,entry:()=>{},comps:['milvus'],info:info('⚡ Stage 1：FAQ 精确匹配快速直出','在意图识别和检索之前，先用原始问题字符串精确匹配 FAQ 标准问题库。这是最快的回答路径——如果用户的问题恰好与某条 FAQ 标准问题完全一致，直接返回预设答案，耗时 < 50ms。',['try_fast_faq_direct_answer(context) → Milvus FAQ Collection 精确查询','匹配方式：query.strip().lower() === faq_question.strip().lower()','命中 → 跳过所有后续阶段，直接返回 FAQ 标准答案','未命中 → 继续 Stage 2'],['匹配方式：精确字符串','命中率：~15%（首次提问）','本场景：未命中'],'qa_core/pipeline/steps.py:try_fast_faq_direct_answer()'),log:'⚡ Stage 1 FAQ精确匹配 → 未命中（"入职流程"不是FAQ标准题） → 继续'},
+
+      {stage:2,sub:0,entry:()=>{},comps:['llm'],info:info('🧠 Stage 2a：意图分类 classify_intent()','规则优先 + LLM 补充的两级意图分类。先走规则引擎（正则+关键词），置信度不足时再用 LLM + with_structured_output() 做语义分类。输出 Pydantic IntentLLMDecision 对象。',['规则引擎：关键词匹配 → 快速判别简单意图','LLM补充：with_structured_output(IntentLLMDecision) → JSON Schema约束','6种意图：GREETING/FAQ_QUERY/KNOWLEDGE_QUERY/FOLLOW_UP/HUMAN_SERVICE/OUT_OF_SCOPE','Pydantic 自动校验：枚举值超范围直接报错'],['意图：KNOWLEDGE_QUERY','置信度：0.85','reason：用户询问企业流程制度类问题'],'qa_core/intent/classifier.py:classify_intent()'),log:'🧠 意图分类 → KNOWLEDGE_QUERY(confidence=0.85) → 规则未命中，LLM补充分类'},
+      {stage:2,sub:1,entry:()=>{},comps:['llm'],info:info('🧠 Stage 2b：追问改写 + 检索计划 + 查询变体','完成三个准备任务：① rewrite_query() 代词消解（如"审批呢"→"入职审批流程"）② build_retrieval_plan() 根据意图类型生成动态检索参数 ③ generate_query_variants() 生成多个查询变体以提升召回率。',['rewrite_query(history, query, intent) → 消解代词+补全上下文','build_retrieval_plan(intent) → RetrievalPlan(top_k=30, rerank=True, weights=[0.55,0.45])','generate_query_variants(query) → 启发式(同义词替换)+LLM(语义改写)','输出：prepared = (rewritten_query, plan, variants)'],['改写后：入职流程包含哪些步骤','变体数：3个','plan：rerank=True, top_k=30'],'qa_core/pipeline/steps.py:prepare_retrieval()'),log:'🧠 改写="入职流程包含哪些步骤" → variants=3 → plan(rerank=True, top_k=30)'},
+
+      {stage:3,sub:0,entry:()=>{},comps:[],info:info('🚫 Stage 3：非 RAG 意图判定','检查意图是否需要检索。如果 intent 是 GREETING/OUT_OF_SCOPE/HUMAN_SERVICE，LLM 已在 Stage 2 生成了 direct_answer，此处直接返回，跳过所有检索和生成阶段。本场景 KNOWLEDGE_QUERY 需要检索。',['if prepared.intent.direct_answer: → 直接返回，跳过后续','KNOWLEDGE_QUERY → direct_answer = None → 继续 Stage 4','FAQ_QUERY → direct_answer = None → 继续 Stage 4（走FAQ检索路径）'],['判定：需要继续检索','direct_answer：None'],'qa_core/pipeline/rag.py:108'),log:'🚫 非RAG判定 → KNOWLEDGE_QUERY 需要检索 → direct_answer=None → 继续'},
+
+      {stage:4,sub:0,entry:()=>{},comps:['milvus','embed'],info:info('📋 Stage 4a：FAQ 混合检索','多查询变体 → Milvus FAQ Collection 执行 Hybrid Search。BGE-M3 生成 Dense 向量做语义检索，Milvus BM25BuiltInFunction 生成 Sparse 向量做关键词检索。weighted ranker 按 0.55/0.45 权重融合两路结果。',['BGE-M3 embed_query(variant) → 1024维 Dense 向量','Milvus BM25 → text字段 → Sparse 向量','collection.search(anns_field="dense", ranker_type="weighted", weights=[0.55,0.45])','每个变体 → 召回 top_k 条 FAQ'],['Dense权重：0.55','Sparse权重：0.45','每变体召回：10条'],'qa_core/pipeline/retrieval_steps.py:search_faq()'),log:'📋 FAQ混合检索 → BGE-M3 Dense + BM25 Sparse → 3变体×10条=30条候选'},
+      {stage:4,sub:1,entry:()=>{},comps:['milvus','embed'],info:info('📋 Stage 4b：FAQ 候选合并 + 置信度判断','多个查询变体召回的 FAQ 候选按 chunk_id 合并去重（同一 chunk 只保留最高分）。按 score 降序排序。检查最高分是否 ≥ 置信度阈值（0.80）——达标则直接采用为标准答案，无需 LLM。',['merge_hits_by_document() → 按 chunk_id 去重','sort_hits_by_score() → 降序排列','if top_score >= 0.80 → FAQ直出（跳过Stage 5-6 LLM）','本场景最高分 0.72 < 0.80 → 不满足直出条件'],['合并后：8条FAQ','最高分：0.72','阈值：0.80（未达标）'],'qa_core/retrieval/ranking.py:merge_hits_by_document()'),log:'📋 FAQ去重→8条 → 最高分0.72 < 阈值0.80 → 不直出 → 进入文档检索'},
+
+      {stage:5,sub:0,entry:()=>{},comps:['milvus','embed'],info:info('📄 Stage 5a：文档混合检索','查询变体 → Milvus Document Collection 执行 Hybrid Search。与 FAQ 检索相同的 Dense+Sparse 双路融合机制，但文档 Collection 的数据量更大（数万 chunk），且 query 过滤表达式更复杂（source + kb_version + data_scope）。',['BGE-M3 embed_query → Dense向量','Milvus BM25 → Sparse向量','build_source_expr(source_filter, kb_version, data_scope) → Milvus布尔表达式','collection.search(expr="source==\'hr\' && kb_version==\'v2\'", ...) → Top 30'],['Dense：语义匹配','Sparse：关键词精确匹配','表达式：source=="hr" && kb_version=="v2"'],'qa_core/retrieval/store.py:MilvusHybridStore.search()'),log:'📄 文档混合检索 → Dense+Sparse → expr=source=="hr" → 召回30条'},
+      {stage:5,sub:1,entry:()=>{},comps:['rerank'],info:info('📄 Stage 5b：CrossEncoder Reranker 精排','BGE Reranker Large（CrossEncoder 架构）对 Milvus 召回的 Top 30 候选用 [query, doc] 拼接编码方式逐一精细打分。与向量相似度相比，CrossEncoder 的交叉注意力机制能精准区分语义相近但答非所问的文档。',['构建 pairs = [(query, doc.page_content) for doc in top30]','reranker.predict(pairs) → CrossEncoder 逐一打分','按新分数降序重排 → 取 top_n（通常5条）','能区分"入职"和"离职"等语义相近但答非所问的文档'],['输入：30条候选','输出：Top 5','最高rerank分：0.94'],'qa_core/retrieval/ranking.py:rerank_hits()'),log:'📄 Reranker精排 → 30条→5条 → 最高分0.94（准确区分入职/离职）'},
+      {stage:5,sub:2,entry:()=>{},comps:[],info:info('📄 Stage 5c：上下文构建','合并 FAQ 候选 + 文档候选 → 去重 → 按分数排序 → 截断至上下文窗口上限 → 格式化 Prompt Context。每条上下文标注来源编号 [1][2][3]...，最终答案引用增强时依此追加来源标注。',['合并 faq_hits + doc_hits','去重：同一 chunk_id 保留最高分','截断：token 预算内（通常5-8条）','格式化：[1] 来源：HR制度\n入职流程包含以下步骤...\n[2] 来源：...'],['最终上下文：5条（3文档+2FAQ）','token总数：~1200','来源：[1]HR制度 [2]入职FAQ [3]员工手册'],'qa_core/pipeline/context.py'),log:'📄 上下文构建 → 合并5条(3doc+2faq) → token≈1200 → 注入Prompt'},
+
+      {stage:6,sub:0,entry:()=>{},comps:['llm'],info:info('🤖 Stage 6a：LLM 流式生成','System Prompt（场景变量注入：企业名称、助手名、业务域）+ 上下文 + 用户问题 → ChatOpenAI(model="qwen-plus", streaming=True).stream()。LLM 逐 token 生成，每个 token 通过 asyncio.to_thread + WebSocket 实时推送到浏览器。',['ChatPromptTemplate 填充 → [SystemMessage, HumanMessage]','System：企业名称+助手名+业务域+安全约束','Human：参考资料(上下文) + 用户问题','model.stream(messages) → 逐chunk yield'],['模型：qwen-plus','temperature：0.1','streaming：True'],'qa_core/pipeline/steps.py:stream_llm_answer()'),log:'🤖 LLM stream开始 → qwen-plus → 逐token推送WebSocket → 用户看到打字效果'},
+      {stage:6,sub:1,entry:()=>{},comps:['llm','mysql'],info:info('🤖 Stage 6b：引用增强 + 保存历史 + 发送 Trace','LLM 生成完成后：① enforce_answer_citations() 检查答案中是否包含来源编号引用，缺失则在末尾追加"参考来源：[1][2]" ② add_turn() 将问答对写入 MySQL chat_messages ③ finish_success() 发送含来源、耗时、意图的 end 事件 + LangSmith Trace。',['enforce_answer_citations(answer, context_docs) → 引用增强','history.add_turn(session_id, query, answer) → MySQL INSERT','finish_success(context) → end事件 + LangSmith Trace','WebSocket 保持连接，等待下一次提问'],['token数：156','来源引用：[1][2][3]','总耗时：2.3s'],'qa_core/pipeline/rag.py:stream_query():138'),log:'🤖 生成完成 → 156 tokens → 引用增强3处 → MySQL写入 → end事件 → ✅'},
+
+      {stage:6,sub:2,entry:()=>{},comps:[],info:info('✅ 一次完整 RAG 问答结束','<b>总结</b>：用户问题经过 7 个阶段（上下文创建 → FAQ快路径 → 意图改写 → 非RAG判定 → FAQ检索 → 文档检索+重排 → LLM生成+收尾），最终以流式打字效果呈现带来源引用的答案。<br><br><b>本次关键指标</b>：总耗时 2.3s，召回30条→Rerank至5条，LLM生成156 tokens，引用3处来源，数据写入MySQL+LangSmith Trace。',[],['总耗时：2.3s','管线阶段：7','组件调用：Milvus×2 + BGE-M3×2 + Reranker×1 + LLM×1 + MySQL×1'],null),log:'✅ 问答完成 → 总耗时2.3s → 7阶段 → 答案已返回浏览器',type:'success'},
+    ];
+  }else if(scenario==='faq'){
+    timeline=[
+      {stage:0,sub:0,entry:()=>{entryHL();document.getElementById('enBrowser').classList.add('highlight');},comps:[],info:info('🌐 用户发起请求','用户在 SaaS 客服场景中输入："<b>忘记密码怎么办</b>"',['请求：POST /api/query','参数：{query:"忘记密码怎么办", source_filter:"account", session_id:"xyz"}'],['query=忘记密码怎么办','source_filter=account']),log:'🌐 用户提问："忘记密码怎么办" — SaaS客服场景'},
+      {stage:0,sub:1,entry:()=>{entryHL();document.getElementById('enFastAPI').classList.add('highlight');document.getElementById('enService').classList.add('highlight');},comps:[],info:info('⚙️ 预检 + 上下文创建','QAService.preview_query() → 解析场景 saas_support → 意图分类 FAQ_QUERY → 非直答 → 切换 WebSocket → create_query_context()',['scenario：saas_support','intent：FAQ_QUERY','KB版本：v1'],'qa_core/application/service.py'),log:'⚙️ preview_query → saas_support → FAQ_QUERY → 切换WebSocket'},
+      {stage:0,sub:2,entry:()=>{document.getElementById('enWS').classList.add('highlight');document.getElementById('enStream').classList.add('highlight');pathB.classList.add('active');},comps:[],info:info('🏗️ Stage 0 完成','RAGQueryContext 创建完成：场景 saas_support、数据域 default/dataset_saas、KB v1、trace_id 已生成。',['RAGQueryContext 初始化完成','yield start_event → 前端收到确认'],['场景saas_support','KB版本v1']),log:'🏗️ Stage 0 → context就绪 → yield start_event'},
+      {stage:1,sub:0,entry:()=>{},comps:['milvus'],info:info('⚡ Stage 1：FAQ 精确匹配 — 🎯 命中！','try_fast_faq_direct_answer() 精确匹配："忘记密码怎么办" === FAQ标准问题 #faq_003 → <b>命中！</b>直接返回预设标准答案，跳过 Stage 2-6 的全部阶段。',['字符串精确比对：完全一致','FAQ #faq_003："忘记密码怎么办" → 标准答案已预设','yield token → yield end → return（提前退出管线）'],['✅ 命中','FAQ ID：faq_003','跳过阶段：2-6'],'qa_core/pipeline/steps.py:try_fast_faq_direct_answer()'),log:'⚡ FAQ精确匹配 → 🎯命中 faq_003 → 直接返回 → 跳过Stage2-6',type:'success'},
+      {stage:6,sub:0,entry:()=>{},comps:['mysql'],info:info('📝 Stage 7：保存历史','虽然跳过了检索和生成，但仍需保存本轮问答到 MySQL。add_turn(session_id, query, answer) → chat_messages 表写入。',['add_turn("xyz", "忘记密码怎么办", "您可以通过绑定邮箱...")','finish_success() → end事件 + LangSmith Trace'],['耗时：~8ms','答案：预设标准答案']),log:'📝 历史保存 → MySQL写入 → end事件 → ✅ 总耗时<50ms',type:'success'},
+    ];
+  }else if(scenario==='oob'){
+    timeline=[
+      {stage:0,sub:0,entry:()=>{document.getElementById('enBrowser').classList.add('highlight');},comps:[],info:info('🌐 用户提问："今天股市怎么样"','用户输入了一个与企业管理完全无关的问题。',['query="今天股市怎么样"','source_filter=null']),log:'🌐 用户提问："今天股市怎么样"'},
+      {stage:0,sub:1,entry:()=>{document.getElementById('enFastAPI').classList.add('highlight');document.getElementById('enService').classList.add('highlight');},comps:[],info:info('⚙️ 预检管线','QAService.preview_query() → 解析场景 → 构建数据域 → 加载历史 → 意图分类',[]),log:'⚙️ preview_query → 场景解析 → 进入意图分类'},
+      {stage:0,sub:2,entry:()=>{document.getElementById('enWS').classList.add('highlight');document.getElementById('enStream').classList.add('highlight');pathB.classList.add('active');},comps:[],info:info('🏗️ Stage 0 完成','RAGQueryContext 创建完成。',['KB版本：v1','trace_id：已生成']),log:'🏗️ Stage 0 完成'},
+      {stage:1,sub:0,entry:()=>{},comps:['milvus'],info:info('⚡ Stage 1：FAQ 精确匹配 — 未命中','"今天股市怎么样"不在任何 FAQ 标准问题中 → 继续。',['精确匹配：无结果'],['未命中']),log:'⚡ FAQ精确匹配 → 未命中'},
+      {stage:2,sub:0,entry:()=>{},comps:['llm'],info:info('🧠 Stage 2：意图分类 — 🚫 OUT_OF_SCOPE','LLM + with_structured_output() 识别意图。LLM 判断此问题与企业管理无关 → OUT_OF_SCOPE, confidence=0.92。同时 LLM 已生成 direct_answer 拒绝文案。',['classify_intent() → LLM 语义分类','LLM返回：{intent:"OUT_OF_SCOPE", confidence:0.92, direct_answer:"抱歉，我是企业内部知识助手，无法回答关于股市的问题..."}'],['意图：OUT_OF_SCOPE','置信度：0.92','direct_answer：已生成']),log:'🧠 意图分类 → OUT_OF_SCOPE(0.92) → direct_answer已生成'},
+      {stage:3,sub:0,entry:()=>{},comps:[],info:info('🚫 Stage 3：非 RAG 意图 — 直接返回','prepared.intent.direct_answer 不为空 → 直接返回拒绝文案，跳过 Stage 4-6 检索和生成。',['if prepared.intent.direct_answer: → yield token → yield end → return'],['回答：拒绝文案','跳过Stage 4-6']),log:'🚫 非RAG意图 → direct_answer返回 → 跳过Stage4-6',type:'warn'},
+      {stage:6,sub:0,entry:()=>{},comps:['mysql'],info:info('📝 Stage 7：保存历史 + 发送 Trace','add_turn() → MySQL。finish_success() → end事件。',['MySQL写入问答对','LangSmith Trace记录']),log:'📝 历史保存 → ✅ 总耗时~1.2s',type:'success'},
+    ];
+  }else if(scenario==='followup'){
+    timeline=[
+      {stage:0,sub:0,entry:()=>{document.getElementById('enBrowser').classList.add('highlight');},comps:[],info:info('💬 多轮追问场景 — 第2轮对话','<b>第1轮</b>：用户问"入职流程包含哪些步骤？"→ 系统完整RAG回答。<br><b>第2轮（当前）</b>：用户追问"<b>那审批需要多久？</b>"',['历史：第1轮已存入MySQL','会话ID：abc123','source_filter：hr']),log:'💬 第2轮追问："那审批需要多久？"（指代入职审批）'},
+      {stage:0,sub:1,entry:()=>{document.getElementById('enFastAPI').classList.add('highlight');document.getElementById('enService').classList.add('highlight');},comps:['mysql'],info:info('⚙️ 预检 — 加载对话历史','get_context_messages("abc123") → 从 MySQL 读取最近消息。启用历史摘要时，旧消息会被压缩为一条 SystemMessage("历史摘要：上次问了入职流程...")。',['get_messages("abc123", limit=6) → 最近3轮问答','refresh_summary_if_needed("abc123") → 旧消息→摘要','get_context_messages → [SystemMessage("历史摘要"), Human, AI, Human, AI, Human("那审批需要多久")]'],['会话轮次：第2轮','历史摘要：已生成','最近消息：6条']),log:'⚙️ 加载历史 → 3轮对话 → 历史摘要："第1轮问了入职流程"'},
+      {stage:0,sub:2,entry:()=>{document.getElementById('enWS').classList.add('highlight');document.getElementById('enStream').classList.add('highlight');pathB.classList.add('active');},comps:[],info:info('🏗️ Stage 0 完成','RAGQueryContext 包含完整对话历史。context.history_messages 中已有摘要 + 最近消息。',[]),log:'🏗️ Stage 0 → context含历史摘要+最近消息'},
+      {stage:1,sub:0,entry:()=>{},comps:['milvus'],info:info('⚡ Stage 1：FAQ 精确匹配 — 未命中','追问"那审批需要多久"不是标准FAQ问题 → 继续。',['精确匹配：无结果'],['未命中']),log:'⚡ FAQ匹配 → 未命中（追问非标准题）'},
+      {stage:2,sub:0,entry:()=>{},comps:['llm'],info:info('🧠 Stage 2a：意图分类 — FOLLOW_UP','LLM 结合对话历史判断：用户在使用代词"那"指代上文中的"入职流程" → 意图 FOLLOW_UP。',['classify_intent(history=context.history_messages) → LLM有历史上下文','LLM识别：代词"那"指代"入职流程" → FOLLOW_UP'],['意图：FOLLOW_UP','置信度：0.88']),log:'🧠 意图 → FOLLOW_UP(0.88) → LLM识别代词"那"指代入职流程'},
+      {stage:2,sub:1,entry:()=>{},comps:['llm'],info:info('🧠 Stage 2b：追问改写 — 代词消解','rewrite_query(history, "那审批需要多久", FOLLOW_UP) → LLM 被提示："用户说「那审批需要多久」，请结合历史将其改写为完整独立问题" → "<b>入职流程中的审批环节需要多长时间？</b>"',['LLM rewrite提示词 → 结合历史补全指代','"那审批需要多久" → "入职流程中的审批环节需要多长时间？"','后续检索使用改写后的问题，而非原始追问'],['原始："那审批需要多久"','改写："入职审批需要多长时间？"']),log:'🧠 改写 → "那审批需要多久"→"入职审批需要多长时间？"'},
+      {stage:3,sub:0,entry:()=>{},comps:[],info:info('🚫 Stage 3：非RAG判定 → 继续','FOLLOW_UP 意图 → direct_answer = None → 需要检索。',[]),log:'🚫 非RAG判定 → FOLLOW_UP需检索 → 继续'},
+      {stage:5,sub:0,entry:()=>{},comps:['milvus','embed','rerank'],info:info('📄 Stage 5：文档检索+重排（合并展示）','用改写后的完整问题检索 → Hybrid Search → Reranker → 上下文构建。由于改写消除了指代歧义，检索精度显著提升。',['检索query："入职审批需要多长时间？"（已改写）','Hybrid Search → Top30 → Reranker → Top5','上下文包含入职审批流程相关文档'],['召回：30条','Rerank后：Top5']),log:'📄 检索 → 改写后问题检索精度提升 → Rerank→Top5'},
+      {stage:6,sub:0,entry:()=>{},comps:['llm','mysql'],info:info('🤖 Stage 6：LLM流式生成+收尾','System Prompt 包含历史摘要 + 追问约束（"回答焦点限定在当前问题，但需结合历史理解指代"）→ LLM 流式生成 → 引用增强 → 保存。',['FOLLOW_UP Prompt Profile → 约束回答焦点','stream() → 逐token推送','MySQL写入 → end事件'],['Profile：follow_up','token：89']),log:'🤖 LLM生成 → follow_up profile → 89tokens → ✅',type:'success'},
+    ];
+  }
+  // Mark which stages are skipped
+  const seenStages=new Set();
+  timeline.forEach((t,i)=>{
+    t._idx=i;
+    if(!seenStages.has(t.stage)){seenStages.add(t.stage);t._first=true}
+  });
+  totalSteps=timeline.length;
+}
+
+function resetAll(){
+  stages.forEach(s=>{s.classList.remove('active','done','skipped');s.querySelector('.num').style.color='';s.querySelector('.title').style.color=''});
+  comps.forEach(c=>c.classList.remove('lit'));
+  document.querySelectorAll('.entry-node').forEach(n=>n.classList.remove('highlight'));
+  document.querySelectorAll('.entry-arrow').forEach(n=>n.classList.remove('lit'));
+  pathB.classList.remove('active');
+  progressFill.style.width='0%';progressLabel.textContent='0/0';
+  subStageInd.textContent='';
+  currentStage=-1;currentSub=0;
+  logEntries.innerHTML='<div class="log-entry info"><span class="log-time">--:--:--</span>等待开始 — 选择一个场景并点击 ▶ 播放</div>';
+}
+function applyStep(idx){
+  if(idx<0||idx>=timeline.length)return;
+  const t=timeline[idx];
+  // Reset stage visual
+  stages.forEach(s=>{s.classList.remove('active','done','skipped')});
+  // Mark previous stages as done
+  const doneStages=new Set();
+  for(let i=0;i<idx;i++)doneStages.add(timeline[i].stage);
+  doneStages.forEach(si=>stages[si].classList.add('done'));
+  // Mark current stage active
+  stages[t.stage].classList.add('active');
+  // Update stage card sub-step dots
+  if(t._first){
+    stages[t.stage].querySelector('.sub')&&(stages[t.stage].querySelector('.sub').textContent='');
+  }
+  // Update entry layer
+  if(t.entry)t.entry();
+  // Update components
+  comps.forEach(c=>c.classList.remove('lit'));
+  (t.comps||[]).forEach(n=>{const e=document.querySelector('.comp-node.'+n);if(e)e.classList.add('lit')});
+  // Update info panel
+  if(t.info)infoPanel.innerHTML=t.info;
+  // Update progress
+  const p=((idx+1)/timeline.length*100).toFixed(0);
+  progressFill.style.width=p+'%';progressLabel.textContent=(idx+1)+'/'+timeline.length;
+  // Sub-stage indicator
+  const stageSteps=timeline.filter(s=>s.stage===t.stage);
+  const subIdx=stageSteps.findIndex(s=>s._idx===idx);
+  subStageInd.innerHTML='Stage '+t.stage+' · 子步骤 '+(subIdx+1)+'/'+stageSteps.length+'&nbsp;'+'●'.repeat(subIdx+1)+'○'.repeat(Math.max(0,stageSteps.length-subIdx-1));
+  // Log
+  if(t.log)addLog(t.log,t.type||'info');
+  currentSub=idx;
+}
+function stepForward(){
+  if(!playing&&currentSub>=timeline.length-1){resetAll();buildTimeline();return}
+  if(currentSub>=timeline.length-1){stop();return}
+  if(!playing){playing=true;document.getElementById('playBtn').textContent='⏸ 暂停';document.getElementById('playBtn').classList.add('active')}
+  applyStep(currentSub+1);
+  if(currentSub+1>=timeline.length-1)stop();
+}
+function togglePlay(){
+  if(playing){stop();return}
+  playing=true;
+  document.getElementById('playBtn').textContent='⏸ 暂停';
+  document.getElementById('playBtn').classList.add('active');
+  if(currentSub>=timeline.length-1){resetAll();buildTimeline();currentSub=-1}
+  let i=currentSub+1;
+  function next(){
+    if(!playing||i>=timeline.length){if(i>=timeline.length)stop();return}
+    applyStep(i);i++;
+    timer=setTimeout(next,Math.max(400,1800/speed));
+  }
+  next();
+}
+function stop(){
+  playing=false;clearTimeout(timer);
+  document.getElementById('playBtn').textContent='▶ 播放';
+  document.getElementById('playBtn').classList.remove('active');
+}
+function setSpeed(s){speed=s;document.getElementById('speedBadge').textContent=s+'×';if(playing){stop();togglePlay()}}
+
+document.getElementById('scenarioSelect').addEventListener('change',function(){
+  scenario=this.value;stop();resetAll();buildTimeline();
+  infoPanel.innerHTML='<h3>📌 场景已切换</h3><div class="desc">当前场景：<b>'+
+    (scenario==='full'?'完整知识问答（13个子步骤，覆盖全部7阶段）':scenario==='faq'?'FAQ精确匹配直达（5步，Stage1命中→跳过2-6）':scenario==='oob'?'越界问题拒绝（7步，Stage2识别OUT_OF_SCOPE→Stage3直接返回）':'多轮追问（10步，含历史加载+代词消解+改写检索）')+
+    '</b><br>点击 ▶ 播放 或 ⏭ 单步 开始演示。</div>';
+});
+
+stages.forEach(card=>{
+  card.addEventListener('click',function(e){
+    const ds=timeline.filter(t=>t.stage===parseInt(this.dataset.stage));
+    if(!ds.length)return;
+    const d=ds[0];
+    const m=d.info.match(/📁 ([^<]+)/);
+    const codeRef=m?m[1]:'qa_core/pipeline/rag.py';
+    tooltip.innerHTML='<strong>📁 源码位置</strong><div class="code">'+codeRef+'</div><div style="margin-top:6px;color:var(--muted)">本阶段共 '+ds.length+' 个子步骤</div>';
+    tooltip.classList.add('show');tooltip.style.left=(e.clientX+15)+'px';tooltip.style.top=(e.clientY-20)+'px';
+  });
+  card.addEventListener('mouseleave',()=>tooltip.classList.remove('show'));
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.stage-card'))tooltip.classList.remove('show')});
+
+// Init
+buildTimeline();
+</script>
+</body>
+</html>

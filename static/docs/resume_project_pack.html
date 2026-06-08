@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多场景 RAG 项目简历包装材料 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="rag">多场景 RAG 项目简历包装材料<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h1>
+<p>本文档用于把当前项目转换成可写简历、可面试讲解的项目表达。核心原则是：不要把同一套代码简单换行业名称，而要讲清楚每个业务场景的资料结构、风险边界和工程能力。</p>
+<h2 id="1">1. 包装原则<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>简历中不要写成“做了一个 AI 问答系统”。这个说法太泛，和普通 Demo 区分不开。</p>
+<p>推荐表达为：</p>
+<ul>
+<li>我做的是企业级 RAG 知识问答平台；</li>
+<li>有明确业务资料来源、source 分类、知识库版本和入库质量检查；</li>
+<li>使用 Milvus Hybrid Search，不是只做向量相似度；</li>
+<li>支持 FAQ 标准答案和文档 RAG 两条路径；</li>
+<li>对费用、合规、安全、赔付等高风险问题有 Prompt Profile 控制；</li>
+<li>有评测指标证明效果，而不是只靠页面演示。</li>
+</ul>
+<h2 id="2">2. 推荐主推项目<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="21-rag">2.1 跨境贸易风控 RAG 知识问答平台<a class="headerlink" href="#21-rag" title="Permanent link">&para;</a></h3>
+<p>适合人群：想突出供应链、跨境电商、贸易合规、风控系统背景的学生。</p>
+<p>项目背景：</p>
+<p>企业在跨境贸易中需要处理海关申报、HS 编码、制裁筛查、信用证、物流责任和单证一致性。传统知识库靠人工搜索文档，响应慢且容易遗漏风险口径。</p>
+<p>简历描述：</p>
+<blockquote>
+<p>基于 LangChain + Milvus Hybrid Search 构建跨境贸易风控 RAG 知识问答平台，覆盖海关申报、制裁筛查、信用证审单、贸易术语和单证一致性场景。系统支持 FAQ 标准答案直出、文档混合检索、知识库多版本、source 自动推断、合规类 Prompt 路由和来源引用，通过 Recall@K、MRR 和 Prompt 命中率做回归验收。</p>
+</blockquote>
+<p>核心职责：</p>
+<ul>
+<li>设计 <code>customs/sanction/payment/logistics/documentation</code> 五类 source；</li>
+<li>使用 Milvus dense + BM25 sparse 完成混合召回；</li>
+<li>对 HS 编码争议、最终用途不清、信用证软条款等问题进入合规或费用强口径模板；</li>
+<li>建立业务深度评测样本，验证召回、来源隔离和 Prompt 路由；</li>
+<li>用知识库版本控制新增资料上线，避免直接覆盖旧版本。</li>
+</ul>
+<p>可讲难点：</p>
+<ul>
+<li>HS 编码、信用证、单证一致性不是普通 FAQ，需要回答“可以做什么”和“不能直接承诺什么”；</li>
+<li>同一问题可能同时命中 FAQ 和正文，需要 FAQ 标准口径优先，同时保留文档依据；</li>
+<li>跨境风险类问题不能让模型自由发挥，所以用 Prompt Profile 强制区分已确认和未确认。</li>
+</ul>
+<p>面试展开点：</p>
+<ul>
+<li>为什么不用 RedisSearch；</li>
+<li>为什么 Milvus 2.6.x 内置 BM25 足够；</li>
+<li>如何处理知识库版本回滚；</li>
+<li>如何防止不同场景串库；</li>
+<li>如何证明制裁、报关、信用证类问题走了合规模板。</li>
+</ul>
+<h3 id="22-rag">2.2 工程项目资料与施工规范 RAG 问答助手<a class="headerlink" href="#22-rag" title="Permanent link">&para;</a></h3>
+<p>适合人群：想突出工程项目、资料管理、标准规范、多版本文档检索背景的学生。</p>
+<p>项目背景：</p>
+<p>工程项目中存在图纸版本、施工规范、进度计划、质量验收和安全资料。资料分散且版本复杂，现场人员容易引用旧图纸或缺少验收依据。</p>
+<p>简历描述：</p>
+<blockquote>
+<p>构建工程项目资料与施工规范 RAG 问答助手，面向设计图纸、施工规范、进度资料、质量验收和安全资料提供多文档检索与风险口径回答。系统支持图纸版本追溯、规范冲突处理、隐蔽工程验收资料查询和安全交底资料核查，并通过知识库版本、source 过滤和合规 Prompt 控制回答边界。</p>
+</blockquote>
+<p>核心职责：</p>
+<ul>
+<li>设计 <code>drawing/specification/schedule/quality/safety</code> 五类工程资料 source；</li>
+<li>补充图纸会审、强制性条文、关键线路延期、检验批不一致、安全交底等样本；</li>
+<li>对“图纸和规范冲突”“安全技术交底只有口头说明”等问题进入合规模板；</li>
+<li>用 parent-child chunk 保留工程资料上下文，避免只召回孤立短句；</li>
+<li>在状态页展示来源文件、版本、模板和检索耗时。</li>
+</ul>
+<p>可讲难点：</p>
+<ul>
+<li>工程资料天然适合讲多文档、多版本和标准规范检索；</li>
+<li>有些问题不能直接回答“可以施工”，必须说明依据不足或需要负责人确认；</li>
+<li>质量验收和安全资料属于高风险问题，必须比普通知识问答更保守。</li>
+</ul>
+<h3 id="23-rag">2.3 招投标合规与合同履约 RAG 风控平台<a class="headerlink" href="#23-rag" title="Permanent link">&para;</a></h3>
+<p>适合人群：想突出 ToB 项目管理、招采合规、合同履约、项目交付背景的学生。</p>
+<p>项目背景：</p>
+<p>招投标和合同履约中常见风险包括投标材料缺失、非标准付款条款、交付范围变化、口头验收、需求频繁变更。普通问答系统容易把风险问题答成流程说明，缺少口径控制。</p>
+<p>简历描述：</p>
+<blockquote>
+<p>面向招投标和合同履约场景构建 RAG 风控平台，覆盖投标文件、合同条款、交付履约、验收管理和风险预警。系统通过 FAQ + 文档混合检索、Prompt Profile 和知识库入库质量检查，控制付款承诺、验收结论和履约责任等高风险回答边界。</p>
+</blockquote>
+<p>核心职责：</p>
+<ul>
+<li>设计 <code>bidding/contract/delivery/acceptance/risk</code> 五类业务 source；</li>
+<li>对投标保证金、合同变更、交付范围蔓延、口头验收、需求变更建立 FAQ 和正文资料；</li>
+<li>将保证金、回款等问题路由到 <code>pricing_guard</code>；</li>
+<li>将合同变更、履约责任等问题路由到 <code>compliance_guard</code>；</li>
+<li>用评测集验证命中来源和模板路由准确性。</li>
+</ul>
+<h3 id="24-rag">2.4 保险理赔材料审核与 RAG 知识问答助手<a class="headerlink" href="#24-rag" title="Permanent link">&para;</a></h3>
+<p>适合人群：想突出金融保险、材料审核、风控审核、规则解释背景的学生。</p>
+<p>项目背景：</p>
+<p>保险理赔涉及保单条款、理赔材料、责任认定、除外责任和赔付结算。系统不能提前承诺赔付金额，也不能在材料不足时给出确定结论。</p>
+<p>简历描述：</p>
+<blockquote>
+<p>构建保险理赔材料审核与 RAG 知识问答助手，支持保单条款解释、理赔材料清单、责任认定、除外责任和赔付结算问答。系统通过知识库版本、来源引用、合规 Prompt 和费用 Prompt 控制“是否赔付、赔付金额、打款账户”等敏感口径。</p>
+</blockquote>
+<p>核心职责：</p>
+<ul>
+<li>设计 <code>policy/claim_material/liability/exclusion/settlement</code> 五类 source；</li>
+<li>对保单复效、影像材料不清、责任争议、既往症、账户一致性建立样本；</li>
+<li>对既往症和责任争议使用合规模板；</li>
+<li>对收款账户和赔付结算使用费用强口径模板；</li>
+<li>用业务深度回归评测验证召回和模板路由。</li>
+</ul>
+<h2 id="3">3. 可选项目包装<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="_1">企业内部知识库智能问答平台<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>适合表达企业制度、HR、IT、财务内部服务台能力。亮点是多 source、FAQ 直出、预算审批和权限回收等内部流程问答。</p>
+<p>简历句子：</p>
+<blockquote>
+<p>基于 LangChain 和 Milvus Hybrid Search 搭建企业内部知识库智能问答平台，覆盖 HR 制度、IT 支持和财务报销，支持 FAQ 直出、文档 RAG、权限 source 过滤、知识库多版本和流式输出。</p>
+</blockquote>
+<h3 id="saas">SaaS 客服知识库智能助手<a class="headerlink" href="#saas" title="Permanent link">&para;</a></h3>
+<p>适合表达客服降本、产品文档问答、账号计费集成支持。亮点是退款承诺、API 限流排查和标准 FAQ。</p>
+<p>简历句子：</p>
+<blockquote>
+<p>构建 SaaS 客服知识库智能助手，覆盖账号登录、计费发票和开放集成，支持 FAQ 标准答案直出、API 排障步骤输出、退款类强口径模板和多场景评测回归。</p>
+</blockquote>
+<h3 id="_2">制造业设备运维知识助手<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>适合表达设备 SOP、巡检、告警、安全规范。亮点是排障模板和安全作业合规模板。</p>
+<p>简历句子：</p>
+<blockquote>
+<p>构建设备运维知识助手，覆盖巡检标准、温度告警和安全规范，通过 Milvus Hybrid Search 和 rerank 召回 SOP 文档，对反复告警输出排查步骤，对受限空间作业输出安全确认边界。</p>
+</blockquote>
+<h3 id="_3">企业合规制度智能问答系统<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>适合表达法务合规、审计、隐私保护。亮点是合规模板、客户数据导出、供应商尽调和审计闭环。</p>
+<p>简历句子：</p>
+<blockquote>
+<p>构建企业合规制度智能问答系统，覆盖合同审查、审计整改和隐私保护，对供应商尽调、客户数据导出等问题使用合规 Prompt 控制已确认和未确认边界。</p>
+</blockquote>
+<h2 id="4">4. 简历精简版<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>可以直接放到简历的版本：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>KnowForge RAG Platform
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>- 基于 LangChain + Milvus Hybrid Search + FastAPI 构建多场景 RAG 系统，覆盖跨境贸易风控、招投标履约、保险理赔、工程项目资料等 8 类业务场景。
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>- 设计 FAQ + 文档混合检索链路，使用 Milvus dense 向量与内置 BM25 sparse 召回，结合 BGE reranker、query variants 和 Prompt Profile 提升答案准确性与风险口径稳定性。
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>- 实现知识库多版本、tenant/dataset/role 数据隔离、WebSocket 流式输出、MySQL 聊天历史、LangSmith trace 和入库质量检查。
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>- 建立多场景评测集和业务深度回归集，覆盖 Recall@K、MRR、关键词覆盖、source 推断、Prompt 模板命中率和场景隔离率。
+</code></pre></div></td></tr></table></div>
+<p>更偏风控项目的版本：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>跨境贸易与合同履约 RAG 风控问答平台
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>- 面向海关申报、制裁筛查、信用证、招投标和合同履约风险构建 RAG 知识库，支持 FAQ 标准答案、文档依据召回和来源引用。
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>- 基于问题类别自动路由 pricing_guard/compliance_guard/troubleshooting_steps 等模板，约束付款、回款、制裁、合同责任等高风险回答。
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>- 通过知识库版本管理和入库质量报告支持资料灰度、回滚和 FAQ/正文冲突检测，使用RAG 回归验收防止召回和模板路由退化。
+</code></pre></div></td></tr></table></div>
+<p>更偏工程资料项目的版本：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>工程项目资料与施工规范 RAG 问答助手
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>- 面向图纸版本、施工规范、进度计划、质量验收和安全资料构建工程项目 RAG 系统，支持多 source 检索和知识库版本过滤。
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>- 使用 parent-child chunk 保留工程资料上下文，对图纸/规范冲突、检验批不一致、安全交底等问题进入合规 Prompt，避免模型给出无依据施工结论。
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>- 接入评测脚本和LangSmith trace，支持从检索来源、Prompt 模板、阶段耗时定位 bad case。
+</code></pre></div></td></tr></table></div>
+<h2 id="5">5. 面试时要避免的说法<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p>不要说：</p>
+<ul>
+<li>“我做了一个 ChatGPT 套壳。”</li>
+<li>“我把文档向量化后查出来给模型。”</li>
+<li>“BM25 是我手写的。”</li>
+<li>“MySQL 存知识库，Milvus 可有可无。”</li>
+<li>“缓存一下就能解决性能。”</li>
+<li>“什么业务都能接。”</li>
+</ul>
+<p>推荐说：</p>
+<ul>
+<li>“这是一个多场景 RAG 主链路项目，场景扩展靠配置，主链路只有一套。”</li>
+<li>“知识检索统一走 Milvus Hybrid Search，MySQL 只负责历史和反馈。”</li>
+<li>“FAQ 和文档分集合，是为了区分标准口径和解释依据。”</li>
+<li>“费用、合规、安全问题用 Prompt Profile 做强约束。”</li>
+<li>“我用评测集和入库质量检查证明改动没有让召回、模板路由和场景隔离退化。”</li>
+</ul>
+<h2 id="6">6. 项目边界<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p>一期已经完成 RAG 闭环，不建议继续堆更多行业场景。下一阶段如果要升级，应进入 Agent：</p>
+<ul>
+<li>用 LangGraph 编排工具调用；</li>
+<li>将风控问答升级为风险处置流程；</li>
+<li>将工程资料问答升级为资料核查任务；</li>
+<li>将 SaaS 客服问答升级为工单草稿生成；</li>
+<li>将保险理赔问答升级为材料缺失检查流程。</li>
+</ul>
+<p>简历中可以写“一期 RAG 已完成，二期规划 Agent 工作流”，不要把未实现的 Agent 能力写成已上线功能。</p>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

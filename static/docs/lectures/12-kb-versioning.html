@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第12讲：知识库多版本管理 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="12">第12讲：知识库多版本管理<a class="headerlink" href="#12" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./11-langchain-ecosystem.html">LangChain 生态系统</a><br />
+<strong>下一讲</strong>：<a href="./13-data-isolation.html">数据隔离与多租户设计</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解为什么 RAG 系统需要知识库版本管理</li>
+<li>掌握版本状态机的设计（STAGED → ACTIVE → ARCHIVED）</li>
+<li>理解版本切换的实现（O(1) 操作，不批量更新 Milvus）</li>
+<li>理解版本号生成的设计（时间戳 + 配置哈希）</li>
+</ul>
+<hr />
+<h2 id="rag">第一部分：前置知识 — 为什么 RAG 需要版本管理<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 不加版本管理的风险<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>假设你用一个脚本把 500 个业务文档写入 Milvus。运行完毕后：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>场景 A：一切正常，问答效果好
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>场景 B：你发现新的 Embedding 模型（bge-m3-v2）效果更好，想切换
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>  → 重新入库，覆盖了旧的向量数据
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>  → 新模型效果反而更差（新的切分策略导致 chunk 太碎）
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>  → 无法回滚，因为旧数据已经被覆盖了
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>场景 C：你修改了文档切分参数（chunk_size 从 500 改为 300）
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>  → 想对比新旧切分方案的效果
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>  → 没有版本机制，你只能删除旧数据重建，对比无从谈起
+</code></pre></div></td></tr></table></div>
+<p><strong>版本管理的核心价值</strong>：让知识库的更新成为<strong>可逆操作</strong>。</p>
+<h3 id="12_1">1.2 版本管理的典型需求<a class="headerlink" href="#12_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>安全入库</td>
+<td>新版本先写入，不影响线上正在使用的版本</td>
+</tr>
+<tr>
+<td>灰度验证</td>
+<td>新版本入库后先评测，确定没问题再切换</td>
+</tr>
+<tr>
+<td>快速回滚</td>
+<td>新版本效果不好，一键切回旧版本</td>
+</tr>
+<tr>
+<td>对比评测</td>
+<td>同一个问题可以分别在新旧版本上验证召回效果</td>
+</tr>
+<tr>
+<td>长期保留</td>
+<td>历史版本不删除，作为 A/B 测试和故障分析的依据</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_2">第二部分：版本状态机<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 三种状态<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<div class="mermaid">stateDiagram-v2
+    [*] --> STAGED : 入库完成
+
+    STAGED --> ACTIVE : 激活版本<br/>仅修改 JSON 文件
+    STAGED --> ARCHIVED : 直接归档<br/>从未激活的版本
+
+    ACTIVE --> STAGED : 回滚/新版本激活<br/>旧 ACTIVE 降级
+    ACTIVE --> ARCHIVED : 长期不用后归档
+
+    ARCHIVED --> [*] : Milvus 数据保留<br/>可手动清理
+
+    note right of ACTIVE
+        在线检索表达式：
+        kb_version == "active_version"
+        同一场景只有一个 ACTIVE
+    end note
+
+    note right of STAGED
+        已写入 Milvus
+        评测验证中
+        用户检索不可见
+    end note</div>
+<h3 id="_3">安全入库与激活流程<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Start(["执行 rebuild_kb_version.py"]) --> Create["1️⃣ 创建 STAGED 版本<br/>版本号含时间戳+配置哈希"]
+
+    Create --> Ingest["2️⃣ 入库存入 STAGED<br/>FAQ 入库 + 文档入库<br/>写入 kb_version=新版本号"]
+
+    Ingest --> Report["3️⃣ 生成入库质量报告<br/>解析失败/低质量chunk/<br/>FAQ空值/冲突检测"]
+
+    Report --> Gate{"4️⃣ 入库质量检查检查"}
+
+    Gate -->|"✅ 通过"| Activate["5️⃣ 激活版本<br/>修改 JSON: active_version=新版本<br/>旧 ACTIVE 降为 STAGED<br/>Milvus 数据不更新"]
+
+    Gate -->|"❌ 不通过"| Abort["❌ 终止激活<br/>STAGED 版本保留<br/>线上仍用旧 ACTIVE<br/>用户无感知"]
+
+    Activate --> Online["✅ 新版本上线<br/>下一次检索自动使用<br/>expr: kb_version==新版本号"]
+
+    style Create fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style Gate fill:#FFFBEB,stroke:#D97706,stroke-width:2px
+    style Activate fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style Abort fill:#FEF2F2,stroke:#DC2626,stroke-width:2px
+    style Online fill:#ECFDF5,stroke:#059669,stroke-width:3px</div>
+<ul>
+<li><strong>STAGED</strong>：版本已写入 Milvus，但线上检索不使用。通常用于新入库的版本，等待评测验证。</li>
+<li><strong>ACTIVE</strong>：当前在线检索使用的版本。同一场景只有一个 ACTIVE 版本。</li>
+<li><strong>ARCHIVED</strong>：不再使用的历史版本。数据和 Milvus chunk 都保留，但不参与在线检索。</li>
+</ul>
+<h3 id="22">2.2 状态转换实现<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>下面的代码展示的是步骤 5（激活）和归档操作。步骤 1（创建版本）见 <code>ensure_version()</code>，步骤 2（入库写入）见第 14 讲，步骤 3-4（质量报告和门控）见第 15 讲。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span>
+<span class="normal"><a href="#__codelineno-1-14">14</a></span>
+<span class="normal"><a href="#__codelineno-1-15">15</a></span>
+<span class="normal"><a href="#__codelineno-1-16">16</a></span>
+<span class="normal"><a href="#__codelineno-1-17">17</a></span>
+<span class="normal"><a href="#__codelineno-1-18">18</a></span>
+<span class="normal"><a href="#__codelineno-1-19">19</a></span>
+<span class="normal"><a href="#__codelineno-1-20">20</a></span>
+<span class="normal"><a href="#__codelineno-1-21">21</a></span>
+<span class="normal"><a href="#__codelineno-1-22">22</a></span>
+<span class="normal"><a href="#__codelineno-1-23">23</a></span>
+<span class="normal"><a href="#__codelineno-1-24">24</a></span>
+<span class="normal"><a href="#__codelineno-1-25">25</a></span>
+<span class="normal"><a href="#__codelineno-1-26">26</a></span>
+<span class="normal"><a href="#__codelineno-1-27">27</a></span>
+<span class="normal"><a href="#__codelineno-1-28">28</a></span>
+<span class="normal"><a href="#__codelineno-1-29">29</a></span>
+<span class="normal"><a href="#__codelineno-1-30">30</a></span>
+<span class="normal"><a href="#__codelineno-1-31">31</a></span>
+<span class="normal"><a href="#__codelineno-1-32">32</a></span>
+<span class="normal"><a href="#__codelineno-1-33">33</a></span>
+<span class="normal"><a href="#__codelineno-1-34">34</a></span>
+<span class="normal"><a href="#__codelineno-1-35">35</a></span>
+<span class="normal"><a href="#__codelineno-1-36">36</a></span>
+<span class="normal"><a href="#__codelineno-1-37">37</a></span>
+<span class="normal"><a href="#__codelineno-1-38">38</a></span>
+<span class="normal"><a href="#__codelineno-1-39">39</a></span>
+<span class="normal"><a href="#__codelineno-1-40">40</a></span>
+<span class="normal"><a href="#__codelineno-1-41">41</a></span>
+<span class="normal"><a href="#__codelineno-1-42">42</a></span>
+<span class="normal"><a href="#__codelineno-1-43">43</a></span>
+<span class="normal"><a href="#__codelineno-1-44">44</a></span>
+<span class="normal"><a href="#__codelineno-1-45">45</a></span>
+<span class="normal"><a href="#__codelineno-1-46">46</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># qa_core/governance/kb_versions.py</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">activate_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kb_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KnowledgeBaseVersion</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;把指定版本切为当前在线检索版本。</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="sd">    激活只修改版本清单 JSON 文件，不更新 Milvus 数据。</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># → 流程图节点 5️⃣：激活版本</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>  <span class="c1"># 重新加载，避免内存中的旧数据覆盖磁盘</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>    <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kb_version</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>    <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;知识库版本不存在：</span><span class="si">{</span><span class="n">kb_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13"></a>    <span class="n">previous</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;active_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14"></a>    <span class="n">now</span> <span class="o">=</span> <span class="n">utc_now</span><span class="p">()</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15"></a>
+<a id="__codelineno-1-16" name="__codelineno-1-16"></a>    <span class="c1"># 更新所有版本的状态</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17"></a>    <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;versions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18"></a>        <span class="n">item</span> <span class="o">=</span> <span class="n">KnowledgeBaseVersion</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19"></a>        <span class="k">if</span> <span class="n">vid</span> <span class="o">==</span> <span class="n">kb_version</span><span class="p">:</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20"></a>            <span class="n">item</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;ACTIVE&quot;</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21"></a>            <span class="n">item</span><span class="o">.</span><span class="n">activated_at</span> <span class="o">=</span> <span class="n">now</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22"></a>        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;ACTIVE&quot;</span><span class="p">:</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23"></a>            <span class="n">item</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;STAGED&quot;</span>  <span class="c1"># 旧 active 降级为 STAGED</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;versions&quot;</span><span class="p">][</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25"></a>
+<a id="__codelineno-1-26" name="__codelineno-1-26"></a>    <span class="c1"># 更新清单的指针</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;previous_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous</span> <span class="k">if</span> <span class="n">previous</span> <span class="o">!=</span> <span class="n">kb_version</span> <span class="k">else</span> <span class="o">...</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;active_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kb_version</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># 写入磁盘</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kb_version</span><span class="p">)</span> <span class="ow">or</span> <span class="n">record</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31"></a>
+<a id="__codelineno-1-32" name="__codelineno-1-32"></a>
+<a id="__codelineno-1-33" name="__codelineno-1-33"></a><span class="k">def</span><span class="w"> </span><span class="nf">archive_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kb_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KnowledgeBaseVersion</span><span class="p">:</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;归档一个非 active 版本。</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35"></a>
+<a id="__codelineno-1-36" name="__codelineno-1-36"></a><span class="sd">    归档不会删除 Milvus 数据，只是状态标记。</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37"></a><span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># → 流程图未展示的附加操作：归档</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_version_candidate</span><span class="p">()</span> <span class="o">==</span> <span class="n">kb_version</span><span class="p">:</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;不能归档当前 active 知识库版本&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40"></a>
+<a id="__codelineno-1-41" name="__codelineno-1-41"></a>    <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kb_version</span><span class="p">)</span>
+<a id="__codelineno-1-42" name="__codelineno-1-42"></a>    <span class="n">record</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;ARCHIVED&quot;</span>
+<a id="__codelineno-1-43" name="__codelineno-1-43"></a>    <span class="n">record</span><span class="o">.</span><span class="n">archived_at</span> <span class="o">=</span> <span class="n">utc_now</span><span class="p">()</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;versions&quot;</span><span class="p">][</span><span class="n">kb_version</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+<a id="__codelineno-1-45" name="__codelineno-1-45"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-1-46" name="__codelineno-1-46"></a>    <span class="k">return</span> <span class="n">record</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="23">2.3 激活操作的轻量性<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<p><strong>关键设计</strong>：激活版本只修改一个 JSON 文件，不碰 Milvus。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span>
+<span class="normal"><a href="#__codelineno-2-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>激活前的在线检索：
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>  Milvus expr 包含 kb_version == &quot;v1&quot;
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>激活后的在线检索：
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>  Milvus expr 包含 kb_version == &quot;v2&quot;
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>  v1 的 chunk 数据仍在 Milvus 中，只是不再被查到
+</code></pre></div></td></tr></table></div>
+<p>如果激活需要修改所有 chunk 的 metadata，一个 10 万条 chunk 的知识库需要很长时间。通过把版本切换放在检索表达式中，版本切换变成了 O(1) 操作。</p>
+<hr />
+<h2 id="_4">第三部分：版本号设计<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 版本号生成<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span>
+<span class="normal"><a href="#__codelineno-3-17">17</a></span>
+<span class="normal"><a href="#__codelineno-3-18">18</a></span>
+<span class="normal"><a href="#__codelineno-3-19">19</a></span>
+<span class="normal"><a href="#__codelineno-3-20">20</a></span>
+<span class="normal"><a href="#__codelineno-3-21">21</a></span>
+<span class="normal"><a href="#__codelineno-3-22">22</a></span>
+<span class="normal"><a href="#__codelineno-3-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_kb_version</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;kb&quot;</span><span class="p">,</span> <span class="n">scenario_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;生成一个适合人读和机器过滤的知识库版本号。</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="sd">    包含：</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a><span class="sd">    - 时间戳：便于肉眼判断版本先后</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="sd">    - 配置短 hash：把 embedding、reranker、chunk_schema、collection</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="sd">      等关键配置纳入标识</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a>    <span class="n">scenario</span> <span class="o">=</span> <span class="n">_resolve_version_scenario</span><span class="p">(</span><span class="n">scenario_id</span><span class="p">)</span>  <span class="c1"># 私有 helper，避免 settings -&gt; scenarios -&gt; kb_versions 循环导入</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>    <span class="n">stamp</span> <span class="o">=</span> <span class="n">utc_file_stamp</span><span class="p">()</span>  <span class="c1"># 如 20260506_103000（年月日_时分秒）</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>    <span class="n">config_hash</span> <span class="o">=</span> <span class="n">stable_hash</span><span class="p">(</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>        <span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a>        <span class="n">settings</span><span class="o">.</span><span class="n">embedding_model_version</span><span class="p">,</span>    <span class="c1"># 如 &quot;bge-m3-local-v1&quot;</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a>        <span class="n">settings</span><span class="o">.</span><span class="n">reranker_model_version</span><span class="p">,</span>     <span class="c1"># 如 &quot;bge-reranker-v1&quot;</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17"></a>        <span class="n">settings</span><span class="o">.</span><span class="n">chunk_schema_version</span><span class="p">,</span>       <span class="c1"># 如 &quot;parent_child_v1&quot;</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18"></a>        <span class="n">scenario</span><span class="o">.</span><span class="n">doc_collection</span><span class="p">,</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19"></a>        <span class="n">scenario</span><span class="o">.</span><span class="n">faq_collection</span><span class="p">,</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20"></a>    <span class="p">)[:</span><span class="mi">8</span><span class="p">]</span>  <span class="c1"># 只取前 8 位</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21"></a>
+<a id="__codelineno-3-22" name="__codelineno-3-22"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">stamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">config_hash</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23"></a>    <span class="c1"># 例：kb_enterprise_knowledge_20260506_103000_9f2a1b3c</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="32">3.2 为什么版本号包含配置哈希<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<p>设计意图：从版本号可以直接判断两个版本是否使用同一套配置。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
+<span class="normal"><a href="#__codelineno-4-2">2</a></span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a>kb_enterprise_knowledge_20260506_103000_9f2a1b3c
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>kb_enterprise_knowledge_20260507_150000_7d3e8f1a
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>                           不同日期 ↑         不同 hash ↑
+</code></pre></div></td></tr></table></div>
+<p>如果两个版本的 hash 相同但日期不同，说明是同一套配置下的数据更新（新增/修改了文档）。
+如果 hash 不同，说明 Embedding 模型、Reranker 模型或 Chunk 方案有变化，需要重点关注召回质量的对比。</p>
+<hr />
+<h2 id="_5">第四部分：版本清单文件<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 文件结构<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span>
+<span class="normal"><a href="#__codelineno-5-17">17</a></span>
+<span class="normal"><a href="#__codelineno-5-18">18</a></span>
+<span class="normal"><a href="#__codelineno-5-19">19</a></span>
+<span class="normal"><a href="#__codelineno-5-20">20</a></span>
+<span class="normal"><a href="#__codelineno-5-21">21</a></span>
+<span class="normal"><a href="#__codelineno-5-22">22</a></span>
+<span class="normal"><a href="#__codelineno-5-23">23</a></span>
+<span class="normal"><a href="#__codelineno-5-24">24</a></span>
+<span class="normal"><a href="#__codelineno-5-25">25</a></span>
+<span class="normal"><a href="#__codelineno-5-26">26</a></span>
+<span class="normal"><a href="#__codelineno-5-27">27</a></span>
+<span class="normal"><a href="#__codelineno-5-28">28</a></span>
+<span class="normal"><a href="#__codelineno-5-29">29</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="w">    </span><span class="nt">&quot;scenario_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="w">    </span><span class="nt">&quot;active_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;kb_enterprise_knowledge_20260507_150000_7d3e8f1a&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="w">    </span><span class="nt">&quot;previous_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;kb_enterprise_knowledge_20260506_103000_9f2a1b3c&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="w">    </span><span class="nt">&quot;versions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="w">        </span><span class="nt">&quot;kb_enterprise_knowledge_20260506_103000_9f2a1b3c&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="w">            </span><span class="nt">&quot;kb_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;kb_enterprise_knowledge_20260506_103000_9f2a1b3c&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a><span class="w">            </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;STAGED&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="w">            </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-06T10:30:00Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="w">            </span><span class="nt">&quot;activated_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-06T10:35:00Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="w">            </span><span class="nt">&quot;doc_collection&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enterprise_knowledge_doc&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a><span class="w">            </span><span class="nt">&quot;faq_collection&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enterprise_knowledge_faq&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="w">            </span><span class="nt">&quot;embedding_model_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bge-m3-local-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="w">            </span><span class="nt">&quot;reranker_model_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bge-reranker-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="w">            </span><span class="nt">&quot;chunk_schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;parent_child_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="w">            </span><span class="nt">&quot;sources&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;hr&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;it&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span><span class="p">],</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17"></a><span class="w">            </span><span class="nt">&quot;stats&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18"></a><span class="w">                </span><span class="nt">&quot;last_doc_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1523</span><span class="p">,</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19"></a><span class="w">                </span><span class="nt">&quot;last_faq_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">85</span><span class="p">,</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20"></a><span class="w">                </span><span class="nt">&quot;total_doc_written&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1523</span><span class="p">,</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21"></a><span class="w">                </span><span class="nt">&quot;total_faq_written&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">85</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24"></a><span class="w">        </span><span class="nt">&quot;kb_enterprise_knowledge_20260507_150000_7d3e8f1a&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25"></a><span class="w">            </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ACTIVE&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26"></a><span class="w">            </span><span class="err">...</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29"></a><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="42-knowledgebaseversionstore">4.2 KnowledgeBaseVersionStore 类<a class="headerlink" href="#42-knowledgebaseversionstore" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span>
+<span class="normal"><a href="#__codelineno-6-11">11</a></span>
+<span class="normal"><a href="#__codelineno-6-12">12</a></span>
+<span class="normal"><a href="#__codelineno-6-13">13</a></span>
+<span class="normal"><a href="#__codelineno-6-14">14</a></span>
+<span class="normal"><a href="#__codelineno-6-15">15</a></span>
+<span class="normal"><a href="#__codelineno-6-16">16</a></span>
+<span class="normal"><a href="#__codelineno-6-17">17</a></span>
+<span class="normal"><a href="#__codelineno-6-18">18</a></span>
+<span class="normal"><a href="#__codelineno-6-19">19</a></span>
+<span class="normal"><a href="#__codelineno-6-20">20</a></span>
+<span class="normal"><a href="#__codelineno-6-21">21</a></span>
+<span class="normal"><a href="#__codelineno-6-22">22</a></span>
+<span class="normal"><a href="#__codelineno-6-23">23</a></span>
+<span class="normal"><a href="#__codelineno-6-24">24</a></span>
+<span class="normal"><a href="#__codelineno-6-25">25</a></span>
+<span class="normal"><a href="#__codelineno-6-26">26</a></span>
+<span class="normal"><a href="#__codelineno-6-27">27</a></span>
+<span class="normal"><a href="#__codelineno-6-28">28</a></span>
+<span class="normal"><a href="#__codelineno-6-29">29</a></span>
+<span class="normal"><a href="#__codelineno-6-30">30</a></span>
+<span class="normal"><a href="#__codelineno-6-31">31</a></span>
+<span class="normal"><a href="#__codelineno-6-32">32</a></span>
+<span class="normal"><a href="#__codelineno-6-33">33</a></span>
+<span class="normal"><a href="#__codelineno-6-34">34</a></span>
+<span class="normal"><a href="#__codelineno-6-35">35</a></span>
+<span class="normal"><a href="#__codelineno-6-36">36</a></span>
+<span class="normal"><a href="#__codelineno-6-37">37</a></span>
+<span class="normal"><a href="#__codelineno-6-38">38</a></span>
+<span class="normal"><a href="#__codelineno-6-39">39</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">KnowledgeBaseVersionStore</span><span class="p">(</span><span class="n">JsonFileStore</span><span class="p">):</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;知识库版本清单读写器。</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a><span class="sd">    每个场景有独立的版本清单文件：</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="sd">    .index_manifest/&lt;scenario_id&gt;/kb_versions.json</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="sd">    这样多场景教学项目可以为每个行业场景独立激活、</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="sd">    回滚和对比知识库版本。</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span> <span class="o">=</span> <span class="n">_resolve_version_scenario</span><span class="p">(</span><span class="n">scenario_id</span><span class="p">)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">kb_versions_manifest_path</span><span class="p">)</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_active_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">requested</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;解析一次检索应该使用的知识库版本。</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17"></a>
+<a id="__codelineno-6-18" name="__codelineno-6-18"></a><span class="sd">        优先级：</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19"></a><span class="sd">        1. 请求显式传入的 kb_version（用于评测/灰度）</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20"></a><span class="sd">        2. 环境变量 ACTIVE_KB_VERSION</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21"></a><span class="sd">        3. 版本清单中的 active_version</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22"></a>
+<a id="__codelineno-6-23" name="__codelineno-6-23"></a><span class="sd">        当前在线检索必须带版本过滤。没有 active 版本直接报错。</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25"></a>        <span class="k">if</span> <span class="n">requested</span><span class="p">:</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">requested</span><span class="p">):</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27"></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;请求的知识库版本不存在：</span><span class="si">{</span><span class="n">requested</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28"></a>            <span class="k">return</span> <span class="n">requested</span>
+<a id="__codelineno-6-29" name="__codelineno-6-29"></a>
+<a id="__codelineno-6-30" name="__codelineno-6-30"></a>        <span class="n">active</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_version_candidate</span><span class="p">()</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">active</span><span class="p">:</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33"></a>                <span class="sa">f</span><span class="s2">&quot;场景 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="si">}</span><span class="s2"> 没有 active 知识库版本&quot;</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34"></a>            <span class="p">)</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">active</span><span class="p">):</span>
+<a id="__codelineno-6-36" name="__codelineno-6-36"></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37"></a>                <span class="sa">f</span><span class="s2">&quot;active 知识库版本不存在于版本清单：</span><span class="si">{</span><span class="n">active</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38"></a>            <span class="p">)</span>
+<a id="__codelineno-6-39" name="__codelineno-6-39"></a>        <span class="k">return</span> <span class="n">active</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="milvus">第五部分：与 Milvus 检索的集成<a class="headerlink" href="#milvus" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 写入时携带版本信息<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span>
+<span class="normal"><a href="#__codelineno-7-11">11</a></span>
+<span class="normal"><a href="#__codelineno-7-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># qa_core/governance/kb_versions.py</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">version_metadata</span><span class="p">(</span><span class="n">kb_version</span><span class="p">,</span> <span class="n">scenario_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;构建写入每个 FAQ/chunk metadata 的版本字段。&quot;&quot;&quot;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5"></a>    <span class="n">scenario</span> <span class="o">=</span> <span class="n">_resolve_version_scenario</span><span class="p">(</span><span class="n">scenario_id</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6"></a>    <span class="k">return</span> <span class="p">{</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7"></a>        <span class="s2">&quot;scenario_id&quot;</span><span class="p">:</span> <span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8"></a>        <span class="s2">&quot;kb_version&quot;</span><span class="p">:</span> <span class="n">kb_version</span><span class="p">,</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9"></a>        <span class="s2">&quot;embedding_model_version&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">embedding_model_version</span><span class="p">,</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10"></a>        <span class="s2">&quot;reranker_model_version&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">reranker_model_version</span><span class="p">,</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11"></a>        <span class="s2">&quot;chunk_schema_version&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">chunk_schema_version</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12"></a>    <span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<p>每条 FAQ 和 chunk 入库时，这些字段都会被写入 metadata：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-8-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-8-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-8-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-8-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-8-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="n">chunk</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>    <span class="n">page_content</span><span class="o">=</span><span class="s2">&quot;入职流程包括以下步骤...&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;hr&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>        <span class="s2">&quot;chunk_id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a>        <span class="s2">&quot;kb_version&quot;</span><span class="p">:</span> <span class="s2">&quot;kb_enterprise_knowledge_20260507_150000_7d3e8f1a&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>        <span class="s2">&quot;embedding_model_version&quot;</span><span class="p">:</span> <span class="s2">&quot;bge-m3-local-v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a>        <span class="o">...</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a>    <span class="p">}</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="52">5.2 检索时过滤版本<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span>
+<span class="normal"><a href="#__codelineno-9-2">2</a></span>
+<span class="normal"><a href="#__codelineno-9-3">3</a></span>
+<span class="normal"><a href="#__codelineno-9-4">4</a></span>
+<span class="normal"><a href="#__codelineno-9-5">5</a></span>
+<span class="normal"><a href="#__codelineno-9-6">6</a></span>
+<span class="normal"><a href="#__codelineno-9-7">7</a></span>
+<span class="normal"><a href="#__codelineno-9-8">8</a></span>
+<span class="normal"><a href="#__codelineno-9-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="c1"># 在线检索</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="n">active_version</span> <span class="o">=</span> <span class="n">resolve_active_kb_version</span><span class="p">(</span><span class="n">requested</span><span class="p">,</span> <span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a><span class="c1"># active_version = &quot;kb_enterprise_knowledge_20260507_150000_7d3e8f1a&quot;</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a><span class="c1"># 拼入 Milvus 表达式</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a><span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;kb_version == &quot;</span><span class="si">{</span><span class="n">active_version</span><span class="si">}</span><span class="s1">&quot; and source == &quot;hr&quot; and ...&#39;</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a><span class="c1"># 只检索 active 版本的 chunk</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a><span class="n">results</span> <span class="o">=</span> <span class="n">milvus_store</span><span class="o">.</span><span class="n">similarity_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="53">5.3 评测用历史版本<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-10-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-10-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-10-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-10-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-10-10">10</a></span>
+<span class="normal"><a href="#__codelineno-10-11">11</a></span>
+<span class="normal"><a href="#__codelineno-10-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="c1"># 评测脚本可以显式指定历史版本</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="n">service</span><span class="o">.</span><span class="n">debug_retrieval</span><span class="p">(</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;入职流程有哪些步骤&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>    <span class="n">kb_version</span><span class="o">=</span><span class="s2">&quot;kb_enterprise_knowledge_20260506_103000_9f2a1b3c&quot;</span><span class="p">,</span>  <span class="c1"># 旧版本</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>    <span class="o">...</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="c1"># 对比两个版本对同一批问题的召回效果</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a><span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="n">eval_set</span><span class="p">:</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a>    <span class="n">old_result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">debug_retrieval</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">kb_version</span><span class="o">=</span><span class="n">old_version</span><span class="p">)</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="n">new_result</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">debug_retrieval</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">kb_version</span><span class="o">=</span><span class="n">new_version</span><span class="p">)</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12"></a>    <span class="n">compare</span><span class="p">(</span><span class="n">old_result</span><span class="p">,</span> <span class="n">new_result</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_6">第六部分：全量重建的安全流程<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
+<span class="normal"><a href="#__codelineno-11-2">2</a></span>
+<span class="normal"><a href="#__codelineno-11-3">3</a></span>
+<span class="normal"><a href="#__codelineno-11-4">4</a></span>
+<span class="normal"><a href="#__codelineno-11-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="c1"># 完整的安全入库 + 激活流程</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a>python<span class="w"> </span>scripts/rebuild_kb_version.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a><span class="w">    </span>--scenario<span class="w"> </span>enterprise_knowledge<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a><span class="w">    </span>--new-version<span class="w"> </span>--force<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a><span class="w">    </span>--quality-gate<span class="w"> </span>--activate
+</code></pre></div></td></tr></table></div>
+<p>执行顺序：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
+<span class="normal"><a href="#__codelineno-12-2">2</a></span>
+<span class="normal"><a href="#__codelineno-12-3">3</a></span>
+<span class="normal"><a href="#__codelineno-12-4">4</a></span>
+<span class="normal"><a href="#__codelineno-12-5">5</a></span>
+<span class="normal"><a href="#__codelineno-12-6">6</a></span>
+<span class="normal"><a href="#__codelineno-12-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a>1. 创建 STAGED 版本（version = &quot;kb_...20260507_150000_xxxx&quot;）
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a>2. FAQ 入库（写入 STAGED 版本的 kb_version）
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>3. 文档入库（写入 STAGED 版本的 kb_version）
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>4. 生成入库质量报告
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a>5. 执行入库质量检查
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a>   ├─ 通过 → 激活版本（将 STAGED 切换为 ACTIVE）
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a>   └─ 不通过 → 终止流程，STAGED 版本仍保留（不激活）
+</code></pre></div></td></tr></table></div>
+<p><strong>关键安全点</strong>：即使新的 STAGED 版本已经写入了 Milvus，只要没有执行激活步骤，线上检索仍然使用旧的 ACTIVE 版本。用户完全无感知。</p>
+<hr />
+<h2 id="_7">重点掌握<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>版本状态机：STAGED（已入库待验证）→ ACTIVE（在线检索使用）→ ARCHIVED（归档保留）</td>
+<td>知识库版本管理的核心模型</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>O(1) 版本切换：激活只修改 JSON 文件的 active_version 指针，不更新 Milvus 数据</td>
+<td>理解版本切换为什么是即时的，面试高频</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>版本号设计：<code>kb_{scenario_id}_{timestamp}_{config_hash}</code>，配置哈希体现版本差异</td>
+<td>从版本号直接判断配置是否变化</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>resolve_active_version() 的三级优先级：请求传入 &gt; 环境变量 &gt; 版本清单 active_version</td>
+<td>理解版本解析流程</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>version_metadata() 将版本信息写入每个 chunk 的 metadata，检索时通过 expr 过滤</td>
+<td>写入和检索的版本关联机制</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>安全入库流程：创建 STAGED → 入库 → 生成质量报告 → 检查 → 激活</td>
+<td>生产环境的完整安全操作</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>版本清单 JSON 文件结构</td>
+<td>了解持久化格式</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>评测时可以显式指定历史版本做对比</td>
+<td>了解版本管理的扩展用途</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_8">本讲小结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>版本管理让知识库更新成为可逆操作</strong>：入库 → 评测 → 激活 →（效果不好）→ 回滚</li>
+<li><strong>版本状态机</strong>：STAGED（待验证）→ ACTIVE（在线使用）→ ARCHIVED（归档保留）</li>
+<li><strong>版本切换是 O(1) 操作</strong>：只修改 JSON 文件中的 active_version，不更新 Milvus 数据</li>
+<li><strong>版本号</strong> = 时间戳 + 配置哈希，可以肉眼判断先后和配置差异</li>
+<li><strong>每个场景独立版本清单</strong>，不同行业场景可以独立管理知识库版本</li>
+<li><strong>评测脚本可以显式指定历史版本</strong>，实现新老版本对比</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./13-data-isolation.html">数据隔离与多租户</a> — 租户/数据集/角色隔离、Milvus 表达式过滤</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/11-langchain-ecosystem.html"><i class="fas fa-arrow-left"></i> 11 LangChain 生态系统</a>
+        <a class="pager-link next" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一期 RAG 快速复盘 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/standard_demo_runbook.html">标准演示 Runbook</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-retrieval-strategy.html">04 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-query-rewrite-variants.html">05 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-qaservice-orchestration.html">07 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-rag-pipeline.html">08 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-prompt-engineering.html">09 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：入口与框架生态</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-app-entry-preflight.html">10 应用入口与环境前置校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-langchain-ecosystem.html">11 LangChain 生态系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-kb-versioning.html">12 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-data-isolation.html">13 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-ingestion-pipeline.html">14 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第五阶段：Web 框架收束</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-fastapi-async.html">18 FastAPI 与异步 Web 框架</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">15 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">16 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">17 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="rag">一期 RAG 快速复盘<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h1>
+<p>这份文档用于演示、交付和面试前的快速检查。它不替代详细架构文档，只回答一个问题：当前一期 RAG 是否已经形成可运行、可评测、可回滚、可解释的核心闭环。</p>
+<h2 id="1">1. 一期边界<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>一期只做 RAG 核心能力：</p>
+<ul>
+<li>多场景知识库问答；</li>
+<li>FAQ 标准答案直出；</li>
+<li>文档 Hybrid Search 检索；</li>
+<li>source 和场景隔离；</li>
+<li>Prompt Profile 路由；</li>
+<li>知识库多版本；</li>
+<li>流式输出；</li>
+<li>聊天历史；</li>
+<li>入库质量检查、RAG 回归验收、性能基线和 LangSmith 观测。</li>
+</ul>
+<p>二期再做 Agent。审批流、工具调用、任务编排、多角色协同不混入一期主问答链路，避免学生还没理解 RAG 主链路，就被 Agent 概念拉散。</p>
+<h2 id="2">2. 一期是否就绪<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>最终结论看独立质量检查是否通过。</p>
+<p>它汇总以下关键证据：</p>
+<table>
+<thead>
+<tr>
+<th>证据</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>表格行召回验收</td>
+<td>验证 CSV/Excel 这类结构化资料不会被普通文本切分破坏。</td>
+</tr>
+<tr>
+<td>负样本边界验收</td>
+<td>验证场景越界、source 选错、证据不足时不会硬答。</td>
+</tr>
+<tr>
+<td>全场景版本对比</td>
+<td>验证新旧知识库版本切换前没有召回退化。</td>
+</tr>
+<tr>
+<td>性能回归验收</td>
+<td>验证首 token、总耗时和阶段耗时仍在可接受范围。</td>
+</tr>
+<tr>
+<td>API 合同冒烟</td>
+<td>验证管理接口、版本接口、评测趋势、bad case 闭环可用。</td>
+</tr>
+<tr>
+<td>页面/流式冒烟</td>
+<td>验证问答页、状态页和 WebSocket 流式事件可用。</td>
+</tr>
+</tbody>
+</table>
+<p>推荐按主题执行核心检查：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_project_guardrails</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_evaluation_gate</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-dataset</span> <span class="n">eval_sets</span><span class="p">/</span><span class="n">business_depth_regression</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-limit</span> <span class="n">40</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">api_e2e_smoke</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-base-url</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8000</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">acceptance_smoke</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-base-url</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8000</span>
+</code></pre></div></td></tr></table></div>
+<p>这样每一步都能对应到课堂里的一个质量主题，不再需要额外讲总编排脚本。</p>
+<h2 id="3">3. 状态页怎么看<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>访问：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>http://127.0.0.1:8000/admin
+</code></pre></div></td></tr></table></div>
+<p>重点看三个区域：</p>
+<ul>
+<li><code>一期就绪总览</code>：直接看当前一期是否可交付；</li>
+<li><code>全场景版本对比</code>：看每个场景的新旧知识库召回是否退化；</li>
+<li><code>评测报告 / 性能基线 / Bad Case 闭环</code>：看质量、耗时和问题样本是否有闭环。</li>
+</ul>
+<p>状态页只读取已经生成的 JSON 报告，不会因为刷新页面重新调用模型或 Milvus 检索。这一点适合在面试里解释：状态页是“观察层”，不是“执行层”。</p>
+<h2 id="4">4. 面试讲法<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>可以按这条线讲：</p>
+<ol>
+<li>先讲主链路：用户问题进入 QAService，完成场景解析、意图识别、source 推断、FAQ 检索、文档检索、重排、Prompt 路由和流式生成。</li>
+<li>再讲治理能力：入库质量报告、低质量 chunk 检测、FAQ/正文冲突、OCR 风险、表格专用切分。</li>
+<li>再讲版本能力：每次重建都会生成新 kb_version，激活前用全场景版本对比确认没有召回退化。</li>
+<li>最后讲验收能力：用独立脚本证明单测、质量、评测、性能和接口冒烟都能通过。</li>
+</ol>
+<p>一句话总结：</p>
+<blockquote>
+<p>这个项目不是只实现了一个能聊天的 RAG，而是把企业知识库从资料入库、版本发布、检索问答、RAG 回归验收到线上诊断做成了一套闭环。</p>
+</blockquote>
+      <div class="doc-pager">
+        
+        
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

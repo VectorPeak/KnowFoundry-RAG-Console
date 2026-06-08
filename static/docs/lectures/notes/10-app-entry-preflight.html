@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第10讲 笔记：应用入口与环境前置校验 — KnowForge RAG Platform 讲义</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:"default"});</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/pipeline-demo.html">🎬 流程动画演示</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/current_project_status.html">当前项目状态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/README.html">课程大纲</a></li>
+
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/19-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+</ul></li>
+
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-f-milvus-index-and-operations.html">F Milvus 索引与操作详解</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-g-embedding-models.html">G Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-h-chunking-strategy.html">H 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/appendix/appendix-i-tool-foundations.html">I 项目工具类开发详解</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">复习笔记卡片</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/README.html">notes/README</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/01-project-overview.html">01 项目概述</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/02-rag-fundamentals.html">02 RAG 核心概念</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/03-intent-classification.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/04-retrieval-strategy.html">04 检索策略</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/05-query-rewrite-variants.html">05 查询改写与变体</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/06-milvus-hybrid-search.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/07-qaservice-orchestration.html">07 QAService 编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/08-rag-pipeline.html">08 RAG Pipeline</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/09-prompt-engineering.html">09 Prompt 工程</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/lectures/notes/10-app-entry-preflight.html">10 应用入口与校验</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/12-kb-versioning.html">12 知识库版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/13-data-isolation.html">13 数据隔离</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/14-ingestion-pipeline.html">14 文档入库</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/15-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/16-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/17-observability-tracing.html">19 LangSmith 观测与 Trace</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/lectures/notes/18-fastapi-async.html">18 FastAPI 与异步</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="10">第10讲 笔记：应用入口与环境前置校验<a class="headerlink" href="#10" title="Permanent link">&para;</a></h1>
+<h2 id="_1">学习目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>能说清 <code>app.py</code> 的四项职责</li>
+<li>能解释为什么项目不允许降级启动</li>
+<li>能列出启动时校验的全部 6 项前置条件</li>
+</ul>
+<h2 id="_2">核心知识点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>app.py</code> 只做四件事：创建 FastAPI 应用、配置 CORS 和静态资源、启动时校验和预热、注册路由</li>
+<li>Preflight Check 是航空术语「起飞前检查单」在软件工程中的应用：缺了核心依赖就拒绝启动，不做运行时降级</li>
+<li>启动校验链覆盖 6 项：LLM API Key 非占位符、LLM 联通性、MySQL 可连接、Milvus TCP 可达、模型路径存在、场景配置目录有效</li>
+<li>预热 <code>warmup_retrieval_stack()</code> 在启动时加载全部场景的 Embedding 和 Reranker 模型，避免第一个用户等待 30 秒</li>
+<li>路由拆分为四个模块：pages（页面）、chat（问答）、admin（管理）、kb_versions（版本）</li>
+</ol>
+<h2 id="_3">关键概念<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Preflight Check</td>
+<td>服务启动前校验所有核心依赖是否可用</td>
+</tr>
+<tr>
+<td>Fail-Fast</td>
+<td>遇到不可恢复的错误立即失败，不隐藏问题</td>
+</tr>
+<tr>
+<td>技术降级</td>
+<td>缺少某个组件时自动切换到低配方案（本项目禁止）</td>
+</tr>
+<tr>
+<td>预热</td>
+<td>启动时主动加载模型和建立连接，避免首次请求时的冷启动延迟</td>
+</tr>
+<tr>
+<td>lru_cache</td>
+<td>进程级单例缓存，避免每次请求都重新创建服务对象</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">核心代码<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span>
+<span class="normal"><a href="#__codelineno-0-17">17</a></span>
+<span class="normal"><a href="#__codelineno-0-18">18</a></span>
+<span class="normal"><a href="#__codelineno-0-19">19</a></span>
+<span class="normal"><a href="#__codelineno-0-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c1"># qa_core/llm/client.py — LLM 客户端工厂 + 连通性验证</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ChatOpenAI</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>    <span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>    <span class="k">return</span> <span class="n">ChatOpenAI</span><span class="p">(</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>        <span class="n">model</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_model</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>        <span class="n">api_key</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_api_key</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>        <span class="n">base_url</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_base_url</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>        <span class="n">temperature</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_temperature</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>        <span class="n">timeout</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_timeout</span><span class="p">,</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>        <span class="n">streaming</span><span class="o">=</span><span class="n">streaming</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>    <span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_llm_connectivity</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;真实调用一次 LLM，确认 Key、URL、模型名都可用。&quot;&quot;&quot;</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">get_chat_model</span><span class="p">(</span><span class="n">streaming</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17"></a>        <span class="p">[</span><span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;回复 OK&quot;</span><span class="p">)]</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18"></a>    <span class="p">)</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;LLM 服务返回空内容&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">5</a></span>
+<span class="normal"><a href="#__codelineno-1-6">6</a></span>
+<span class="normal"><a href="#__codelineno-1-7">7</a></span>
+<span class="normal"><a href="#__codelineno-1-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># qa_core/config/preflight.py — TCP 连通性检查</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_require_tcp</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">3.0</span><span class="p">):</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="n">sock</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>    <span class="n">sock</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">connect_ex</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>    <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>    <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">) 不可连接，请检查服务是否已启动&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h2 id="_5">练习题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>追踪启动流程</strong>：在 <code>app.py</code> 和 <code>validate_runtime_environment()</code> 中加临时日志，重启服务，观察各项校验的执行顺序和耗时。</li>
+<li><strong>模拟校验失败</strong>：把 <code>.env</code> 中的 <code>MILVUS_URI</code> 改为无效地址，重启服务，确认启动是否立即失败并给出明确错误信息。</li>
+</ol>
+<h2 id="_6">常见面试题<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：为什么项目不允许降级启动？</strong></p>
+<blockquote>
+<p>这是一个教学项目，环境是可控的。降级启动（如缺 Milvus 时换 pgvector）会让学生在半残环境里排查奇怪问题。严格的 fail-fast 策略保证了问题第一时间暴露，且保证走的是唯一主链路。</p>
+</blockquote>
+<p><strong>Q2：启动预热做了什么？为什么不放在首次请求时懒加载？</strong></p>
+<blockquote>
+<p>预热加载 Embedding 模型（2.2GB BGE-M3）和 Reranker 模型（1.3GB），约需 10-30 秒。如果放在首次请求时懒加载，第一个用户会等待 30 秒才能看到答案，体验很差。</p>
+</blockquote>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/lectures/notes/09-prompt-engineering.html"><i class="fas fa-arrow-left"></i> 09 Prompt 工程</a>
+        <a class="pager-link next" href="/docs/lectures/notes/11-langchain-ecosystem.html">11 LangChain 生态 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  mermaid.run({querySelector:".mermaid"});
+})();
+</script>
+</body>
+</html>

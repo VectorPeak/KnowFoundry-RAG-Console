@@ -1,0 +1,2036 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="基于 LangChain + Milvus Hybrid Search 的 KnowForge RAG Platform — 18 讲系统课程">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>场景库数据真实性评估与增强方案 - KnowForge RAG Platform — 系统讲义</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="index.html" title="KnowForge RAG Platform — 系统讲义" class="md-header__button md-logo" aria-label="KnowForge RAG Platform — 系统讲义" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KnowForge RAG Platform — 系统讲义
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              场景库数据真实性评估与增强方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换至浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="KnowForge RAG Platform — 系统讲义" class="md-nav__button md-logo" aria-label="KnowForge RAG Platform — 系统讲义" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KnowForge RAG Platform — 系统讲义
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="animation/pipeline-demo.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎬 流程动画演示
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="course-outline.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    课程大纲
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="standard_demo_runbook.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    标准演示 Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第一阶段：基础概念
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    第一阶段：基础概念
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="01-project-overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 项目概述与环境搭建
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="02-rag-fundamentals.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 RAG 核心概念深入
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第二阶段：核心 RAG 链路
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    第二阶段：核心 RAG 链路
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="03-langchain-ecosystem.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 LangChain 生态系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="04-milvus-index-and-operations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 Milvus 索引机制与基本操作
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="05-intent-classification.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 意图分类
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="06-retrieval-strategy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 检索策略与动态计划
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="07-query-rewrite-variants.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 查询改写与变体生成
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="08-milvus-hybrid-search.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 Milvus 混合检索
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="09-qaservice-orchestration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 QAService 核心编排
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="10-rag-pipeline.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 RAG Pipeline 主流程
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="11-prompt-engineering.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11 Prompt 工程与 Profile 系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第三阶段：Web 服务基础设施
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    第三阶段：Web 服务基础设施
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="12-fastapi-async.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12 FastAPI 与异步 Web 框架
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="13-app-entry-preflight.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13 应用入口与环境前置校验
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第四阶段：治理与运维
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    第四阶段：治理与运维
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="14-kb-versioning.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14 知识库多版本管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="15-data-isolation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15 数据隔离与多租户
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="16-ingestion-pipeline.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    16 文档入库与索引链路
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="17-quality-evaluation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    17 RAG 回归验收与入库质量
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="18-testing-system.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    18 测试与接口验收
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="19-observability-tracing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    19 LangSmith 观测与 Trace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    技术附录
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    技术附录
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-a-pydantic.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    A Pydantic 数据校验与 Settings 管理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-b-sha256-fingerprint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B SHA256 文件指纹
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-c-hnsw-index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    C HNSW 索引参数调优
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-d-crossencoder-reranker.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D CrossEncoder Reranker 原理
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-e-recursive-splitter.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    E RecursiveCharacterTextSplitter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-f-milvus-index-and-operations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    F Milvus 索引与操作详解
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-g-embedding-models.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    G Embedding 模型选型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-h-chunking-strategy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H 文档切分策略 Parent-Child Chunking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="appendix/appendix-i-tool-foundations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I 项目工具类开发详解
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="notes/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    复习笔记
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_10" id="__nav_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    复习笔记
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notes/01-project-overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 项目概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notes/02-rag-fundamentals.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 RAG 核心概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notes/03-langchain-ecosystem.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 LangChain 生态系统
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前距离
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        已新增企业仿真数据包
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么不默认并入 active 知识库
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        分析脚本
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clean-overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clean overlay 预览构建
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dirty-samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dirty samples 治理分析
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ocr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        表格与 OCR 处理边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        质量检查接入
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        资料治理脚本
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overlay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        overlay 回归评测集
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overlay_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        overlay 上线计划
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        状态页展示
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        面试讲法
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="_1">场景库数据真实性评估与增强方案<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>当前项目的一期主链路已经企业化，但场景数据本身仍是教学样本。更准确的定位是：</p>
+<ul>
+<li>系统架构：接近企业级 RAG 工程形态；</li>
+<li>场景问题：接近真实业务问法；</li>
+<li>数据现场：仍明显简化，缺少真实企业资料的规模、混乱度、版本冲突和组织差异。</li>
+</ul>
+<h2 id="_2">当前距离<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>如果把真实企业知识库数据现场视为 100 分，当前 <code>scenarios/</code> 数据大约是 35-45 分。</p>
+<p>原因不是业务方向错，而是资料还太干净：</p>
+<ul>
+<li>每个场景只有少量 FAQ 和文档；</li>
+<li>大多是结构清晰的 Markdown；</li>
+<li>缺少真实企业常见的过期制度、冲突通知、表格附件、扫描件 OCR、区域差异和金额阈值；</li>
+<li>缺少按法人主体、部门、角色、区域、合同类型变化的规则。</li>
+</ul>
+<h2 id="_3">已新增企业仿真数据包<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>路径：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>data_packs/enterprise_realistic_pack/
+</code></pre></div></td></tr></table></div>
+<p>它分为两部分：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>clean_overlay/
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>dirty_samples/
+</code></pre></div></td></tr></table></div>
+<p><code>clean_overlay/</code> 是可以作为后续入库增强的干净资料，覆盖区域差异、角色权限、金额阈值、例外审批、合同和付款风险、数据处理合规、工程资料补签、跨境单证金额变更、理赔材料金额不一致等企业资料特征。</p>
+<p><code>dirty_samples/</code> 不默认入库，只用于资料治理演示，覆盖过期口径、OCR 噪声、表格导出、多状态资料和 FAQ/正文潜在冲突。</p>
+<h2 id="active">为什么不默认并入 active 知识库<a class="headerlink" href="#active" title="Permanent link">&para;</a></h2>
+<p>这是刻意设计。</p>
+<p>真实企业资料里经常有脏数据，但不能把脏数据直接塞进线上 active 版本。正确做法是：</p>
+<ol>
+<li>干净增强资料先做入库质量报告；</li>
+<li>通过检查后再生成新知识库版本；</li>
+<li>新版本通过评测后才激活；</li>
+<li>脏数据样本只用于演示质量治理、冲突检测和人工复核。</li>
+</ol>
+<p>这样既能讲真实企业资料复杂度，又不会破坏当前已经闭环的一期主链路。</p>
+<h2 id="_4">分析脚本<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>新增脚本：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>scripts/enterprise_overlay/analyze_enterprise_data_realism.py
+</code></pre></div></td></tr></table></div>
+<p>执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">analyze_enterprise_data_realism</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_data_realism_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>报告会输出当前场景数据真实度、叠加企业仿真数据包后的真实度、FAQ 数量、文档数量、source 覆盖、文件格式分布，以及版本、例外、审批、阈值、区域、角色等企业化标记。</p>
+<h2 id="clean-overlay">clean overlay 预览构建<a class="headerlink" href="#clean-overlay" title="Permanent link">&para;</a></h2>
+<p><code>clean_overlay/</code> 不是靠复制粘贴进入主场景，而是先生成一个临时预览数据集：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">build_enterprise_overlay_dataset</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-all-scenarios</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_build_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>这个脚本会做四件事：</p>
+<ul>
+<li>把 <code>scenarios/&lt;scenario_id&gt;/data</code> 和 <code>clean_overlay/&lt;scenario_id&gt;/data</code> 合并到 <code>reports/enterprise_overlay_build/&lt;scenario_id&gt;/data</code>；</li>
+<li>把基础 <code>faq.csv</code> 和 <code>faq_overlay.csv</code> 合并成预览版 <code>faq.csv</code>；</li>
+<li>复用现有入库质量报告检查 loader、source 白名单、chunk 质量、FAQ 质量和 FAQ/正文冲突；</li>
+<li>输出每个场景的 <code>gate.ok</code>，只有通过的增强资料才具备进入知识库版本重建的资格。</li>
+</ul>
+<p>这里刻意不自动激活知识库版本。正式上线仍要走：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="p">&lt;</span><span class="n">scenario_id</span><span class="p">&gt;</span> <span class="p">-</span><span class="n">-data-dir</span> <span class="n">reports</span><span class="p">/</span><span class="n">enterprise_overlay_build</span><span class="p">/&lt;</span><span class="n">scenario_id</span><span class="p">&gt;/</span><span class="n">data</span> <span class="p">-</span><span class="n">-faq-csv</span> <span class="n">reports</span><span class="p">/</span><span class="n">enterprise_overlay_build</span><span class="p">/&lt;</span><span class="n">scenario_id</span><span class="p">&gt;/</span><span class="n">faq</span><span class="p">.</span><span class="n">csv</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+</code></pre></div></td></tr></table></div>
+<p>这样做的原因是：企业增强资料虽然是“干净样本”，但仍可能引入 FAQ 重复、正文依据缺失、source 分类错误或 chunk 质量问题。先预检，再重建，再评测，才是可控的企业资料上线流程。</p>
+<h2 id="dirty-samples">dirty samples 治理分析<a class="headerlink" href="#dirty-samples" title="Permanent link">&para;</a></h2>
+<p><code>dirty_samples/</code> 只用于资料治理教学，不允许直接并入 active 知识库。执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">analyze_dirty_enterprise_samples</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">dirty_enterprise_samples_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>报告会把样本分成几类：</p>
+<ul>
+<li><code>expired_policy</code>：过期制度或旧版本口径；</li>
+<li><code>policy_conflict</code>：与当前 FAQ 或正文可能冲突；</li>
+<li><code>ocr_review_required</code>：扫描件或 OCR 噪声，需要人工校验；</li>
+<li><code>table_split_required</code>：表格导出资料，需要按表头、行号和业务主键保留结构化语义；</li>
+<li><code>active_ingestion_blocked</code>：默认阻断 active 入库。</li>
+</ul>
+<p>脏样本的正确流向是：先被治理脚本识别，再人工清洗或进入二期 Agent 审核流程；清洗完成后沉淀为 <code>clean_overlay/</code>，再跑 overlay 预检和知识库版本重建。</p>
+<h2 id="ocr">表格与 OCR 处理边界<a class="headerlink" href="#ocr" title="Permanent link">&para;</a></h2>
+<p>当前一期已经把 CSV/Excel 表格作为正式资料类型接入入库链路：</p>
+<ul>
+<li><code>.csv</code>、<code>.xlsx</code>、<code>.xls</code> 会被识别为表格资料；</li>
+<li>每一行会转换成包含表头、工作表、行号和“列名：值”的 LangChain Document；</li>
+<li>metadata 会写入 <code>content_type=table_row</code>、<code>table_id</code>、<code>sheet_name</code>、<code>row_number</code>、<code>row_count</code>、<code>column_count</code>；</li>
+<li>表格行不会再被普通字符切分拆散，避免检索到金额却丢失状态、材料名或审批人。</li>
+</ul>
+<p>复杂 OCR 仍然不默认进入 active 入库链路。质量报告会识别疑似扫描件、OCR 噪声、断行、
+错字等风险，并把它们记入 <code>ocr_risk_files</code>。这些文件必须先人工复核或走独立 OCR 清洗
+流程，清洗后再沉淀为 clean overlay。这样能避免把扫描件识别错误直接写进线上知识库。</p>
+<h2 id="_5">质量检查接入<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>企业资料真实度、clean overlay 预检和 dirty samples 治理摘要可以独立执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">analyze_enterprise_data_realism</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_data_realism_latest</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">check_enterprise_overlay_readiness</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_readiness_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>这让面试讲法更完整：不是只说“我扩了 8 个业务场景”，而是能证明项目具备企业资料增强、入库质量检查、脏数据分流和版本化上线流程。</p>
+<h2 id="_6">资料治理脚本<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<p>企业资料治理保留为独立脚本，按需执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span>
+<span class="normal"><a href="#__codelineno-8-3">3</a></span>
+<span class="normal"><a href="#__codelineno-8-4">4</a></span>
+<span class="normal"><a href="#__codelineno-8-5">5</a></span>
+<span class="normal"><a href="#__codelineno-8-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">analyze_enterprise_data_realism</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_data_realism_latest</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">build_enterprise_overlay_dataset</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-all-scenarios</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_build_latest</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-strict</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">analyze_dirty_enterprise_samples</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">dirty_enterprise_samples_latest</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">check_enterprise_overlay_readiness</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_readiness_latest</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">plan_enterprise_overlay_activation</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_activation_plan_latest</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">run_enterprise_overlay_activation</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-plan</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_activation_plan_latest</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_activation_run_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>其中 <code>check_enterprise_overlay_readiness.py</code> 不调用模型，也不访问 Milvus。它检查四件事：</p>
+<ul>
+<li>clean overlay 是否全部通过入库质量检查；</li>
+<li>dirty samples 是否全部阻断 active 入库；</li>
+<li>资料真实度是否确实提升；</li>
+<li><code>eval_sets/enterprise_overlay_regression.json</code> 是否覆盖 clean overlay 的每条 FAQ。</li>
+</ul>
+<h2 id="overlay">overlay 回归评测集<a class="headerlink" href="#overlay" title="Permanent link">&para;</a></h2>
+<p>新增评测集：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a>eval_sets/enterprise_overlay_regression.json
+</code></pre></div></td></tr></table></div>
+<p>它覆盖 8 个场景的 24 条 clean overlay FAQ。增强资料正式激活到 active 知识库后，执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_evaluation_gate</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-dataset</span> <span class="n">eval_sets</span><span class="p">/</span><span class="n">enterprise_overlay_regression</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-limit</span> <span class="n">24</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_evaluation_latest</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-gate-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_evaluation_gate_latest</span><span class="p">.</span><span class="n">json</span> <span class="p">-</span><span class="n">-min-source-inference-accuracy</span> <span class="n">1</span><span class="p">.</span><span class="n">0</span> <span class="p">-</span><span class="n">-min-prompt-profile-accuracy</span> <span class="n">0</span><span class="p">.</span><span class="n">85</span>
+</code></pre></div></td></tr></table></div>
+<p>这一步才是真实问答链路验证：FAQ 直出、source 推断、Prompt Profile、检索来源和答案关键词都会被检查。
+clean overlay 激活后建议手动跑这条回归，避免只看入库成功就误判为问答链路成功。</p>
+<h2 id="overlay_1">overlay 上线计划<a class="headerlink" href="#overlay_1" title="Permanent link">&para;</a></h2>
+<p>预检通过后，可以生成正式知识库版本重建命令：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">enterprise_overlay</span><span class="p">/</span><span class="n">plan_enterprise_overlay_activation</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-output</span> <span class="n">reports</span><span class="p">/</span><span class="n">verification</span><span class="p">/</span><span class="n">enterprise_overlay_activation_plan_latest</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div></td></tr></table></div>
+<p>计划文件会给出每个场景的标准命令，格式类似：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="p">&lt;</span><span class="n">scenario_id</span><span class="p">&gt;</span> <span class="p">-</span><span class="n">-data-dir</span> <span class="n">reports</span><span class="p">/</span><span class="n">enterprise_overlay_build</span><span class="p">/&lt;</span><span class="n">scenario_id</span><span class="p">&gt;/</span><span class="n">data</span> <span class="p">-</span><span class="n">-faq-csv</span> <span class="n">reports</span><span class="p">/</span><span class="n">enterprise_overlay_build</span><span class="p">/&lt;</span><span class="n">scenario_id</span><span class="p">&gt;/</span><span class="n">faq</span><span class="p">.</span><span class="n">csv</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-description</span> <span class="s2">&quot;企业 clean overlay 增强资料版本&quot;</span> <span class="p">-</span><span class="n">-activate</span>
+</code></pre></div></td></tr></table></div>
+<p>这条链路的边界是：</p>
+<ol>
+<li><code>build_enterprise_overlay_dataset.py</code> 只生成候选数据集；</li>
+<li><code>check_enterprise_overlay_readiness.py</code> 判断候选资料是否具备上线资格；</li>
+<li><code>plan_enterprise_overlay_activation.py</code> 只生成上线命令；</li>
+<li><code>run_enterprise_overlay_activation.py</code> 只执行经过校验的 <code>rebuild_kb_version.py</code> 命令；</li>
+<li><code>rebuild_kb_version.py</code> 负责写 Milvus、生成新 kb_version、入库质量检查和激活；</li>
+<li><code>enterprise_overlay_regression.json</code> 用于激活后的真实链路回归。</li>
+</ol>
+<h2 id="_7">状态页展示<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p>状态页新增“企业资料治理”面板，展示：</p>
+<ul>
+<li>当前资料真实度和增强后真实度；</li>
+<li>clean overlay 每个场景是否通过预检；</li>
+<li>dirty samples 风险分布和 active 入库阻断数量；</li>
+<li>overlay 回归评测覆盖情况；</li>
+<li>overlay 上线计划中的命令数量和阻断场景数。</li>
+</ul>
+<p>接口：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>GET /api/admin/enterprise_governance
+</code></pre></div></td></tr></table></div>
+<h2 id="_8">面试讲法<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p>可以这样讲：</p>
+<blockquote>
+<p>一期项目没有直接把真实企业脏数据塞进主链路，而是把企业资料分成 active 知识库和仿真治理样本。active 版本只接收通过入库质量检查的资料；过期、冲突、OCR 噪声和表格导出样本用于演示入库质量报告、FAQ/正文冲突检测、版本治理和人工复核流程。</p>
+</blockquote>
+<p>这比单纯说“我做了 8 个行业场景”更有分量。重点不是行业外壳，而是知识库版本管理、资料入库质量检查、数据隔离、多源格式处理、边界拒答、bad case 回归和真实企业资料治理思路。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tracking", "navigation.expand", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="assets/javascripts/mermaid-init.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,27 @@
+scenario_id = "cross_border_risk"
+display_name = "跨境贸易风控助手"
+industry = "跨境供应链与贸易合规"
+description = "面向海关申报、制裁筛查、信用证不符点、贸易术语和出口许可的跨境贸易风控问答场景。"
+assistant_name = "跨境贸易风控助手"
+business_domain = "跨境贸易单证、海关申报、制裁筛查、信用证风险和物流交付责任"
+support_contact = "贸易合规与单证团队"
+faq_collection = "cross_border_risk_faq_hybrid_v1"
+doc_collection = "cross_border_risk_doc_hybrid_v1"
+valid_sources = ["customs", "sanction", "payment", "logistics", "documentation"]
+sample_questions = ["申报要素缺失会有什么风险？", "交易对手命中制裁名单怎么办？", "信用证不符点如何处理？"]
+resume_project_name = "跨境贸易风控 RAG 知识问答平台"
+resume_keywords = ["跨境贸易", "供应链风控", "贸易合规", "信用证审单", "海关申报", "RAG"]
+
+[source_labels]
+customs = "海关申报"
+sanction = "制裁筛查"
+payment = "信用证与收款"
+logistics = "贸易术语与物流"
+documentation = "单证合规"
+
+[source_patterns]
+customs = "海关|申报|报关|HS|HS编码|品名|归类|要素|原产地|关税"
+sanction = "制裁|名单|禁运|出口管制|受限|黑名单|筛查|最终用户|最终用途"
+payment = "信用证|L/C|LC|不符点|交单|议付|收款|付款|拒付|软条款"
+logistics = "FOB|CIF|DAP|DDP|EXW|贸易术语|运输|提单|交付|保险|货损"
+documentation = "单证|发票|箱单|提单|产地证|装箱单|报关单|合同|一致"

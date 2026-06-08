@@ -1,0 +1,81 @@
+[
+  {
+    "case_id": "negative_enterprise_finance_wrong_source",
+    "scenario_id": "enterprise_knowledge",
+    "source_filter": "hr",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "员工报销需要准备哪些材料？",
+    "expected_hit_type": "source_boundary",
+    "expected_effective_source": "finance",
+    "expected_prompt_profile": "pricing_guard",
+    "expected_keywords": ["当前选择的是", "问题更像", "财务报销", "请切换分类后再查询"]
+  },
+  {
+    "case_id": "negative_enterprise_engineering_cross_scene",
+    "scenario_id": "enterprise_knowledge",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "安全技术交底只有口头说明可以吗？",
+    "expected_hit_type": "scenario_boundary",
+    "expected_prompt_profile": "compliance_guard",
+    "expected_keywords": ["当前场景是", "未在该场景资料中确认", "工程项目资料问答助手", "请切换到对应场景后再查询"]
+  },
+  {
+    "case_id": "negative_engineering_spec_wrong_source",
+    "scenario_id": "engineering_project_qa",
+    "source_filter": "drawing",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "施工图纸和强制性规范冲突时项目部能自行判断吗？",
+    "expected_hit_type": "source_boundary",
+    "expected_effective_source": "specification",
+    "expected_prompt_profile": "compliance_guard",
+    "expected_keywords": ["当前选择的是", "问题更像", "施工规范", "请切换分类后再查询"]
+  },
+  {
+    "case_id": "negative_cross_border_payment_wrong_source",
+    "scenario_id": "cross_border_risk",
+    "source_filter": "documentation",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "信用证软条款有什么风险？",
+    "expected_hit_type": "source_boundary",
+    "expected_effective_source": "payment",
+    "expected_prompt_profile": "pricing_guard",
+    "expected_keywords": ["当前选择的是", "问题更像", "信用证与收款", "请切换分类后再查询"]
+  },
+  {
+    "case_id": "negative_saas_insurance_cross_scene",
+    "scenario_id": "saas_support",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "理赔材料影像不清晰可以进入审核吗？",
+    "expected_hit_type": "scenario_boundary",
+    "expected_keywords": ["当前场景是", "未在该场景资料中确认", "保险理赔审核助手", "请切换到对应场景后再查询"]
+  },
+  {
+    "case_id": "negative_tender_bidding_wrong_source",
+    "scenario_id": "tender_contract_risk",
+    "source_filter": "acceptance",
+    "tenant_id": "default",
+    "dataset_id": "default",
+    "visibility": "public",
+    "user_role": "public",
+    "query": "投标保证金异常需要关注什么？",
+    "expected_hit_type": "source_boundary",
+    "expected_effective_source": "bidding",
+    "expected_prompt_profile": "pricing_guard",
+    "expected_keywords": ["当前选择的是", "问题更像", "招投标合规", "请切换分类后再查询"]
+  }
+]
