@@ -839,6 +839,7 @@
 
 .industrial-chat-head .context-tags #kbPill .kb-tooltip-title {
   display: block;
+  padding-left: 8px;
   margin-bottom: 7px;
   color: #1d4ed8;
   font-size: 12px;
