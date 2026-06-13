@@ -613,6 +613,35 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
 }
 
+/* Keep readiness and KB chips on the same visual centerline, 2026-06-13. */
+.industrial-chat-head .context-tags {
+  align-items: center;
+}
+
+.industrial-chat-head .context-tags .pill {
+  height: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.industrial-chat-head .context-tags .pill span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.industrial-chat-head .context-tags .pill svg {
+  display: block;
+}
+
+.industrial-chat-head .context-tags .status-dot {
+  flex: 0 0 auto;
+}
+
 .chat-history {
   padding: 22px 28px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);
