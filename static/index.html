@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KnowForge RAG 工业资料分类助手</title>
-  <script src="/static/js/vendor/lucide.min.js?v=20260613-industrial-rag"></script>
+  <script src="/static/js/vendor/lucide.min.js?v=20260613-scene-topbar"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-industrial-rag" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-scene-topbar" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -18,10 +18,6 @@
       </div>
 
       <div class="topbar-center operation-strip">
-        <label class="operation-select-wrap">
-          <span>当前项目</span>
-          <select id="scenarioSelect" class="scenario-select" aria-label="业务场景"></select>
-        </label>
         <span class="ops-pill"><i data-lucide="factory"></i><span>环境</span><strong>生产环境</strong></span>
         <span class="ops-pill"><i data-lucide="activity"></i><span>服务</span><strong>正常 7/7</strong></span>
         <span class="ops-pill active"><i data-lucide="database-zap"></i><span>知识库</span><strong>ACTIVE KB</strong></span>
@@ -37,16 +33,21 @@
     <main class="main-layout industrial-layout">
       <aside class="panel left-panel industrial-sidebar">
         <div class="panel-header sidebar-head">
-          <div class="panel-title"><i data-lucide="hard-hat"></i><span>工程场景</span></div>
-          <div class="scenario-summary" id="scenarioDescription">正在加载场景...</div>
+          <div class="panel-title"><i data-lucide="layers-3"></i><span>业务场景</span></div>
+          <div class="scenario-summary" id="scenarioDescription">支持多场景、多专有知识库下的知识助手。</div>
         </div>
         <div class="panel-body sidebar-body">
-          <nav class="scenario-nav" aria-label="工程场景">
-            <button class="nav-item active" type="button"><i data-lucide="clipboard-check"></i><span>施工规范</span></button>
-            <button class="nav-item" type="button"><i data-lucide="file-diff"></i><span>图纸变更</span></button>
-            <button class="nav-item" type="button"><i data-lucide="badge-check"></i><span>质量验收</span></button>
-            <button class="nav-item" type="button"><i data-lucide="triangle-alert"></i><span>安全资料</span></button>
-          </nav>
+          <section class="sidebar-section business-scene-section">
+            <div class="sidebar-label">当前业务场景</div>
+            <label class="operation-select-wrap sidebar-scenario-select">
+              <span class="sr-only">业务场景</span>
+              <select id="scenarioSelect" class="scenario-select" aria-label="业务场景"></select>
+            </label>
+            <div class="business-scene-note">
+              <i data-lucide="workflow"></i>
+              <span>统一接入不同业务域的专有知识库，按场景切换问答、检索和分类策略。</span>
+            </div>
+          </section>
 
           <div class="sidebar-divider"></div>
 
@@ -125,14 +126,14 @@
     </main>
   </div>
 
-  <script src="/static/js/state.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/utils.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/render.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/api.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/scenario.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/session.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/chat.js?v=20260613-industrial-rag"></script>
-  <script src="/static/js/app.js?v=20260613-industrial-rag"></script>
+  <script src="/static/js/state.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/utils.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/render.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/api.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/scenario.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/session.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/chat.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/app.js?v=20260613-scene-topbar"></script>
   <script>
     // Keep Lucide icons active for the initial static shell; dynamic areas refresh in render.js.
     if (window.lucide) window.lucide.createIcons();

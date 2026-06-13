@@ -274,9 +274,9 @@
 .industrial-topbar {
   height: 58px;
   padding: 0 18px;
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid #D9E2EE;
-  box-shadow: 0 2px 10px rgba(18, 32, 54, 0.06);
+  background: linear-gradient(90deg, #07172A 0%, #0A2341 52%, #07182C 100%);
+  border-bottom: 1px solid rgba(105, 142, 190, 0.32);
+  box-shadow: 0 8px 24px rgba(3, 12, 28, 0.24);
 }
 
 .industrial-brand {
@@ -296,12 +296,12 @@
 .industrial-brand .brand-text {
   font-size: 17px;
   font-weight: 700;
-  color: #142238;
+  color: #F3F8FF;
 }
 
 .operation-strip {
   gap: 14px;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .operation-select-wrap,
@@ -311,12 +311,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid #DDE5EF;
-  background: #FFFFFF;
+  border: 1px solid rgba(117, 157, 210, 0.38);
+  background: rgba(8, 32, 61, 0.82);
   border-radius: 8px;
-  color: #53657D;
+  color: #B9C9DE;
   font-size: 13px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .operation-select-wrap {
@@ -326,7 +326,7 @@
 
 .operation-select-wrap > span,
 .ops-pill > span {
-  color: #687A91;
+  color: #8FA4C0;
   white-space: nowrap;
 }
 
@@ -345,7 +345,7 @@
 }
 
 .ops-pill strong {
-  color: #15233B;
+  color: #F1F7FF;
   font-weight: 700;
 }
 
@@ -355,7 +355,7 @@
 }
 
 .ops-pill svg {
-  color: #0A66F1;
+  color: #55A5FF;
 }
 
 .industrial-actions .btn,
@@ -363,10 +363,19 @@
   border-radius: 8px;
 }
 
+.industrial-actions .btn {
+  color: #D7E5F7;
+}
+
+.industrial-actions .btn:hover {
+  background: rgba(86, 146, 220, 0.18);
+  color: #FFFFFF;
+}
+
 .user-chip {
   padding: 0 10px;
   font-weight: 600;
-  color: #24334B;
+  color: #F1F7FF;
 }
 
 .industrial-layout {
