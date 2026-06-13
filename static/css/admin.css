@@ -590,7 +590,7 @@ select.control-input option {
 
 .main-column > .panel:last-child .table-wrap {
   flex: 1 1 auto;
-  max-height: none;
+  max-height: min(420px, 48vh);
 }
 
 .panel {
@@ -817,7 +817,7 @@ td {
   }
 
   .main-column > .panel:last-child .table-wrap {
-    max-height: min(520px, 62vh);
+    max-height: min(420px, 48vh);
   }
 
   .side-column {
