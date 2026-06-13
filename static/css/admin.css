@@ -155,6 +155,15 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+.nav-link {
+  min-height: 36px;
+  padding: 0 10px;
+  border-color: transparent;
+  background: transparent;
+  color: #e5edf7;
+  box-shadow: none;
+}
+
 .topbar-chip .ui-icon,
 .nav-link .ui-icon,
 .refresh-button .ui-icon {
@@ -186,10 +195,15 @@
   cursor: pointer;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+  border-color: transparent;
+  background: rgba(148, 163, 184, 0.10);
+  color: #ffffff;
+}
+
 .refresh-button:hover {
-  border-color: rgba(96, 165, 250, 0.72);
-  background: rgba(14, 47, 82, 0.98);
+  border-color: transparent;
+  background: #1d4ed8;
 }
 
 .refresh-button {
