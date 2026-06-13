@@ -8,6 +8,7 @@ async function loadScenarios() {
     option.textContent = `${scenario.display_name} (${scenario.industry})`;
     els.scenarioSelect.appendChild(option);
   }
+  renderScenarioList(state.scenarios);
   const saved = localStorage.getItem('activeScenarioId');
   const active = state.scenarios.find(item => item.scenario_id === saved)
     || state.scenarios.find(item => item.scenario_id === payload.active_scenario_id)
@@ -21,6 +22,7 @@ async function applyScenario(scenarioId, resetSession) {
   state.scenarioId = scenarioId;
   localStorage.setItem('activeScenarioId', scenarioId);
   els.scenarioSelect.value = scenarioId;
+  updateScenarioActive();
   const scenario = currentScenario();
   state.lastDiagnostics = null;
   state.lastStreamStatus = '等待提问';
@@ -38,6 +40,49 @@ async function applyScenario(scenarioId, resetSession) {
   if (resetSession) {
     await createNewSession();
   }
+}
+
+function renderScenarioList(scenarios) {
+  if (!els.scenarioList) return;
+  if (!scenarios.length) {
+    els.scenarioList.innerHTML = '<div class="empty-state compact">暂无业务场景</div>';
+    return;
+  }
+  els.scenarioList.innerHTML = scenarios.map(scenario => `
+    <button class="scenario-item" type="button" data-scenario="${escapeAttribute(scenario.scenario_id)}">
+      <i data-lucide="${escapeAttribute(scenarioIcon(scenario))}"></i>
+      <span>${escapeHtml(scenario.display_name)}</span>
+    </button>
+  `).join('');
+  els.scenarioList.querySelectorAll('.scenario-item').forEach(button => {
+    button.addEventListener('click', async () => {
+      if (state.inProgress) cancelStream();
+      await applyScenario(button.dataset.scenario, true);
+    });
+  });
+  updateScenarioActive();
+  refreshIcons();
+}
+
+function updateScenarioActive() {
+  if (!els.scenarioList) return;
+  const activeValue = state.scenarioId || els.scenarioSelect.value || '';
+  els.scenarioList.querySelectorAll('.scenario-item').forEach(button => {
+    button.classList.toggle('active', button.dataset.scenario === activeValue);
+  });
+}
+
+function scenarioIcon(scenario) {
+  const text = `${scenario.display_name || ''} ${scenario.industry || ''} ${scenario.business_domain || ''}`;
+  if (text.includes('合规') || text.includes('法务')) return 'scale';
+  if (text.includes('贸易') || text.includes('跨境')) return 'ship';
+  if (text.includes('工程') || text.includes('施工')) return 'hard-hat';
+  if (text.includes('企业') || text.includes('内部')) return 'building-2';
+  if (text.includes('设备') || text.includes('运维')) return 'settings-2';
+  if (text.includes('保险') || text.includes('理赔')) return 'badge-dollar-sign';
+  if (text.includes('客服') || text.includes('SaaS')) return 'headphones';
+  if (text.includes('招投标') || text.includes('合同')) return 'file-signature';
+  return 'layers-3';
 }
 
 async function loadSources() {

@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KnowForge RAG 工业资料分类助手</title>
-  <script src="/static/js/vendor/lucide.min.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/vendor/lucide.min.js?v=20260613-scenario-buttons"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-dynamic-sidebar" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-scenario-buttons" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -42,6 +42,7 @@
               <span class="sr-only">业务场景</span>
               <select id="scenarioSelect" class="scenario-select" aria-label="业务场景"></select>
             </label>
+            <div class="scenario-list" id="scenarioList"></div>
             <div class="business-scene-note">
               <i data-lucide="workflow"></i>
               <span>统一接入不同业务域的专有知识库，按场景切换问答、检索和分类策略。</span>
@@ -124,14 +125,14 @@
     </main>
   </div>
 
-  <script src="/static/js/state.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/utils.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/render.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/api.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/scenario.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/session.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/chat.js?v=20260613-dynamic-sidebar"></script>
-  <script src="/static/js/app.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/state.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/utils.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/render.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/api.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/scenario.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/session.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/chat.js?v=20260613-scenario-buttons"></script>
+  <script src="/static/js/app.js?v=20260613-scenario-buttons"></script>
   <script>
     // Keep Lucide icons active for the initial static shell; dynamic areas refresh in render.js.
     if (window.lucide) window.lucide.createIcons();

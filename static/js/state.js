@@ -18,6 +18,7 @@ const state = {
 
 const els = {
   scenarioSelect: document.getElementById('scenarioSelect'),
+  scenarioList: document.getElementById('scenarioList'),
   scenarioDescription: document.getElementById('scenarioDescription'),
   sourceFilter: document.getElementById('sourceFilter'),
   categoryList: document.getElementById('categoryList'),

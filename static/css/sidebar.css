@@ -329,6 +329,7 @@
    this page is focused on classification, retrieval, and traceability.
    ============================================================ */
 .scenario-nav,
+.scenario-list,
 .taxonomy-list,
 .kb-summary,
 .health-list,
@@ -338,6 +339,7 @@
 }
 
 .nav-item,
+.scenario-item,
 .taxonomy-list span,
 .taxonomy-item {
   display: flex;
@@ -352,6 +354,7 @@
 }
 
 .taxonomy-item,
+.scenario-item,
 .nav-item {
   width: 100%;
   border: 1px solid transparent;
@@ -361,6 +364,8 @@
 
 .nav-item.active,
 .nav-item:hover,
+.scenario-item.active,
+.scenario-item:hover,
 .taxonomy-item.active,
 .taxonomy-item:hover {
   color: #FFFFFF;
@@ -370,6 +375,8 @@
 
 .nav-item.active svg,
 .nav-item:hover svg,
+.scenario-item.active svg,
+.scenario-item:hover svg,
 .taxonomy-item.active svg,
 .taxonomy-item:hover svg {
   color: #65A0FF;
@@ -419,6 +426,30 @@
   color: #9FB2CC;
   font-size: 12px;
   line-height: 1.65;
+}
+
+.scenario-list {
+  overflow: visible;
+  padding-right: 2px;
+}
+
+.scenario-item {
+  min-height: 36px;
+  padding: 0 8px;
+  color: #AFC0D6;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.scenario-item span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scenario-item svg {
+  color: #6F88AA;
 }
 
 .business-scene-note svg {
