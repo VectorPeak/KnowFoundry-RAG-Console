@@ -1375,6 +1375,39 @@
   color: #0F9F5B;
 }
 
+/* Classification scores use a compact confidence rail, 2026-06-14. */
+.right-panel.insight-panel .classification-card .classification-result li {
+  position: relative;
+  padding-bottom: 7px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li::before,
+.right-panel.insight-panel .classification-card .classification-result li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li::before {
+  background: #E8EEF6;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li::after {
+  right: auto;
+  width: var(--score, 0%);
+  min-width: 10px;
+  max-width: 100%;
+  background: linear-gradient(90deg, #2563EB, #0EA5E9);
+}
+
+.right-panel.insight-panel .classification-card .classification-result li:first-child::after {
+  background: linear-gradient(90deg, #16A34A, #22C55E);
+}
+
 /* Reduce empty vertical air in the top insight cards, 2026-06-13. */
 .right-panel.insight-panel .recent-card .sample-list {
   padding-top: 8px;
