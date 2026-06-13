@@ -69,7 +69,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 0 18px;
+  height: 58px;
+  padding: 0 16px;
   background: linear-gradient(90deg, #07172A 0%, #0A2341 52%, #07182C 100%);
   border-bottom: 1px solid rgba(105, 142, 190, 0.32);
   color: #f8fbff;
@@ -85,26 +86,26 @@
 
 .brand {
   gap: 12px;
-  min-width: 320px;
+  min-width: 350px;
   flex-shrink: 0;
 }
 
 .brand-mark {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 0;
   background: linear-gradient(135deg, #2D7CFF, #064FD8);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(22, 91, 219, 0.28);
+  box-shadow: 0 7px 16px rgba(22, 91, 219, 0.26);
 }
 
 .brand-mark svg {
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   color: #FFFFFF;
   stroke-width: 2.3;
 }
@@ -113,7 +114,7 @@
   color: #F3F8FF;
   font-size: 17px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;
   letter-spacing: 0;
 }
 
