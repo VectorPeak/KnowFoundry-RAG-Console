@@ -202,7 +202,7 @@ function renderClassificationResult(classification) {
     : [];
   if (!candidates.length) {
     els.classificationResult.innerHTML = `
-      <div><span>建议分类</span><strong>等待分类</strong></div>
+      <div><span>建议分类</span><strong class="classification-badge is-waiting">等待分类</strong></div>
       <ol></ol>
       <p>分类结果会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p>
     `;
@@ -222,7 +222,7 @@ function renderClassificationResult(classification) {
   }).join('');
 
   els.classificationResult.innerHTML = `
-    <div><span>建议分类</span><strong>${escapeHtml(suggestedLabel)}</strong></div>
+    <div><span>建议分类</span><strong class="classification-badge">${escapeHtml(suggestedLabel)}</strong></div>
     <ol>${rows}</ol>
     <p>分类结果来自最近一次问题的业务资料分类信号，按匹配强度归一化展示。</p>
   `;
