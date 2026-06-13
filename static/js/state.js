@@ -13,7 +13,8 @@ const state = {
   lastSourceCount: 0,
   lastStreamStatus: '等待提问',
   lastDiagnostics: null,
-  historyItems: []
+  historyItems: [],
+  sessionCards: []
 };
 
 const els = {

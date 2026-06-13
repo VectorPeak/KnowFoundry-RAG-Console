@@ -12,11 +12,19 @@ async function sendMessage() {
 
   try {
     const result = await streamAnswer(query, assistant.content);
+    upsertSessionCard(state.sessionId, {
+      title: query,
+      summary: result.answer || '回答完成'
+    });
     if (result.answer) {
       assistant.content.appendChild(renderFeedbackActions(query, result.answer, result.sources));
     }
     await loadHistory();
   } catch (error) {
+    upsertSessionCard(state.sessionId, {
+      title: query,
+      summary: '处理失败'
+    });
     assistant.content.classList.remove('stream-status');
     assistant.content.innerHTML = renderMarkdown(`抱歉，处理失败：${error.message || error}`);
   } finally {

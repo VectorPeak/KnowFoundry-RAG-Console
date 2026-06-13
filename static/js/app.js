@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
+  loadSessionCards();
+  renderSessionCards();
   await loadScenarios();
   await createNewSession();
   renderWelcome();

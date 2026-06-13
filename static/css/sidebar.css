@@ -937,3 +937,64 @@
   font-weight: 700;
   line-height: 1.35;
 }
+
+/* The conversation rail lists sessions; the active session owns the ID display, 2026-06-13. */
+.industrial-sidebar .session-info {
+  display: none;
+}
+
+.conversation-rail .history-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.conversation-rail .history-item {
+  width: 100%;
+  display: grid;
+  gap: 7px;
+  padding: 13px 14px;
+  border-radius: 8px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  background: #FFFFFF;
+  border: 1px solid #DDE7F4;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.conversation-rail .history-item:hover {
+  transform: none;
+  border-color: #8DB6FF;
+  background: #F7FAFF;
+}
+
+.conversation-rail .history-item.active {
+  border-color: #6FA4FF;
+  background: #EFF6FF;
+  box-shadow: inset 0 0 0 1px rgba(47, 112, 255, 0.18);
+}
+
+.conversation-rail .history-question {
+  color: #17243B;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.conversation-rail .history-answer {
+  margin-top: 0;
+  color: #66758A;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.conversation-rail .history-session-id {
+  min-width: 0;
+  padding-top: 6px;
+  border-top: 1px solid #E8EEF6;
+  color: #8090A6;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

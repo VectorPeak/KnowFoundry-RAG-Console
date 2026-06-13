@@ -554,6 +554,49 @@
   border-radius: 7px;
 }
 
+/* Header status chips use a compact segmented style, 2026-06-13. */
+.industrial-chat-head .context-tags {
+  gap: 6px;
+}
+
+.industrial-chat-head .context-tags .pill {
+  min-height: 30px;
+  max-width: 210px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border-color: #D6E2F1;
+  color: #637188;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.industrial-chat-head .context-tags .pill span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.industrial-chat-head .context-tags .pill i,
+.industrial-chat-head .context-tags .pill svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: #6280A5;
+}
+
+.industrial-chat-head .context-tags .pill.ok {
+  background: #E9FFF2;
+  border-color: #BDECD0;
+  color: #0F9F5B;
+}
+
+.industrial-chat-head .context-tags .pill.ok i,
+.industrial-chat-head .context-tags .pill.ok svg {
+  color: #10B981;
+}
+
 .chat-history {
   padding: 22px 28px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);
