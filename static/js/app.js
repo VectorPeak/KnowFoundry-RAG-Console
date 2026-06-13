@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
+  bindInsightCardToggles();
   loadSessionCards();
   renderSessionCards();
   await loadScenarios();
@@ -28,5 +29,29 @@ function bindEvents() {
       event.preventDefault();
       if (!state.inProgress) sendMessage();
     }
+  });
+}
+
+function bindInsightCardToggles() {
+  document.querySelectorAll('.right-panel .insight-card').forEach(card => {
+    const title = card.querySelector('.side-section-title');
+    const icon = card.querySelector('.card-toggle-icon');
+    if (!title || !icon) return;
+    title.setAttribute('role', 'button');
+    title.setAttribute('tabindex', '0');
+    title.setAttribute('aria-expanded', 'true');
+    const toggle = () => {
+      const collapsed = card.classList.toggle('is-collapsed');
+      title.setAttribute('aria-expanded', String(!collapsed));
+      icon.setAttribute('data-lucide', collapsed ? 'chevron-down' : 'chevron-up');
+      refreshIcons();
+    };
+    title.addEventListener('click', toggle);
+    title.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggle();
+      }
+    });
   });
 }

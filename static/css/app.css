@@ -1,7 +1,7 @@
-@import url("./base.css?v=20260613-session-cards");
-@import url("./components.css?v=20260613-session-cards");
-@import url("./layout.css?v=20260613-session-cards");
-@import url("./sidebar.css?v=20260613-session-cards");
-@import url("./chat.css?v=20260613-session-cards");
-@import url("./composer.css?v=20260613-session-cards");
-@import url("./responsive.css?v=20260613-session-cards");
+@import url("./base.css?v=20260613-collapse-cards");
+@import url("./components.css?v=20260613-collapse-cards");
+@import url("./layout.css?v=20260613-collapse-cards");
+@import url("./sidebar.css?v=20260613-collapse-cards");
+@import url("./chat.css?v=20260613-collapse-cards");
+@import url("./composer.css?v=20260613-collapse-cards");
+@import url("./responsive.css?v=20260613-collapse-cards");

@@ -998,3 +998,152 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Right insight cards: aligned metrics and real collapsed state, 2026-06-13. */
+.right-panel.insight-panel > .insight-body {
+  gap: 10px;
+  padding: 10px 8px;
+}
+
+.right-panel.insight-panel .insight-card {
+  border-color: #DDE7F2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.right-panel.insight-panel .side-section-title {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.right-panel.insight-panel .side-section-title:hover {
+  background: #F8FBFF;
+}
+
+.right-panel.insight-panel .side-section-title svg:first-child {
+  justify-self: center;
+}
+
+.right-panel.insight-panel .side-section-title .card-toggle-icon {
+  justify-self: end;
+  margin-left: 0;
+}
+
+.right-panel.insight-panel .insight-card.is-collapsed .side-section-title {
+  border-bottom: 0;
+}
+
+.right-panel.insight-panel .insight-card.is-collapsed > :not(.side-section-title) {
+  display: none;
+}
+
+.right-panel.insight-panel .classification-result,
+.right-panel.insight-panel .side-stats,
+.right-panel.insight-panel .kb-summary,
+.right-panel.insight-panel .health-list,
+.right-panel.insight-panel .sample-list {
+  padding: 14px 16px 16px;
+}
+
+.right-panel.insight-panel .classification-result > div {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 54px;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+
+.right-panel.insight-panel .classification-result > div span {
+  color: #617189;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.right-panel.insight-panel .classification-result > div strong {
+  justify-self: start;
+}
+
+.right-panel.insight-panel .classification-result > div em {
+  justify-self: end;
+  text-align: right;
+}
+
+.right-panel.insight-panel .classification-result ol {
+  margin: 8px 0 0;
+  padding-left: 22px;
+}
+
+.right-panel.insight-panel .classification-result li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  align-items: center;
+  gap: 10px;
+  padding-left: 0;
+}
+
+.right-panel.insight-panel .classification-result li span {
+  min-width: 0;
+}
+
+.right-panel.insight-panel .classification-result li strong {
+  justify-self: end;
+  float: none;
+}
+
+.right-panel.insight-panel .diagnostic-panel {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.92fr) minmax(0, 1.08fr);
+  column-gap: 12px;
+  row-gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #E8EEF6;
+}
+
+.right-panel.insight-panel .diagnostic-panel:last-child {
+  margin-bottom: 0;
+}
+
+.right-panel.insight-panel .diagnostic-section-title {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+}
+
+.right-panel.insight-panel .performance-badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 0;
+}
+
+.right-panel.insight-panel .kb-summary div,
+.right-panel.insight-panel .health-list span,
+.right-panel.insight-panel .side-stat {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.92fr) minmax(0, 1.08fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 24px;
+  padding: 0;
+}
+
+.right-panel.insight-panel .side-stat {
+  grid-column: 1 / -1;
+}
+
+.right-panel.insight-panel .kb-summary strong,
+.right-panel.insight-panel .health-list strong,
+.right-panel.insight-panel .side-stat strong {
+  justify-self: end;
+  max-width: 100%;
+  text-align: right;
+}
+
+.right-panel.insight-panel .side-source-list {
+  grid-column: 1 / -1;
+}
