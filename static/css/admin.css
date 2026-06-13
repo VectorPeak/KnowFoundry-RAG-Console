@@ -273,11 +273,14 @@
 }
 
 .refresh-button {
+  min-height: 34px;
+  height: 34px;
   padding: 0 13px;
   border-color: transparent;
   background: #2563eb;
   color: #fff;
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.30);
+  transform: translateX(-15px);
 }
 
 .refresh-button .ui-icon {
