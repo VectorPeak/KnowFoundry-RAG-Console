@@ -801,7 +801,7 @@
   z-index: 30;
   top: calc(100% + 10px);
   left: 0;
-  width: min(360px, calc(100vw - 48px));
+  width: min(430px, calc(100vw - 48px));
   padding: 12px 13px;
   border: 1px solid #c9d8ec;
   border-radius: 6px;
@@ -867,10 +867,10 @@
 
 .industrial-chat-head .context-tags #kbPill .kb-tooltip-row {
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr);
+  grid-template-columns: 136px minmax(190px, 1fr);
   gap: 10px;
-  align-items: baseline;
-  padding: 5px 0;
+  align-items: start;
+  padding: 6px 0;
   border-top: 1px solid #e4ecf6;
   color: #24344f;
   font-size: 12px;
@@ -886,8 +886,11 @@
 .industrial-chat-head .context-tags #kbPill .kb-tooltip-row strong {
   min-width: 0;
   color: #1d2b44;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
   font-weight: 800;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .chat-history {
