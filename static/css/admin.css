@@ -238,9 +238,11 @@
 
 .hero-band h1 {
   margin: 0;
+  color: #ffffff;
   font-size: 28px;
   line-height: 1.15;
   letter-spacing: 0;
+  text-shadow: 0 2px 10px rgba(15, 23, 42, 0.28);
 }
 
 .hero-band p {
