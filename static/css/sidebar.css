@@ -1393,7 +1393,7 @@
 }
 
 .right-panel.insight-panel .classification-card .classification-result li::before {
-  background: #E8EEF6;
+  background: #EEF3F8;
 }
 
 .right-panel.insight-panel .classification-card .classification-result li::after {
@@ -1401,11 +1401,11 @@
   width: var(--score, 0%);
   min-width: 10px;
   max-width: 100%;
-  background: linear-gradient(90deg, #2563EB, #0EA5E9);
+  background: linear-gradient(90deg, #5B8DEF, #55B8DC);
 }
 
 .right-panel.insight-panel .classification-card .classification-result li:first-child::after {
-  background: linear-gradient(90deg, #16A34A, #22C55E);
+  background: linear-gradient(90deg, #42B883, #6DD99A);
 }
 
 /* Reduce empty vertical air in the top insight cards, 2026-06-13. */
