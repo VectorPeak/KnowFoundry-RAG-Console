@@ -1470,3 +1470,25 @@
 .right-panel.insight-panel .classification-card .classification-result li span {
   min-width: 0;
 }
+
+/* Lock insight-card headers so collapsed/expanded states do not shift title text. */
+.right-panel.insight-panel .insight-card .side-section-title {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid #E8EEF6;
+  line-height: 1;
+}
+
+.right-panel.insight-panel .insight-card.is-collapsed .side-section-title {
+  border-bottom-color: transparent;
+}
+
+.right-panel.insight-panel .insight-card .side-section-title svg {
+  display: block;
+}
+
+.right-panel.insight-panel .insight-card .side-section-title span {
+  display: block;
+  line-height: 1;
+}
