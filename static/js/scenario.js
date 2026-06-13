@@ -37,8 +37,12 @@ async function applyScenario(scenarioId, resetSession) {
   renderSamples();
   updateScopeDisplay();
   updateSideStats();
+  renderSessionCards();
   if (resetSession) {
-    await createNewSession();
+    const restored = await restoreLatestSessionForScenario();
+    if (!restored) {
+      await createNewSession();
+    }
   }
 }
 

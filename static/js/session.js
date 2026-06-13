@@ -3,7 +3,8 @@ const SESSION_CARD_STORAGE_KEY = 'knowforge_session_cards_v1';
 function loadSessionCards() {
   try {
     const raw = localStorage.getItem(SESSION_CARD_STORAGE_KEY);
-    state.sessionCards = raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    state.sessionCards = Array.isArray(parsed) ? parsed : [];
   } catch {
     state.sessionCards = [];
   }
@@ -20,15 +21,16 @@ function saveSessionCards() {
 function upsertSessionCard(sessionId, patch = {}) {
   if (!sessionId) return;
   const now = Date.now();
+  const scenarioId = patch.scenarioId || state.scenarioId || '-';
   const existing = state.sessionCards.find(item => item.sessionId === sessionId);
   if (existing) {
-    Object.assign(existing, patch, { updatedAt: now });
+    Object.assign(existing, patch, { scenarioId: existing.scenarioId || scenarioId, updatedAt: now });
   } else {
     state.sessionCards.unshift({
       sessionId,
       title: '新会话',
       summary: currentScenario()?.display_name || '等待提问',
-      scenarioId: state.scenarioId || '-',
+      scenarioId,
       createdAt: now,
       updatedAt: now,
       ...patch
@@ -39,9 +41,16 @@ function upsertSessionCard(sessionId, patch = {}) {
   renderSessionCards();
 }
 
+function currentScenarioSessionCards() {
+  const scenarioId = state.scenarioId || '-';
+  return (state.sessionCards || [])
+    .filter(item => (item.scenarioId || '-') === scenarioId)
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+}
+
 function renderSessionCards() {
   const query = (els.sessionSearchInput?.value || '').trim().toLowerCase();
-  const cards = (state.sessionCards || [])
+  const cards = currentScenarioSessionCards()
     .filter(item => {
       const text = `${item.title || ''} ${item.summary || ''} ${item.sessionId || ''}`.toLowerCase();
       return !query || text.includes(query);
@@ -64,6 +73,13 @@ function renderSessionCards() {
   els.historyList.querySelectorAll('.session-card').forEach(item => {
     item.addEventListener('click', () => switchSession(item.dataset.sessionId));
   });
+}
+
+async function restoreLatestSessionForScenario() {
+  const latest = currentScenarioSessionCards()[0];
+  if (!latest) return false;
+  await switchSession(latest.sessionId);
+  return true;
 }
 
 async function createNewSession() {
@@ -89,6 +105,12 @@ async function createNewSession() {
 
 async function switchSession(sessionId) {
   if (!sessionId || sessionId === state.sessionId) return;
+  const card = state.sessionCards.find(item => item.sessionId === sessionId);
+  if (card?.scenarioId && card.scenarioId !== state.scenarioId) {
+    state.scenarioId = card.scenarioId;
+    els.scenarioSelect.value = card.scenarioId;
+    updateScenarioActive();
+  }
   if (state.inProgress) cancelStream();
   state.sessionId = sessionId;
   els.sessionInfo.textContent = `当前会话 ${shortText(state.sessionId, 28)}`;

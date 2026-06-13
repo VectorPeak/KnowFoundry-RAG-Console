@@ -4,8 +4,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadSessionCards();
   renderSessionCards();
   await loadScenarios();
-  await createNewSession();
-  renderWelcome();
+  const restored = await restoreLatestSessionForScenario();
+  if (!restored) {
+    await createNewSession();
+  }
 });
 
 function bindEvents() {
