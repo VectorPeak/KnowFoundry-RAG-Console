@@ -329,7 +329,7 @@ function setConnectionState(type, text) {
 
 function setWebSocketHealth(type, text) {
   const healthClass = {
-    ok: '',
+    ok: 'status-ok',
     working: 'status-working',
     pending: 'status-pending',
     error: 'status-error'

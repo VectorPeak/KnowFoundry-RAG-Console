@@ -68,16 +68,34 @@ function renderSessionCards() {
   els.historyList.innerHTML = cards.map(item => {
     const active = item.sessionId === state.sessionId ? ' active' : '';
     return `
-      <button class="history-item session-card${active}" data-session-id="${escapeAttribute(item.sessionId)}" type="button">
+      <div class="history-item session-card${active}" data-session-id="${escapeAttribute(item.sessionId)}" role="button" tabindex="0">
         <div class="history-question">${escapeHtml(shortText(item.title || '新会话', 34))}</div>
         <div class="history-answer">${escapeHtml(shortText(item.summary || '等待提问', 54))}</div>
-        <div class="history-session-id">${escapeHtml(shortText(displaySessionId(item.sessionId), 27))}</div>
-      </button>
+        <div class="history-footer">
+          <div class="history-session-id">${escapeHtml(shortText(displaySessionId(item.sessionId), 27))}</div>
+          <button class="session-delete-btn" data-session-id="${escapeAttribute(item.sessionId)}" type="button" title="删除对话" aria-label="删除对话">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </div>
     `;
   }).join('');
   els.historyList.querySelectorAll('.session-card').forEach(item => {
     item.addEventListener('click', () => switchSession(item.dataset.sessionId));
+    item.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        switchSession(item.dataset.sessionId);
+      }
+    });
   });
+  els.historyList.querySelectorAll('.session-delete-btn').forEach(item => {
+    item.addEventListener('click', event => {
+      event.stopPropagation();
+      deleteSession(item.dataset.sessionId);
+    });
+  });
+  refreshIcons();
 }
 
 async function restoreLatestSessionForScenario() {
@@ -166,6 +184,25 @@ function removeSessionCard(sessionId) {
   state.sessionCards = (state.sessionCards || []).filter(item => item.sessionId !== sessionId);
   saveSessionCards();
   renderSessionCards();
+}
+
+async function deleteSession(sessionId) {
+  if (!sessionId) return;
+  try {
+    await fetchJson(`/api/history/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+  } catch {
+    // 后端删除失败时仍移除本地会话卡片，避免前端历史列表继续堆积无效对话。
+  }
+  const deletingActiveSession = sessionId === state.sessionId;
+  removeSessionCard(sessionId);
+  if (!deletingActiveSession) return;
+  state.historyItems = [];
+  const next = currentScenarioSessionCards()[0];
+  if (next) {
+    await switchSession(next.sessionId);
+    return;
+  }
+  await createNewSession();
 }
 
 async function clearHistory() {

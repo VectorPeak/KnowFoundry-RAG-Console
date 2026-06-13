@@ -192,7 +192,7 @@
         fetchJson('/api/admin/enterprise_governance'),
       ]);
 
-      document.getElementById('updatedAt').textContent = `更新于 ${new Date().toLocaleString()}`;
+      document.getElementById('updatedAt').textContent = new Date().toLocaleString();
       const activeScenario = (adminStatus.scenarios || []).includes(scenarioId) ? scenarioSelect.selectedOptions[0]?.textContent : scenarioId;
       document.getElementById('scenarioValue').textContent = activeScenario || '-';
       renderLangSmith(langsmith);

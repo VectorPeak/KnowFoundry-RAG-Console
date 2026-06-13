@@ -943,6 +943,15 @@
   padding: 3px 8px 3px 20px;
 }
 
+.right-panel.insight-panel .health-list strong.status-ok {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.right-panel.insight-panel .health-list strong.status-ok::before {
+  background: #16A34A;
+}
+
 .right-panel.insight-panel .health-list strong.status-pending {
   background: #EEF2F7;
   color: #64748B;
@@ -996,6 +1005,7 @@
 }
 
 .conversation-rail .history-item {
+  position: relative;
   width: 100%;
   display: grid;
   gap: 7px;
@@ -1036,14 +1046,56 @@
 
 .conversation-rail .history-session-id {
   min-width: 0;
-  padding-top: 6px;
-  border-top: 1px solid #E8EEF6;
   color: #8090A6;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.conversation-rail .history-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid #E8EEF6;
+}
+
+.conversation-rail .session-delete-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #9AA8BC;
+  cursor: pointer;
+  opacity: 0.56;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.conversation-rail .session-delete-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+
+.conversation-rail .session-delete-btn:hover {
+  opacity: 1;
+  color: #D92D20;
+  background: #FFF1F0;
+  border-color: #FFB4AB;
+}
+
+.conversation-rail .session-delete-btn:focus-visible {
+  opacity: 1;
+  outline: 2px solid rgba(47, 112, 255, 0.28);
+  outline-offset: 2px;
 }
 
 /* Right insight cards: aligned metrics and real collapsed state, 2026-06-13. */
@@ -1297,6 +1349,17 @@
 .right-panel.insight-panel .classification-card .classification-result li {
   grid-template-columns: minmax(104px, 0.92fr) 56px;
   gap: 12px;
+}
+
+/* Highlight top classification and align the recommendation tag to the score rail, 2026-06-13. */
+.right-panel.insight-panel .classification-card .classification-result > div strong {
+  justify-self: end;
+  margin-right: 86px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li:first-child span,
+.right-panel.insight-panel .classification-card .classification-result li:first-child span::before {
+  color: #0F9F5B;
 }
 
 /* Reduce empty vertical air in the top insight cards, 2026-06-13. */
