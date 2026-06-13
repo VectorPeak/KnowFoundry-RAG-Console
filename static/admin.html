@@ -3,88 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KnowForge 状态页</title>
+  <title>KnowForge RAG Platform</title>
   <link href="/static/css/fontawesome-shim.css?v=1" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/css/admin.css" />
+  <link rel="stylesheet" href="/static/css/admin.css?v=20260613-admin-icons" />
 </head>
 <body class="admin-page-body">
-  <header class="topbar">
+  <svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></symbol>
+    <symbol id="icon-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></symbol>
+    <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></symbol>
+    <symbol id="icon-message" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"/><path d="M8 9h8M8 13h5"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="icon-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M8.6 17.4 15.4 6.6"/><path d="M12 19h3a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h3"/></symbol>
+    <symbol id="icon-branch" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><circle cx="6" cy="18" r="3"/><path d="M6 9v6"/><path d="M9 6h3a6 6 0 0 1 6 6v3"/></symbol>
+    <symbol id="icon-file-check" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-5"/></symbol>
+    <symbol id="icon-building" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 8h2a2 2 0 0 1 2 2v11"/><path d="M8 7h4M8 11h4M8 15h4M3 21h18"/></symbol>
+    <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+    <symbol id="icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m11 12 9-9"/><path d="m15 4 3 3"/><path d="m17 2 3 3"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  </svg>
+  <header class="admin-topbar">
     <div class="brand">
-      <span class="brand-mark"><i class="fas fa-chart-line"></i></span>
-      <span class="brand-text">KnowForge 状态页</span>
+      <span class="brand-mark"><svg class="ui-icon"><use href="#icon-layers"></use></svg></span>
+      <span class="brand-text">KnowForge RAG Platform</span>
     </div>
     <div class="topbar-actions">
-      <a class="btn btn-ghost" href="/"><i class="fas fa-comments"></i><span>问答页</span></a>
-      <button class="btn btn-primary" id="refreshBtn"><i class="fas fa-rotate-right"></i><span>刷新</span></button>
+      <a class="nav-link" href="/">
+        <svg class="ui-icon"><use href="#icon-message"></use></svg>
+        <span>问答页</span>
+      </a>
+      <button class="refresh-button" id="refreshBtn">
+        <svg class="ui-icon"><use href="#icon-refresh"></use></svg>
+        <span>刷新</span>
+      </button>
     </div>
   </header>
 
-  <main class="page">
-    <div class="toolbar">
-      <div class="toolbar-line">
-        <div class="toolbar-left">
-          <select id="scenarioSelect" class="scenario-select" aria-label="业务场景"></select>
-          <input id="adminTokenInput" class="scenario-select" type="password" placeholder="管理令牌，可选" aria-label="管理令牌" />
-        </div>
-        <div class="updated-at" id="updatedAt">等待加载</div>
+  <main class="admin-page">
+    <section class="hero-band">
+      <div>
+        <div class="eyebrow">Control Plane</div>
+        <h1>KnowForge RAG 运行状态</h1>
+        <p>聚合 LangSmith、知识库版本、入库质量、回归报告和企业资料治理证据。</p>
       </div>
-    </div>
-
-    <div id="adminBanner" class="admin-banner" style="display:none;"></div>
-
-    <section class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-head"><span>LangSmith</span><i class="fas fa-diagram-project"></i></div>
-        <div class="metric-value" id="langsmithEnabledValue">-</div>
-        <div class="metric-foot" id="langsmithProjectValue">-</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-head"><span>当前场景</span><i class="fas fa-layer-group"></i></div>
-        <div class="metric-value" id="scenarioValue">-</div>
-        <div class="metric-foot" id="scenarioCountValue">-</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-head"><span>知识库版本</span><i class="fas fa-code-branch"></i></div>
-        <div class="metric-value mono" id="kbValue">-</div>
-        <div class="metric-foot" id="versionSource">-</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-head"><span>本地职责</span><i class="fas fa-shield-halved"></i></div>
-        <div class="metric-value">RAG</div>
-        <div class="metric-foot">业务链路、入库、回归验收</div>
+      <div class="hero-status">
+        <span class="status-dot"></span>
+        <span id="updatedAt">等待加载</span>
       </div>
     </section>
 
-    <div class="dashboard-grid">
-      <div>
-        <section class="panel">
+    <section class="control-strip" aria-label="状态页控制区">
+      <label class="field-block">
+        <span>业务场景</span>
+        <select id="scenarioSelect" class="control-input" aria-label="业务场景"></select>
+      </label>
+      <label class="field-block token-field">
+        <span>管理令牌</span>
+        <input id="adminTokenInput" class="control-input" type="password" placeholder="输入 ADMIN_API_TOKEN" aria-label="管理令牌" />
+      </label>
+    </section>
+
+    <div id="adminBanner" class="admin-banner" style="display:none;"></div>
+
+    <section class="metric-grid" aria-label="核心状态概览">
+      <article class="metric-card is-langsmith">
+        <div class="metric-head">
+          <span>LangSmith</span>
+          <svg class="ui-icon"><use href="#icon-route"></use></svg>
+        </div>
+        <div class="metric-value" id="langsmithEnabledValue">-</div>
+        <div class="metric-foot" id="langsmithProjectValue">-</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>当前场景</span>
+          <svg class="ui-icon"><use href="#icon-layers"></use></svg>
+        </div>
+        <div class="metric-value" id="scenarioValue">-</div>
+        <div class="metric-foot" id="scenarioCountValue">-</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-head">
+          <span>知识库版本</span>
+          <svg class="ui-icon"><use href="#icon-branch"></use></svg>
+        </div>
+        <div class="metric-value mono" id="kbValue">-</div>
+        <div class="metric-foot" id="versionSource">-</div>
+      </article>
+      <article class="metric-card is-local">
+        <div class="metric-head">
+          <span>本地职责</span>
+          <svg class="ui-icon"><use href="#icon-shield"></use></svg>
+        </div>
+        <div class="metric-value">RAG</div>
+        <div class="metric-foot">业务链路、入库、回归验收</div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid" aria-label="状态详情">
+      <div class="main-column">
+        <section class="panel panel-observe">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><i class="fas fa-diagram-project"></i><span>LangSmith 企业观测</span></div>
+              <div class="panel-title"><svg class="ui-icon"><use href="#icon-activity"></use></svg><span>LangSmith 企业观测</span></div>
               <div class="panel-subtitle">Trace、Annotation、Dataset 和 Evaluation 统一在 LangSmith 中完成</div>
             </div>
+            <span class="panel-kicker">Observability</span>
           </div>
           <div class="panel-body">
-            <div class="quality-list" id="langsmithStatus"></div>
+            <div class="quality-list langsmith-list" id="langsmithStatus"></div>
           </div>
         </section>
 
         <section class="panel">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><i class="fas fa-database"></i><span>知识库版本</span></div>
-              <div class="panel-subtitle">当前场景版本清单</div>
+              <div class="panel-title"><svg class="ui-icon"><use href="#icon-database"></use></svg><span>知识库版本</span></div>
+              <div class="panel-subtitle">当前场景版本清单，展示版本状态、创建时间和索引统计</div>
             </div>
+            <span class="panel-kicker">KB Versions</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th style="width: 260px;">版本</th>
-                  <th style="width: 90px;">状态</th>
-                  <th style="width: 160px;">创建时间</th>
+                  <th>版本</th>
+                  <th>状态</th>
+                  <th>创建时间</th>
                   <th>说明</th>
-                  <th style="width: 180px;">统计</th>
+                  <th>统计</th>
                 </tr>
               </thead>
               <tbody id="versionRows"></tbody>
@@ -93,11 +144,11 @@
         </section>
       </div>
 
-      <div>
+      <aside class="side-column">
         <section class="panel">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><i class="fas fa-file-circle-check"></i><span>入库质量报告</span></div>
+              <div class="panel-title"><svg class="ui-icon"><use href="#icon-file-check"></use></svg><span>入库质量报告</span></div>
               <div class="panel-subtitle">资料解析、切分、FAQ 冲突和 OCR 风险</div>
             </div>
           </div>
@@ -109,7 +160,7 @@
         <section class="panel">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><i class="fas fa-shield-halved"></i><span>回归报告</span></div>
+              <div class="panel-title"><svg class="ui-icon"><use href="#icon-shield"></use></svg><span>回归报告</span></div>
               <div class="panel-subtitle">RAG 回归、性能和治理报告入口</div>
             </div>
           </div>
@@ -121,7 +172,7 @@
         <section class="panel">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><i class="fas fa-building-shield"></i><span>企业资料治理</span></div>
+              <div class="panel-title"><svg class="ui-icon"><use href="#icon-building"></use></svg><span>企业资料治理</span></div>
               <div class="panel-subtitle">真实度、增强包预检和资料治理证据</div>
             </div>
           </div>
@@ -129,10 +180,10 @@
             <div class="quality-list" id="enterpriseGovernanceList"></div>
           </div>
         </section>
-      </div>
-    </div>
+      </aside>
+    </section>
   </main>
 
-  <script src="/static/js/admin.js"></script>
+  <script src="/static/js/admin.js?v=20260613-admin-icons"></script>
 </body>
 </html>

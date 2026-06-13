@@ -55,10 +55,26 @@
     banner.style.display = 'none';
   }
 
-  function item(label, value, icon = 'fa-circle-info') {
+  function iconSvg(name = 'info') {
+    const icons = new Set([
+      'activity',
+      'alert',
+      'database',
+      'file-check',
+      'folder',
+      'info',
+      'key',
+      'link',
+      'shield',
+    ]);
+    const safeName = icons.has(name) ? name : 'info';
+    return `<svg class="ui-icon" aria-hidden="true"><use href="#icon-${safeName}"></use></svg>`;
+  }
+
+  function item(label, value, icon = 'info', tone = '') {
     return `
-      <div class="quality-item">
-        <div class="quality-icon"><i class="fas ${icon}"></i></div>
+      <div class="quality-item ${tone ? `is-${escapeHtml(tone)}` : ''}">
+        <div class="quality-icon">${iconSvg(icon)}</div>
         <div>
           <div class="quality-title">${escapeHtml(label)}</div>
           <div class="quality-desc">${escapeHtml(text(value))}</div>
@@ -72,17 +88,24 @@
     const value = available
       ? `${summary.file || '-'} | ${dateText(summary.updated_at)}`
       : '暂无报告';
-    return item(label, value, available ? 'fa-file-circle-check' : 'fa-circle-exclamation');
+    return item(label, value, available ? 'file-check' : 'alert', available ? 'ok' : 'warn');
+  }
+
+  function statusBadge(status) {
+    const raw = text(status);
+    const normalized = raw.toLowerCase();
+    const tone = normalized === 'active' ? 'is-active' : normalized === 'staged' ? 'is-staged' : '';
+    return `<span class="status-badge ${tone}">${escapeHtml(raw)}</span>`;
   }
 
   function renderLangSmith(status) {
     document.getElementById('langsmithEnabledValue').textContent = status.enabled ? '已开启' : '未开启';
     document.getElementById('langsmithProjectValue').textContent = status.project || '-';
     document.getElementById('langsmithStatus').innerHTML = [
-      item('Tracing', status.enabled ? 'LANGSMITH_TRACING=true' : 'LANGSMITH_TRACING=false', 'fa-wave-square'),
-      item('Project', status.project || '-', 'fa-folder-tree'),
-      item('Endpoint', status.endpoint || '-', 'fa-link'),
-      item('API Key', status.has_api_key ? '已配置' : '未配置', status.has_api_key ? 'fa-key' : 'fa-circle-exclamation'),
+      item('Tracing', status.enabled ? 'LANGSMITH_TRACING=true' : 'LANGSMITH_TRACING=false', 'activity', status.enabled ? 'ok' : 'warn'),
+      item('Project', status.project || '-', 'folder'),
+      item('Endpoint', status.endpoint || '-', 'link'),
+      item('API Key', status.has_api_key ? '已配置' : '未配置', status.has_api_key ? 'key' : 'alert', status.has_api_key ? 'ok' : 'warn'),
     ].join('');
   }
 
@@ -97,7 +120,7 @@
     document.getElementById('versionRows').innerHTML = versions.map(version => `
       <tr>
         <td class="mono">${escapeHtml(version.kb_version || '-')}</td>
-        <td>${escapeHtml(version.status || '-')}</td>
+        <td>${statusBadge(version.status || '-')}</td>
         <td>${escapeHtml(dateText(version.created_at))}</td>
         <td>${escapeHtml(shortText(version.description || version.notes || '-', 70))}</td>
         <td>${escapeHtml(JSON.stringify(version.stats || {}))}</td>
@@ -107,7 +130,7 @@
 
   function renderIngestion(rows) {
     if (!rows.length) {
-      document.getElementById('ingestionList').innerHTML = item('入库质量报告', '暂无报告', 'fa-circle-exclamation');
+      document.getElementById('ingestionList').innerHTML = item('入库质量报告', '暂无报告', 'alert', 'warn');
       return;
     }
     document.getElementById('ingestionList').innerHTML = rows.map(row => {
@@ -118,7 +141,7 @@
         `表格 ${summary.table_files_count ?? 0}`,
         `OCR 风险 ${summary.ocr_risk_files_count ?? 0}`,
       ].join(' | ');
-      return item(row.file_name || row.path || '入库报告', value, summary.ok === false ? 'fa-circle-exclamation' : 'fa-file-circle-check');
+      return item(row.file_name || row.path || '入库报告', value, summary.ok === false ? 'alert' : 'file-check', summary.ok === false ? 'warn' : 'ok');
     }).join('');
   }
 
@@ -126,7 +149,7 @@
     document.getElementById('gateList').innerHTML = [
       ...((gates.reports || []).map(report => fileSummary('质量回归', report))),
       ...((performance.reports || []).map(report => fileSummary('性能回归', report))),
-    ].join('') || item('回归报告', '暂无报告', 'fa-circle-exclamation');
+    ].join('') || item('回归报告', '暂无报告', 'alert', 'warn');
   }
 
   function renderGovernance(payload) {
