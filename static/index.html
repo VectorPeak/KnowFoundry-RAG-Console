@@ -7,7 +7,7 @@
   <script src="/static/js/vendor/lucide.min.js?v=20260613-no-selects"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-collapse-cards" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-classify-top4" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -83,7 +83,7 @@
             <div class="context-subtitle" id="contextSubtitle">基于企业知识库的 RAG 检索增强问答，支持工程资料分类与检索</div>
           </div>
           <div class="context-tags">
-            <span class="pill ok" id="connectionPill"><i data-lucide="circle"></i><span>就绪</span></span>
+            <span class="pill ok" id="connectionPill"><span class="status-dot"></span><span>就绪</span></span>
             <span class="pill" id="kbPill"><i data-lucide="git-branch"></i><span>版本 -</span></span>
           </div>
           <div class="context-actions">
@@ -109,7 +109,7 @@
 
       <aside class="panel right-panel insight-panel">
         <div class="panel-body insight-body">
-          <section class="side-section insight-card classification-card"><div class="side-section-title"><i data-lucide="gauge-circle"></i><span>分类结果</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="classification-result"><div><span>建议分类</span><strong>施工规范</strong><em>0.91</em></div><ol><li><span>质量验收</span><strong>0.46</strong></li><li><span>图纸变更</span><strong>0.31</strong></li><li><span>安全资料</span><strong>0.12</strong></li></ol><p>分类理由会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p></div></section>
+          <section class="side-section insight-card classification-card"><div class="side-section-title"><i data-lucide="gauge-circle"></i><span>分类结果</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="classification-result"><div><span>建议分类</span><strong>施工规范</strong></div><ol><li><span>施工规范</span><strong>0.91</strong></li><li><span>质量验收</span><strong>0.46</strong></li><li><span>图纸变更</span><strong>0.31</strong></li><li><span>安全资料</span><strong>0.12</strong></li></ol><p>分类理由会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="list-checks"></i><span>命中来源</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div id="sideStats" class="side-stats"></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="database"></i><span>知识库版本</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="kb-summary"><div><span>当前知识库</span><strong>kb_engineering_project_qa_v3</strong></div><div><span>状态</span><strong class="ok-text">ACTIVE KB</strong></div><div><span>文档总数</span><strong>12,842</strong></div><div><span>向量总数</span><strong>1,285,693</strong></div></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="server-cog"></i><span>服务健康</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="health-list"><span>Milvus 向量库 <strong>正常</strong></span><span>MySQL 元数据 <strong>正常</strong></span><span>MinIO 对象存储 <strong>正常</strong></span><span>WebSocket 通道 <strong>正常</strong></span></div></section>

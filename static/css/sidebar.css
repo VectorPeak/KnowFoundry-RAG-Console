@@ -1147,3 +1147,22 @@
 .right-panel.insight-panel .side-source-list {
   grid-column: 1 / -1;
 }
+
+/* Classification card presents the recommendation separately from the Top4 ranks, 2026-06-13. */
+.right-panel.insight-panel .classification-result > div {
+  grid-template-columns: minmax(86px, 0.9fr) minmax(0, 1.1fr);
+}
+
+.right-panel.insight-panel .classification-result > div strong {
+  justify-self: start;
+}
+
+.right-panel.insight-panel .classification-result ol {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.right-panel.insight-panel .classification-result li {
+  grid-template-columns: minmax(0, 1fr) 54px;
+}

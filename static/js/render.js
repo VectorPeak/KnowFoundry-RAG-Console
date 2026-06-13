@@ -323,7 +323,7 @@ function setConnectionState(type, text) {
   const map = { ready: 'ok', error: 'error', connecting: 'warn', disconnected: '' };
   const state = map[type] || '';
   els.connectionPill.className = `pill ${state}`;
-  els.connectionPill.innerHTML = `<i data-lucide="circle"></i><span>${escapeHtml(text)}</span>`;
+  els.connectionPill.innerHTML = `<span class="status-dot"></span><span>${escapeHtml(text)}</span>`;
   refreshIcons();
 }
 

@@ -597,6 +597,22 @@
   color: #10B981;
 }
 
+.industrial-chat-head .context-tags .status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+.industrial-chat-head .context-tags .pill.warn .status-dot {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+}
+
+.industrial-chat-head .context-tags .pill.error .status-dot {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+
 .chat-history {
   padding: 22px 28px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);
