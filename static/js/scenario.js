@@ -173,6 +173,7 @@ async function loadKbVersion() {
     state.kbVersion = null;
   }
   renderKbPill(payload);
+  renderKbSummary(payload);
   refreshIcons();
 }
 
@@ -244,6 +245,46 @@ function markKbVersionCopied() {
     title.textContent = originalText;
     els.kbPill.classList.remove('is-copied');
   }, 1400);
+}
+
+function renderKbSummary(payload) {
+  if (!els.kbSummary) return;
+  const versions = Array.isArray(payload?.versions) ? payload.versions : [];
+  const effectiveVersion = payload?.effective_active_version || payload?.active_version || state.kbVersion || '-';
+  const activeRecord = versions.find(item => item.kb_version === effectiveVersion)
+    || versions.find(item => item.status === 'ACTIVE')
+    || null;
+  const stats = activeRecord?.stats || {};
+  const docTotal = Number(stats.total_doc_written);
+  const faqTotal = Number(stats.total_faq_written);
+  const totalDocuments = [docTotal, faqTotal]
+    .filter(Number.isFinite)
+    .reduce((sum, value) => sum + value, 0);
+  const documentText = Number.isFinite(totalDocuments) && totalDocuments > 0
+    ? totalDocuments.toLocaleString()
+    : '-';
+  const statusText = activeRecord?.status || (effectiveVersion && effectiveVersion !== '-' ? 'ACTIVE' : '等待数据');
+  const ingestedAt = formatKbSummaryDate(stats.last_ingested_at || activeRecord?.activated_at || activeRecord?.created_at);
+
+  els.kbSummary.innerHTML = `
+    <div><span>当前知识库</span><strong title="${escapeAttribute(effectiveVersion)}">${escapeHtml(shortText(effectiveVersion, 24))}</strong></div>
+    <div><span>状态</span><strong class="${statusText === 'ACTIVE' ? 'ok-text' : ''}">${escapeHtml(statusText)}</strong></div>
+    <div><span>文档总数</span><strong title="FAQ ${escapeAttribute(stats.total_faq_written ?? '-')} / DOC ${escapeAttribute(stats.total_doc_written ?? '-')}">${escapeHtml(documentText)}</strong></div>
+    <div><span>入库时间</span><strong title="${escapeAttribute(stats.last_ingested_at || '-')}">${escapeHtml(ingestedAt)}</strong></div>
+  `;
+}
+
+function formatKbSummaryDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
 }
 
 function currentScenario() {

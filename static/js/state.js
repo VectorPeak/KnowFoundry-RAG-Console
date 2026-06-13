@@ -38,6 +38,7 @@ const els = {
   servicePillText: document.getElementById('servicePillText'),
   websocketHealth: document.getElementById('websocketHealth'),
   kbPill: document.getElementById('kbPill'),
+  kbSummary: document.getElementById('kbSummary'),
   chatHistory: document.getElementById('chatHistory'),
   chatInput: document.getElementById('chatInput'),
   sendBtn: document.getElementById('sendBtn'),
