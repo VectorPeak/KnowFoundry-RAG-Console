@@ -1173,3 +1173,63 @@
 .right-panel.insight-panel .classification-result li {
   grid-template-columns: minmax(0, 1fr) 54px;
 }
+
+/* Classification result layout: recommendation row plus aligned Top4 ranking, 2026-06-13. */
+.right-panel.insight-panel .classification-card .classification-result {
+  display: grid;
+  gap: 10px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  min-height: 34px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div span {
+  justify-self: start;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div strong {
+  justify-self: center;
+  min-width: 82px;
+  text-align: center;
+}
+
+.right-panel.insight-panel .classification-card .classification-result ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0 2px 0 14px;
+  list-style: none;
+  counter-reset: classification-rank;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 12px;
+  min-height: 22px;
+  counter-increment: classification-rank;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li span {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li span::before {
+  content: counter(classification-rank);
+  flex: 0 0 16px;
+  color: #2D3A50;
+  font-weight: 800;
+}
+
+.right-panel.insight-panel .classification-card .classification-result li strong {
+  justify-self: end;
+  width: 56px;
+  text-align: right;
+}
