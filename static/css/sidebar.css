@@ -1422,3 +1422,38 @@
 .right-panel.insight-panel .classification-card .classification-result > div {
   min-height: 28px;
 }
+
+/* Stabilize classification card while collapsing or expanding. */
+.right-panel.insight-panel {
+  scrollbar-gutter: stable;
+}
+
+.right-panel.insight-panel .insight-card {
+  contain: layout paint;
+}
+
+.right-panel.insight-panel .classification-card .side-section-title {
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  min-height: 44px;
+}
+
+.right-panel.insight-panel .classification-card .side-section-title span {
+  min-width: 0;
+  line-height: 1;
+  transform: translateZ(0);
+}
+
+.right-panel.insight-panel .classification-card .classification-result {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div,
+.right-panel.insight-panel .classification-card .classification-result li {
+  grid-template-columns: minmax(0, 1fr) 56px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div span,
+.right-panel.insight-panel .classification-card .classification-result li span {
+  min-width: 0;
+}
