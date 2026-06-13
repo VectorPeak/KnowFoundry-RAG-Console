@@ -1,7 +1,7 @@
-@import url("./base.css?v=20260613-no-selects");
-@import url("./components.css?v=20260613-no-selects");
-@import url("./layout.css?v=20260613-no-selects");
-@import url("./sidebar.css?v=20260613-no-selects");
-@import url("./chat.css?v=20260613-no-selects");
-@import url("./composer.css?v=20260613-no-selects");
-@import url("./responsive.css?v=20260613-no-selects");
+@import url("./base.css?v=20260613-insight-cards");
+@import url("./components.css?v=20260613-insight-cards");
+@import url("./layout.css?v=20260613-insight-cards");
+@import url("./sidebar.css?v=20260613-insight-cards");
+@import url("./chat.css?v=20260613-insight-cards");
+@import url("./composer.css?v=20260613-insight-cards");
+@import url("./responsive.css?v=20260613-insight-cards");

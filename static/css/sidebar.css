@@ -459,8 +459,8 @@
 
 .sidebar-label {
   color: #7F94B0;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .category-field select,
@@ -654,4 +654,123 @@
 .right-panel.insight-panel .sample-list {
   max-height: none;
   overflow: visible;
+}
+
+/* Compact right-side insight cards aligned to the industrial status rail, 2026-06-13. */
+.right-panel.insight-panel .insight-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.right-panel.insight-panel .side-section-title {
+  justify-content: flex-start;
+  min-height: 44px;
+  padding: 0 14px;
+  border-bottom: 1px solid #E4ECF6;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F9FBFE 100%);
+  color: #17243B;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.right-panel.insight-panel .side-section-title span {
+  min-width: 0;
+}
+
+.right-panel.insight-panel .side-section-title svg {
+  width: 17px;
+  height: 17px;
+  color: #0B65F4;
+}
+
+.right-panel.insight-panel .side-section-title .card-toggle-icon {
+  width: 15px;
+  height: 15px;
+  margin-left: auto;
+  color: #73839A;
+}
+
+.right-panel.insight-panel .classification-result,
+.right-panel.insight-panel .side-stats,
+.right-panel.insight-panel .kb-summary,
+.right-panel.insight-panel .health-list,
+.right-panel.insight-panel .sample-list {
+  padding: 12px 14px;
+}
+
+.right-panel.insight-panel .classification-result {
+  gap: 10px;
+}
+
+.right-panel.insight-panel .classification-result > div,
+.right-panel.insight-panel .kb-summary div,
+.right-panel.insight-panel .health-list span,
+.right-panel.insight-panel .side-stat {
+  min-height: 26px;
+  padding: 3px 0;
+  border-bottom: 0;
+  color: #6B7890;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.right-panel.insight-panel .classification-result > div {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.85fr) minmax(0, 1fr) auto;
+}
+
+.right-panel.insight-panel .classification-result > div strong {
+  justify-self: start;
+  margin-right: 0;
+  background: #DDFBE9;
+}
+
+.right-panel.insight-panel .classification-result ol {
+  gap: 7px;
+  margin: 2px 0 0;
+  padding-left: 17px;
+  color: #52637A;
+  font-weight: 700;
+}
+
+.right-panel.insight-panel .classification-result li strong,
+.right-panel.insight-panel .kb-summary strong,
+.right-panel.insight-panel .health-list strong,
+.right-panel.insight-panel .side-stat strong {
+  color: #2A354C;
+  font-weight: 800;
+}
+
+.right-panel.insight-panel .health-list strong {
+  position: relative;
+  min-width: 52px;
+  padding: 3px 8px 3px 20px;
+  text-align: right;
+}
+
+.right-panel.insight-panel .health-list strong::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #16A34A;
+  transform: translateY(-50%);
+}
+
+.right-panel.insight-panel .sample-question {
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px solid #EEF2F7;
+  border-radius: 0;
+  background: transparent;
+  color: #5C6B82;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.right-panel.insight-panel .sample-question:last-child {
+  border-bottom: 0;
 }
