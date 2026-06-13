@@ -1492,3 +1492,8 @@
   display: block;
   line-height: 1;
 }
+
+.right-panel.insight-panel .diagnostic-section-title {
+  color: #17243B;
+  font-weight: 850;
+}
