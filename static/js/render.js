@@ -204,7 +204,7 @@ function renderClassificationResult(classification) {
     els.classificationResult.innerHTML = `
       <div><span>建议分类</span><strong class="classification-badge is-waiting">等待分类</strong></div>
       <ol></ol>
-      <p>分类结果会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p>
+      <p>分类结果会随最近一次回答更新，辅助判断问题归属与资料适用范围</p>
     `;
     return;
   }
