@@ -25,12 +25,13 @@ function renderSamples() {
   const scenario = currentScenario();
   const questions = (scenario && scenario.sample_questions) || [];
   if (!questions.length) {
-    els.sampleQuestions.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-comment-dots"></i></div>当前场景暂无示例问题</div>';
+    els.sampleQuestions.innerHTML = '<div class="empty-state"><div class="empty-state-icon"><i data-lucide="message-circle-question"></i></div>当前场景暂无示例问题</div>';
     return;
   }
   els.sampleQuestions.innerHTML = questions.slice(0, 6).map(question => `
     <button class="sample-question" data-question="${escapeAttribute(question)}">${escapeHtml(question)}</button>
   `).join('');
+  refreshIcons();
   els.sampleQuestions.querySelectorAll('.sample-question').forEach(button => {
     button.addEventListener('click', () => {
       els.chatInput.value = button.dataset.question || '';
@@ -71,7 +72,7 @@ function updateSideStats() {
     </div>
     <div class="diagnostic-panel">
       <div class="diagnostic-section-title">最近一次回答</div>
-      <div class="performance-badge ${escapeAttribute(performance.level)}"><i class="fas ${escapeAttribute(performance.icon)}"></i><span>${escapeHtml(performance.label)}</span></div>
+      <div class="performance-badge ${escapeAttribute(performance.level)}"><i data-lucide="${escapeAttribute(performance.icon)}"></i><span>${escapeHtml(performance.label)}</span></div>
       <div class="side-stat"><span>流式状态</span><strong>${escapeHtml(state.lastStreamStatus)}</strong></div>
       <div class="side-stat"><span>命中路径</span><strong>${escapeHtml(state.lastHitType)}</strong></div>
       <div class="side-stat"><span>Prompt</span><strong title="${escapeAttribute(promptProfile)}">${escapeHtml(shortText(promptProfile, 22))}</strong></div>
@@ -84,6 +85,7 @@ function updateSideStats() {
     </div>
     ${renderSideSourceList(diagnostics.sources || [])}
   `;
+  refreshIcons();
 }
 
 function appendMessage(role, content, meta, rawHtml = false) {
@@ -98,6 +100,7 @@ function appendMessage(role, content, meta, rawHtml = false) {
   wrapper.appendChild(metaElement);
   wrapper.appendChild(contentElement);
   els.chatHistory.appendChild(wrapper);
+  refreshIcons();
   scrollToBottom();
   return { wrapper, content: contentElement };
 }
@@ -200,7 +203,7 @@ function renderAnswerDiagnostics(diagnostics) {
   const variants = (diagnostics.queryVariants || []).slice(0, 3);
   wrapper.innerHTML = `
     <div class="answer-diagnostics-title">
-      <i class="fas fa-chart-line"></i>
+      <i data-lucide="chart-line"></i>
       <span>检索诊断</span>
     </div>
     <div class="diagnostic-chips">
@@ -280,10 +283,10 @@ function renderFeedbackActions(question, answer, sources) {
   label.textContent = '反馈';
   const useful = document.createElement('button');
   useful.title = '有用';
-  useful.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+  useful.innerHTML = '<i data-lucide="thumbs-up"></i>'; refreshIcons();
   const notUseful = document.createElement('button');
   notUseful.title = '无用';
-  notUseful.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+  notUseful.innerHTML = '<i data-lucide="thumbs-down"></i>'; refreshIcons();
 
   const submit = async rating => {
     useful.disabled = true;
@@ -312,6 +315,7 @@ function renderFeedbackActions(question, answer, sources) {
   useful.addEventListener('click', () => submit('useful'));
   notUseful.addEventListener('click', () => submit('not_useful'));
   wrapper.append(label, useful, notUseful);
+  refreshIcons();
   return wrapper;
 }
 
@@ -319,13 +323,15 @@ function setConnectionState(type, text) {
   const map = { ready: 'ok', error: 'error', connecting: 'warn', disconnected: '' };
   const state = map[type] || '';
   els.connectionPill.className = `pill ${state}`;
-  els.connectionPill.innerHTML = `<i class="fas fa-circle"></i><span>${escapeHtml(text)}</span>`;
+  els.connectionPill.innerHTML = `<i data-lucide="circle"></i><span>${escapeHtml(text)}</span>`;
+  refreshIcons();
 }
 
 function updateSendState() {
   els.sendBtn.classList.toggle('is-stopping', state.inProgress);
   els.sendBtn.title = state.inProgress ? '停止' : '发送';
-  els.sendBtn.innerHTML = state.inProgress ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-paper-plane"></i>';
+  els.sendBtn.innerHTML = state.inProgress ? '<i data-lucide="square"></i><span>停止</span>' : '<i data-lucide="send-horizontal"></i><span>发送</span>';
+  refreshIcons();
 }
 
 function autoResizeInput() {
@@ -346,13 +352,13 @@ function showToast(message, type = 'info', duration = 3500) {
     document.body.appendChild(container);
   }
 
-  const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+  const icons = { success: 'circle-check', error: 'circle-alert', warning: 'triangle-alert', info: 'circle-info' };
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <i class="fas ${icons[type] || icons.info} toast-icon"></i>
+    <i data-lucide="${icons[type] || icons.info}" class="toast-icon"></i>
     <span class="toast-message">${escapeHtml(message)}</span>
-    <button class="toast-close" aria-label="关闭"><i class="fas fa-xmark"></i></button>
+    <button class="toast-close" aria-label="关闭"><i data-lucide="x"></i></button>
   `;
   toast.querySelector('.toast-close').addEventListener('click', () => {
     toast.style.opacity = '0';
@@ -361,6 +367,7 @@ function showToast(message, type = 'info', duration = 3500) {
   });
 
   container.appendChild(toast);
+  refreshIcons();
 
   setTimeout(() => {
     if (toast.parentNode) {
@@ -369,4 +376,13 @@ function showToast(message, type = 'info', duration = 3500) {
       setTimeout(() => toast.remove(), 200);
     }
   }, duration);
+}
+
+
+// Lucide replaces SVG icons after DOM fragments are inserted dynamically.
+// This keeps rendered diagnostics, feedback buttons, and toast icons aligned with the static shell.
+function refreshIcons() {
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
 }

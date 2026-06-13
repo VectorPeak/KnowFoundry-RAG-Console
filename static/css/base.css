@@ -377,3 +377,45 @@ input, select, textarea {
   color: var(--text);
   background: var(--border-light);
 }
+
+/* ============================================================
+   Industrial RAG redesign, 2026-06-13.
+   These overrides reshape the Q&A page into an engineering data
+   classification assistant while preserving the existing JS ids.
+   ============================================================ */
+:root {
+  --primary: #1D63ED;
+  --primary-hover: #174EC5;
+  --primary-active: #123E9E;
+  --primary-light: #EEF5FF;
+  --primary-soft: #CFE0FF;
+  --bg: #EDF2F8;
+  --bg-soft: #F7F9FC;
+  --surface: #FFFFFF;
+  --surface-hover: #F4F7FB;
+  --surface-glass: rgba(255, 255, 255, 0.92);
+  --text: #132033;
+  --text-secondary: #334155;
+  --text-muted: #66758A;
+  --border: #DDE5EF;
+  --border-light: #ECF1F7;
+  --success: #10A45A;
+  --success-bg: #EAF8F0;
+  --success-border: #BFEAD1;
+  --gradient-primary: linear-gradient(135deg, #2F7BFF, #075BE8);
+  --gradient-primary-soft: linear-gradient(135deg, #EDF5FF 0%, #E2EDFF 100%);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 28px rgba(17, 35, 70, 0.08);
+  --shadow-lg: 0 18px 50px rgba(17, 35, 70, 0.12);
+}
+
+body {
+  background: var(--bg);
+}
+
+[data-lucide] {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0;
+}

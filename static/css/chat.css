@@ -520,3 +520,109 @@
   background: var(--gradient-primary);
   transition: width var(--transition-slow);
 }
+
+/* ============================================================
+   Industrial Q&A workspace, 2026-06-13.
+   The central area emphasizes answer evidence, retrieval diagnostics,
+   and source cards rather than upload or ingestion operations.
+   ============================================================ */
+.industrial-chat-head {
+  min-height: 78px;
+  padding: 16px 20px;
+  background: #FFFFFF;
+}
+
+.industrial-chat-head .context-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #17243B;
+}
+
+.industrial-chat-head .context-subtitle {
+  margin-top: 4px;
+  color: #718198;
+  font-size: 13px;
+}
+
+.context-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.context-tags .pill {
+  border-radius: 7px;
+}
+
+.chat-history {
+  padding: 22px 28px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);
+}
+
+.message {
+  width: min(980px, 100%);
+  margin-bottom: 18px;
+}
+
+.message-meta {
+  color: #52637A;
+  font-weight: 700;
+}
+
+.message-content {
+  max-width: min(860px, 88%);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.message.assistant .message-content {
+  border-color: #D8E2EF;
+  box-shadow: 0 8px 22px rgba(26, 45, 78, 0.06);
+}
+
+.message.user .message-content {
+  background: linear-gradient(135deg, #0B67F3, #0652D7);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(10, 92, 226, 0.24);
+}
+
+.chat-history .welcome-message {
+  min-height: auto;
+  padding-top: 18px;
+}
+
+.chat-history .welcome-message .message-content {
+  width: min(720px, 100%);
+  max-width: 720px;
+}
+
+.answer-diagnostics {
+  gap: 10px;
+}
+
+.answer-diagnostics-title,
+.diagnostic-section-title {
+  color: #17243B;
+}
+
+.diagnostic-chips span,
+.diagnostic-grid div,
+.source-item {
+  border-radius: 7px;
+  border-color: #DDE6F2;
+  background: #F8FAFE;
+}
+
+.source-item {
+  min-height: 64px;
+}
+
+.source-score,
+.source-item > span:last-child {
+  color: #0B65F4;
+  font-weight: 800;
+}
+
+.stage-bar-track span {
+  background: linear-gradient(90deg, #0B65F4, #13B5C8);
+}

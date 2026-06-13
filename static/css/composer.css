@@ -120,3 +120,106 @@
   background: #B91C1C;
   box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
 }
+
+/* ============================================================
+   Industrial composer controls, 2026-06-13.
+   The input area keeps the original send/cancel behavior but presents
+   mode and follow-up controls expected in an RAG assistant cockpit.
+   ============================================================ */
+.industrial-composer {
+  padding: 12px 18px;
+  background: #FFFFFF;
+  border-top-color: #DCE5F0;
+}
+
+.industrial-composer .composer-meta {
+  margin-bottom: 8px;
+}
+
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mode-button,
+.toggle-chip {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #DDE6F2;
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: #43546B;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mode-button.active {
+  color: #0B65F4;
+  background: #F0F6FF;
+  border-color: #BFD6FF;
+}
+
+.toggle-chip input {
+  display: none;
+}
+
+.toggle-chip i {
+  width: 34px;
+  height: 20px;
+  position: relative;
+  border-radius: 999px;
+  background: #CBD5E1;
+}
+
+.toggle-chip i::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  transition: transform 160ms ease;
+}
+
+.toggle-chip input:checked + i {
+  background: #0B65F4;
+}
+
+.toggle-chip input:checked + i::after {
+  transform: translateX(14px);
+}
+
+.industrial-composer .composer-box {
+  grid-template-columns: minmax(0, 1fr) 110px;
+  padding: 8px;
+  border: 1px solid #8DB8FF;
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(11, 101, 244, 0.08);
+}
+
+.industrial-composer .chat-input {
+  min-height: 46px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.industrial-composer .chat-input:focus {
+  box-shadow: none;
+}
+
+.industrial-composer .send-button {
+  width: 100%;
+  height: 46px;
+  gap: 8px;
+  border-radius: 8px;
+  font-weight: 800;
+}

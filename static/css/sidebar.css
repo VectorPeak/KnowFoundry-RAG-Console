@@ -322,3 +322,209 @@
   color: var(--text-muted);
   font-size: 11px;
 }
+
+/* ============================================================
+   Industrial sidebar and insight cards, 2026-06-13.
+   Upload/ingestion controls intentionally stay out of the Q&A page;
+   this page is focused on classification, retrieval, and traceability.
+   ============================================================ */
+.scenario-nav,
+.taxonomy-list,
+.kb-summary,
+.health-list,
+.classification-result {
+  display: grid;
+  gap: 8px;
+}
+
+.nav-item,
+.taxonomy-list span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 7px;
+  color: #B8C8DC;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nav-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  color: #FFFFFF;
+  background: rgba(41, 121, 255, 0.18);
+  border-color: rgba(92, 151, 255, 0.42);
+}
+
+.nav-item.active svg,
+.nav-item:hover svg {
+  color: #65A0FF;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+.sidebar-section {
+  display: grid;
+  gap: 10px;
+}
+
+.sidebar-label {
+  color: #7F94B0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.category-field select,
+.industrial-sidebar .field input,
+.industrial-sidebar .field select {
+  height: 36px;
+  color: #DCE8F7;
+  background: #142540;
+  border-color: #2A4061;
+  border-radius: 7px;
+}
+
+.industrial-sidebar .field label {
+  color: #8EA3BE;
+}
+
+.taxonomy-list span {
+  min-height: 32px;
+  padding: 0 6px;
+  color: #9DAFC6;
+  font-weight: 500;
+}
+
+.taxonomy-list svg {
+  color: #6F88AA;
+}
+
+.sidebar-actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: auto;
+}
+
+.industrial-sidebar .btn-secondary {
+  color: #E7F0FC;
+  background: #183151;
+  border-color: #2E4B72;
+}
+
+.industrial-sidebar .session-info {
+  color: #B8C8DC;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.side-section-title {
+  justify-content: space-between;
+  color: #18263D;
+  font-size: 14px;
+}
+
+.side-section-title svg {
+  color: #0B65F4;
+}
+
+.classification-result > div,
+.kb-summary div,
+.health-list span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: #64748B;
+}
+
+.classification-result > div strong {
+  margin-right: auto;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #DDFBE9;
+  color: #0E9F59;
+}
+
+.classification-result > div em {
+  color: #24334B;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.classification-result ol {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0;
+  padding-left: 18px;
+  color: #52637A;
+  font-size: 13px;
+}
+
+.classification-result li {
+  padding-left: 4px;
+}
+
+.classification-result li span {
+  display: inline-block;
+  min-width: 88px;
+}
+
+.classification-result li strong {
+  float: right;
+  color: #2A3A54;
+}
+
+.classification-result p {
+  margin: 0;
+  padding-top: 6px;
+  border-top: 1px solid #ECF1F7;
+  color: #6A7B91;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.kb-summary strong,
+.health-list strong {
+  color: #24334B;
+}
+
+.health-list strong {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.recent-card .sample-list {
+  max-height: 190px;
+}
+
+.sample-question,
+.history-item {
+  border-radius: 7px;
+  background: #FFFFFF;
+  border-color: #DDE6F2;
+}
+
+.history-item:hover,
+.sample-question:hover {
+  transform: none;
+  border-color: #81AEFF;
+  background: #F0F6FF;
+}
+
+.side-stat {
+  grid-template-columns: minmax(80px, 0.8fr) minmax(0, 1.2fr);
+}
