@@ -339,8 +339,10 @@
 .hero-status {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
-  padding: 10px 14px;
+  min-height: 32px;
+  padding: 0 13px;
   border: 1px solid rgba(147, 197, 253, 0.28);
   border-radius: 6px;
   background:
@@ -349,6 +351,7 @@
   color: #eaf2ff;
   font-size: 13px;
   font-weight: 800;
+  line-height: 1;
   letter-spacing: 0;
   white-space: nowrap;
   box-shadow:
@@ -359,27 +362,37 @@
 
 .status-dot {
   position: relative;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
   border-radius: 50%;
-  background: #22c55e;
+  background: #34d399;
   box-shadow:
-    0 0 0 4px rgba(34, 197, 94, 0.16),
-    0 0 16px rgba(34, 197, 94, 0.62);
+    0 0 0 3px rgba(52, 211, 153, 0.12),
+    0 0 10px rgba(52, 211, 153, 0.50);
 }
 
 .status-dot::after {
   content: "";
   position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(34, 197, 94, 0.34);
+  inset: -2px;
+  border: 1px solid rgba(187, 247, 208, 0.24);
   border-radius: inherit;
 }
 
 .status-label {
+  display: inline-flex;
+  align-items: center;
   color: #93c5fd;
   font-size: 12px;
   font-weight: 850;
+  line-height: 1;
+}
+
+#updatedAt {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .control-strip {
@@ -564,7 +577,7 @@ select.control-input option {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.85fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .main-column,
@@ -578,19 +591,68 @@ select.control-input option {
   align-content: start;
 }
 
+/* Keep right-side report cards visually stable while their content scrolls internally. */
+.side-column > .panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-column > .panel:nth-child(1) {
+  max-height: 430px;
+}
+
+.side-column > .panel:nth-child(2) {
+  max-height: 320px;
+}
+
+.side-column > .panel:nth-child(3) {
+  max-height: 320px;
+}
+
+.side-column > .panel .panel-body {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c7dc #eef3f9;
+}
+
+.side-column > .panel .panel-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.side-column > .panel .panel-body::-webkit-scrollbar-track {
+  background: #eef3f9;
+}
+
+.side-column > .panel .panel-body::-webkit-scrollbar-thumb {
+  border: 2px solid #eef3f9;
+  border-radius: 999px;
+  background: #b8c7dc;
+}
+
+.side-column > .panel .panel-body::-webkit-scrollbar-thumb:hover {
+  background: #8fa3bf;
+}
+
 .main-column {
   grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
 }
 
 .main-column > .panel:last-child {
   min-height: 0;
+  max-height: min(544px, calc(100vh - 224px));
   display: flex;
   flex-direction: column;
 }
 
 .main-column > .panel:last-child .table-wrap {
   flex: 1 1 auto;
-  max-height: min(420px, 48vh);
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
 }
 
 .panel {
