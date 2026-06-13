@@ -288,9 +288,14 @@
   height: 36px;
   border-radius: 8px;
   background: linear-gradient(135deg, #2D7CFF, #064FD8);
-  font-weight: 800;
-  letter-spacing: 0;
   box-shadow: 0 8px 18px rgba(22, 91, 219, 0.28);
+}
+
+.industrial-brand .brand-mark svg {
+  width: 21px;
+  height: 21px;
+  color: #FFFFFF;
+  stroke-width: 2.3;
 }
 
 .industrial-brand .brand-text {
