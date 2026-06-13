@@ -1287,7 +1287,7 @@
 
 .right-panel.insight-panel .classification-card .classification-result > div {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: minmax(92px, 1fr) max-content;
   align-items: center;
   min-height: 34px;
 }
@@ -1297,7 +1297,7 @@
 }
 
 .right-panel.insight-panel .classification-card .classification-result > div strong {
-  justify-self: center;
+  justify-self: end;
   min-width: 82px;
   text-align: center;
 }
