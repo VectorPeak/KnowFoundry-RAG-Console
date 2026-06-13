@@ -30,7 +30,7 @@ async function applyScenario(scenarioId, resetSession) {
   state.lastSourceCount = 0;
   state.lastTraceId = null;
   // The sidebar describes the platform capability, while the selected scene remains visible in the main header.
-  els.scenarioDescription.textContent = '支持多场景、多专有知识库下的知识助手。';
+  els.scenarioDescription.textContent = '支持多场景、多专有知识库下的知识助手';
   els.contextTitle.textContent = scenario ? scenario.display_name : '知识问答';
   els.contextSubtitle.textContent = scenario ? scenario.business_domain : '等待场景配置';
   await Promise.all([loadSources(), loadKbVersion()]);
