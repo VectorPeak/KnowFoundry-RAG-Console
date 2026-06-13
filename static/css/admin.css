@@ -564,7 +564,7 @@ select.control-input option {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.85fr);
   gap: 16px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .main-column,
@@ -572,6 +572,10 @@ select.control-input option {
   display: grid;
   gap: 16px;
   min-width: 0;
+}
+
+.side-column {
+  align-content: start;
 }
 
 .main-column {
