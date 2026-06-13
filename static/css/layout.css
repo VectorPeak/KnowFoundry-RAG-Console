@@ -307,8 +307,8 @@
 }
 
 .operation-strip {
-  gap: 14px;
-  justify-content: flex-end;
+  gap: 10px;
+  justify-content: flex-start;
 }
 
 .operation-select-wrap,
@@ -320,10 +320,14 @@
   gap: 8px;
   border: 1px solid rgba(117, 157, 210, 0.38);
   background: rgba(8, 32, 61, 0.82);
-  border-radius: 8px;
+  border-radius: 4px;
   color: #B9C9DE;
   font-size: 13px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.ops-pill {
+  padding: 0 12px;
 }
 
 .operation-select-wrap {
