@@ -5,6 +5,7 @@ function loadSessionCards() {
     const raw = localStorage.getItem(SESSION_CARD_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     state.sessionCards = Array.isArray(parsed) ? parsed : [];
+    state.sessionCards = state.sessionCards.filter(item => item && item.sessionId && item.summary !== '历史已清空');
   } catch {
     state.sessionCards = [];
   }
@@ -156,6 +157,13 @@ function renderChatHistoryFromItems(items) {
   });
 }
 
+function removeSessionCard(sessionId) {
+  if (!sessionId) return;
+  state.sessionCards = (state.sessionCards || []).filter(item => item.sessionId !== sessionId);
+  saveSessionCards();
+  renderSessionCards();
+}
+
 async function clearHistory() {
   if (!state.sessionId) return;
   try {
@@ -163,12 +171,9 @@ async function clearHistory() {
   } catch {
     // 历史清理失败不影响页面继续使用。
   }
-  renderWelcome('历史已清空。');
   state.historyItems = [];
-  upsertSessionCard(state.sessionId, {
-    title: '新会话',
-    summary: '历史已清空'
-  });
+  removeSessionCard(state.sessionId);
+  await createNewSession();
 }
 
 function filterHistory() {

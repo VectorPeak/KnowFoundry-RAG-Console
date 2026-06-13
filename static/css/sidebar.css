@@ -922,7 +922,20 @@
 }
 
 .right-panel.insight-panel .ok-text {
-  padding: 3px 8px;
+  position: relative;
+  padding: 3px 8px 3px 20px;
+}
+
+.right-panel.insight-panel .ok-text::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #16A34A;
+  transform: translateY(-50%);
 }
 
 .right-panel.insight-panel .health-list strong {
