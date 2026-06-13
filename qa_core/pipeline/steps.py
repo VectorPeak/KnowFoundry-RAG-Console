@@ -30,7 +30,7 @@ from qa_core.prompts.selector import build_answer_prompt_profile
 from qa_core.retrieval.factory import get_faq_store
 from qa_core.retrieval.results import RetrievalResult
 from qa_core.retrieval.strategy import RetrievalPlan, build_retrieval_plan
-from qa_core.scenarios.boundary import detect_scenario_boundary, detect_source_boundary
+from qa_core.scenarios.boundary import detect_scenario_boundary, detect_source_boundary, score_source_map
 
 # 匹配"怎么办/如何/怎么/能不能"等标准问答句式特征，命中后值得先尝试 FAQ 精确直出
 FAQ_FAST_PATH_HINTS = re.compile(r"(怎么办|如何|怎么|需要什么|需要哪些|需要谁|有哪些|为什么|什么时候|能不能|可以吗|会不会|是否|吗|什么|谁|怎么处理)")
@@ -75,6 +75,33 @@ class RouteDecision:
     answer: str | None = None
     intent: IntentResult | None = None
     reason: str = ""
+
+
+def build_source_classification(query: str, scenario, *, suggested_source: str | None = None, limit: int = 8) -> dict[str, Any]:
+    """Build a ranked source classification snapshot for UI diagnostics."""
+    scores = score_source_map(query, scenario)
+    ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+    if suggested_source and suggested_source not in scores and suggested_source in scenario.valid_sources:
+        ranked.append((suggested_source, 0))
+    top_items = ranked[:limit]
+    max_score = max((score for _, score in top_items), default=0)
+    candidates = []
+    for source, raw_score in top_items:
+        normalized = round(raw_score / max_score, 4) if max_score > 0 else 1.0
+        candidates.append(
+            {
+                "source": source,
+                "label": scenario.label_for_source(source),
+                "score": normalized,
+                "raw_score": raw_score,
+            }
+        )
+    suggested = candidates[0] if candidates else None
+    return {
+        "suggested_source": suggested["source"] if suggested else None,
+        "suggested_label": suggested["label"] if suggested else None,
+        "candidates": candidates,
+    }
 
 
 def should_try_faq_fast_path(query: str, scenario) -> bool:
@@ -370,6 +397,11 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
     context.retrieval_info = {
         **route_snapshot,
         "plan": plan.as_dict(),
+        "classification": build_source_classification(
+            context.rewritten_query,
+            context.scenario,
+            suggested_source=intent.suggested_source,
+        ),
         "query_variants": query_variants,
         "scenario_id": context.scenario.scenario_id,
         "scenario_name": context.scenario.display_name,

@@ -72,6 +72,8 @@ function streamAnswer(query, contentElement) {
         state.lastTraceId = data.trace_id || state.lastTraceId;
         state.lastStreamStatus = '回答完成';
         state.lastDiagnostics = buildDiagnosticsSnapshot(data, sources);
+        state.lastClassification = state.lastDiagnostics.classification;
+        renderClassificationResult(state.lastClassification);
         if (sources.length) {
           contentElement.appendChild(renderSources(sources));
         }

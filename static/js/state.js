@@ -13,6 +13,7 @@ const state = {
   lastSourceCount: 0,
   lastStreamStatus: '等待提问',
   lastDiagnostics: null,
+  lastClassification: null,
   historyItems: [],
   sessionCards: []
 };
@@ -44,5 +45,6 @@ const els = {
   sessionSearchInput: document.getElementById('sessionSearchInput'),
   sampleQuestions: document.getElementById('sampleQuestions'),
   historyList: document.getElementById('historyList'),
+  classificationResult: document.getElementById('classificationResult'),
   sideStats: document.getElementById('sideStats')
 };

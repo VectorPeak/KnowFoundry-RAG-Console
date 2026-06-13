@@ -104,7 +104,7 @@
       <aside class="panel right-panel insight-panel">
         <div class="panel-body insight-body">
           <section class="side-section insight-card recent-card"><div class="side-section-title"><i data-lucide="messages-square"></i><span>快速入口</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="sample-list" id="sampleQuestions"></div></section>
-          <section class="side-section insight-card classification-card"><div class="side-section-title"><i data-lucide="gauge-circle"></i><span>分类结果</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="classification-result"><div><span>建议分类</span><strong>施工规范</strong></div><ol><li style="--score: 91%"><span>施工规范</span><strong>0.91</strong></li><li style="--score: 46%"><span>质量验收</span><strong>0.46</strong></li><li style="--score: 31%"><span>图纸变更</span><strong>0.31</strong></li><li style="--score: 12%"><span>安全资料</span><strong>0.12</strong></li></ol><p>分类理由会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p></div></section>
+          <section class="side-section insight-card classification-card"><div class="side-section-title"><i data-lucide="gauge-circle"></i><span>分类结果</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="classification-result" id="classificationResult"><div><span>建议分类</span><strong>等待分类</strong></div><ol></ol><p>分类结果会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="list-checks"></i><span>命中来源</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div id="sideStats" class="side-stats"></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="database"></i><span>知识库版本</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="kb-summary"><div><span>当前知识库</span><strong>kb_engineering_project_qa_v3</strong></div><div><span>状态</span><strong class="ok-text">ACTIVE KB</strong></div><div><span>文档总数</span><strong>12,842</strong></div><div><span>向量总数</span><strong>1,285,693</strong></div></div></section>
           <section class="side-section insight-card service-card"><div class="side-section-title"><i data-lucide="server-cog"></i><span>服务健康</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="health-list"><span>Milvus 向量库 <strong>正常</strong></span><span>MySQL 元数据 <strong>正常</strong></span><span>MinIO 对象存储 <strong>正常</strong></span><span>WebSocket 通道 <strong id="websocketHealth" class="status-pending">待检测</strong></span></div></section>
@@ -116,8 +116,8 @@
   <script src="/static/js/state.js?v=20260613-ws-status-ok"></script>
   <script src="/static/js/utils.js?v=20260613-insight-cards"></script>
   <script src="/static/js/scenario-catalog.js?v=20260613-insight-cards"></script>
-  <script src="/static/js/render.js?v=20260613-ws-status-ok"></script>
-  <script src="/static/js/api.js?v=20260613-ws-status-ok"></script>
+  <script src="/static/js/render.js?v=20260614-classification-topn"></script>
+  <script src="/static/js/api.js?v=20260614-classification-topn"></script>
   <script src="/static/js/scenario.js?v=20260614-sidebar-period"></script>
   <script src="/static/js/session.js?v=20260613-session-delete"></script>
   <script src="/static/js/chat.js?v=20260613-session-cards"></script>

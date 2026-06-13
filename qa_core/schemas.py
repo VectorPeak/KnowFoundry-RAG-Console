@@ -49,6 +49,7 @@ class RetrievalDebugResponse(BaseModel):
     data_scope: dict[str, Any] | None = None
     kb_version: str | None = None
     intent: dict[str, Any]
+    classification: dict[str, Any] | None = None
     retrieval_plan: dict[str, Any]
     faq_sources: list[dict[str, Any]] = Field(default_factory=list)
     doc_sources: list[dict[str, Any]] = Field(default_factory=list)
