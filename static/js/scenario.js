@@ -44,11 +44,12 @@ async function applyScenario(scenarioId, resetSession) {
 
 function renderScenarioList(scenarios) {
   if (!els.scenarioList) return;
-  if (!scenarios.length) {
+  const displayScenarios = scenarioCatalogItems(scenarios);
+  if (!displayScenarios.length) {
     els.scenarioList.innerHTML = '<div class="empty-state compact">暂无业务场景</div>';
     return;
   }
-  els.scenarioList.innerHTML = scenarios.map(scenario => `
+  els.scenarioList.innerHTML = displayScenarios.map(scenario => `
     <button class="scenario-item" type="button" data-scenario="${escapeAttribute(scenario.scenario_id)}">
       <i data-lucide="${escapeAttribute(scenarioIcon(scenario))}"></i>
       <span>${escapeHtml(scenario.display_name)}</span>
@@ -64,6 +65,26 @@ function renderScenarioList(scenarios) {
   refreshIcons();
 }
 
+function scenarioCatalogItems(apiScenarios) {
+  const catalog = Array.isArray(window.KNOWFORGE_SCENARIO_CATALOG)
+    ? window.KNOWFORGE_SCENARIO_CATALOG
+    : [];
+  const catalogById = new Map(catalog.map(item => [item.scenario_id, item]));
+  return apiScenarios
+    .map((scenario, index) => {
+      const config = catalogById.get(scenario.scenario_id) || {};
+      return {
+        ...scenario,
+        ...config,
+        display_name: config.display_name || scenario.display_name,
+        industry: config.industry || scenario.industry,
+        _order: Number.isFinite(Number(config.order)) ? Number(config.order) : 1000 + index
+      };
+    })
+    .filter(scenario => scenario.hidden !== true)
+    .sort((a, b) => a._order - b._order);
+}
+
 function updateScenarioActive() {
   if (!els.scenarioList) return;
   const activeValue = state.scenarioId || els.scenarioSelect.value || '';
@@ -73,6 +94,7 @@ function updateScenarioActive() {
 }
 
 function scenarioIcon(scenario) {
+  if (scenario.icon) return scenario.icon;
   const text = `${scenario.display_name || ''} ${scenario.industry || ''} ${scenario.business_domain || ''}`;
   if (text.includes('合规') || text.includes('法务')) return 'scale';
   if (text.includes('贸易') || text.includes('跨境')) return 'ship';

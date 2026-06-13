@@ -455,21 +455,26 @@
 }
 
 .insight-panel {
-  background: #F9FBFE;
+  background: #EEF3F9;
+  overflow: hidden;
 }
 
 .insight-body {
-  padding: 0;
+  padding: 12px;
   gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .insight-card {
   padding: 14px 16px;
   margin: 0;
-  border-bottom: 1px solid #E4EBF4;
+  border: 1px solid #DDE6F2;
+  border-radius: 8px;
   background: #FFFFFF;
+  box-shadow: 0 8px 22px rgba(18, 32, 54, 0.05);
 }
 
 .insight-card:last-child {
-  border-bottom: 0;
+  border-bottom: 1px solid #DDE6F2;
 }

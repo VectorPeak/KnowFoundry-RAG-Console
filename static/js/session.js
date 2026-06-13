@@ -2,6 +2,13 @@ async function createNewSession() {
   if (!state.scenarioId && state.scenarios.length) {
     state.scenarioId = state.scenarios[0].scenario_id;
   }
+  state.historyItems = [];
+  if (els.sessionSearchInput) {
+    els.sessionSearchInput.value = '';
+  }
+  if (els.historyList) {
+    els.historyList.innerHTML = '<div class="empty-state">暂无历史记录</div>';
+  }
   const query = state.scenarioId ? `?scenario_id=${encodeURIComponent(state.scenarioId)}` : '';
   const payload = await fetchJson(`/api/create_session${query}`, { method: 'POST' });
   state.sessionId = payload.session_id;
