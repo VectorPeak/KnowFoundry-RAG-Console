@@ -662,8 +662,12 @@ select.control-input option {
   align-items: center;
   justify-content: center;
   border-radius: 9px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
   background: #e0ecff;
   color: var(--admin-blue);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 0 0 3px rgba(37, 99, 235, 0.04);
 }
 
 .quality-icon .ui-icon {
@@ -672,13 +676,21 @@ select.control-input option {
 }
 
 .quality-item.is-ok .quality-icon {
+  border-color: rgba(22, 163, 74, 0.18);
   background: #dcfce7;
   color: var(--admin-green);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.74),
+    0 0 0 3px rgba(22, 163, 74, 0.05);
 }
 
 .quality-item.is-warn .quality-icon {
+  border-color: rgba(217, 119, 6, 0.20);
   background: #fef3c7;
   color: var(--admin-amber);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.70),
+    0 0 0 3px rgba(217, 119, 6, 0.05);
 }
 
 .quality-title {
