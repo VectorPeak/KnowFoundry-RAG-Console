@@ -16,6 +16,7 @@ function streamAnswer(query, contentElement) {
     let sources = [];
     let completed = false;
     let settled = false;
+    let socketError = false;
 
     const finish = result => {
       if (settled) return;
@@ -23,7 +24,10 @@ function streamAnswer(query, contentElement) {
       resolve(result);
     };
 
+    setWebSocketHealth('working', '检测中');
+
     state.socket.onopen = () => {
+      setWebSocketHealth('ok', '正常');
       state.lastStreamStatus = '已连接，正在提交问题';
       updateSideStats();
       setConnectionState('working', '生成中');
@@ -72,12 +76,15 @@ function streamAnswer(query, contentElement) {
           contentElement.appendChild(renderSources(sources));
         }
         contentElement.appendChild(renderAnswerDiagnostics(state.lastDiagnostics));
+        setWebSocketHealth('ok', '正常');
         updateSideStats();
         setConnectionState('ready', '就绪');
         state.socket.close();
         finish({ answer, sources });
       } else if (data.type === 'error') {
         completed = true;
+        socketError = true;
+        setWebSocketHealth('error', '异常');
         state.lastStreamStatus = '处理异常';
         updateSideStats();
         setConnectionState('error', '异常');
@@ -87,15 +94,22 @@ function streamAnswer(query, contentElement) {
     };
 
     state.socket.onerror = () => {
+      socketError = true;
+      setWebSocketHealth('error', '异常');
+      state.lastStreamStatus = 'WebSocket 连接失败';
+      updateSideStats();
       setConnectionState('error', '异常');
       reject(new Error('WebSocket 连接失败'));
     };
 
     state.socket.onclose = () => {
       if (!completed) {
-        setConnectionState('ready', '就绪');
+        if (!socketError) {
+          setConnectionState('ready', '就绪');
+        }
         if (state.cancelled) {
           state.lastStreamStatus = '已停止生成';
+          setWebSocketHealth('pending', '已停止');
           updateSideStats();
           contentElement.appendChild(document.createTextNode('\n\n[已停止生成]'));
         }

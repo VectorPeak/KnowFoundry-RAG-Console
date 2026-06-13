@@ -34,6 +34,8 @@ const els = {
   contextTitle: document.getElementById('contextTitle'),
   contextSubtitle: document.getElementById('contextSubtitle'),
   connectionPill: document.getElementById('connectionPill'),
+  servicePillText: document.getElementById('servicePillText'),
+  websocketHealth: document.getElementById('websocketHealth'),
   kbPill: document.getElementById('kbPill'),
   chatHistory: document.getElementById('chatHistory'),
   chatInput: document.getElementById('chatInput'),

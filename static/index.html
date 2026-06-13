@@ -7,7 +7,7 @@
   <script src="/static/js/vendor/lucide.min.js?v=20260613-no-selects"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-pill-align" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-ws-health" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -19,13 +19,13 @@
 
       <div class="topbar-center operation-strip">
         <span class="ops-pill"><i data-lucide="factory"></i><span>环境</span><strong>生产环境</strong></span>
-        <span class="ops-pill"><i data-lucide="activity"></i><span>服务</span><strong>正常 7/7</strong></span>
+        <span class="ops-pill" id="servicePill"><i data-lucide="activity"></i><span>服务</span><strong id="servicePillText">待检测</strong></span>
         <span class="ops-pill active"><i data-lucide="database-zap"></i><span>知识库</span><strong>ACTIVE KB</strong></span>
       </div>
 
       <div class="topbar-actions industrial-actions">
         <a class="btn btn-ghost" href="admin" title="状态页"><i data-lucide="layout-dashboard"></i><span>状态页</span></a>
-        <span class="user-chip"><i data-lucide="circle-user-round"></i><span>admin</span><i data-lucide="chevron-down"></i></span>
+        <span class="user-chip"><span class="user-avatar">A</span><span>admin</span><i data-lucide="chevron-down"></i></span>
       </div>
     </header>
 
@@ -113,17 +113,17 @@
           <section class="side-section insight-card classification-card"><div class="side-section-title"><i data-lucide="gauge-circle"></i><span>分类结果</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="classification-result"><div><span>建议分类</span><strong>施工规范</strong></div><ol><li><span>施工规范</span><strong>0.91</strong></li><li><span>质量验收</span><strong>0.46</strong></li><li><span>图纸变更</span><strong>0.31</strong></li><li><span>安全资料</span><strong>0.12</strong></li></ol><p>分类理由会随最近一次回答更新，辅助判断问题归属与资料适用范围。</p></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="list-checks"></i><span>命中来源</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div id="sideStats" class="side-stats"></div></section>
           <section class="side-section insight-card"><div class="side-section-title"><i data-lucide="database"></i><span>知识库版本</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="kb-summary"><div><span>当前知识库</span><strong>kb_engineering_project_qa_v3</strong></div><div><span>状态</span><strong class="ok-text">ACTIVE KB</strong></div><div><span>文档总数</span><strong>12,842</strong></div><div><span>向量总数</span><strong>1,285,693</strong></div></div></section>
-          <section class="side-section insight-card service-card"><div class="side-section-title"><i data-lucide="server-cog"></i><span>服务健康</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="health-list"><span>Milvus 向量库 <strong>正常</strong></span><span>MySQL 元数据 <strong>正常</strong></span><span>MinIO 对象存储 <strong>正常</strong></span><span>WebSocket 通道 <strong>正常</strong></span></div></section>
+          <section class="side-section insight-card service-card"><div class="side-section-title"><i data-lucide="server-cog"></i><span>服务健康</span><i data-lucide="chevron-up" class="card-toggle-icon"></i></div><div class="health-list"><span>Milvus 向量库 <strong>正常</strong></span><span>MySQL 元数据 <strong>正常</strong></span><span>MinIO 对象存储 <strong>正常</strong></span><span>WebSocket 通道 <strong id="websocketHealth" class="status-pending">待检测</strong></span></div></section>
         </div>
       </aside>
     </main>
   </div>
 
-  <script src="/static/js/state.js?v=20260613-session-cards"></script>
+  <script src="/static/js/state.js?v=20260613-ws-health"></script>
   <script src="/static/js/utils.js?v=20260613-insight-cards"></script>
   <script src="/static/js/scenario-catalog.js?v=20260613-insight-cards"></script>
-  <script src="/static/js/render.js?v=20260613-performance-icon"></script>
-  <script src="/static/js/api.js?v=20260613-no-selects"></script>
+  <script src="/static/js/render.js?v=20260613-ws-health"></script>
+  <script src="/static/js/api.js?v=20260613-ws-health"></script>
   <script src="/static/js/scenario.js?v=20260613-scenario-sessions"></script>
   <script src="/static/js/session.js?v=20260613-clear-session-card"></script>
   <script src="/static/js/chat.js?v=20260613-session-cards"></script>

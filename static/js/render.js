@@ -327,6 +327,22 @@ function setConnectionState(type, text) {
   refreshIcons();
 }
 
+function setWebSocketHealth(type, text) {
+  const healthClass = {
+    ok: '',
+    working: 'status-working',
+    pending: 'status-pending',
+    error: 'status-error'
+  }[type] || 'status-pending';
+  if (els.websocketHealth) {
+    els.websocketHealth.className = healthClass;
+    els.websocketHealth.textContent = text;
+  }
+  if (els.servicePillText) {
+    els.servicePillText.textContent = type === 'error' ? '异常 6/7' : type === 'pending' ? '待检测' : type === 'working' ? '检测中' : '正常 7/7';
+  }
+}
+
 function updateSendState() {
   els.sendBtn.classList.toggle('is-stopping', state.inProgress);
   els.sendBtn.title = state.inProgress ? '停止' : '发送';

@@ -383,6 +383,20 @@
   color: #F1F7FF;
 }
 
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2D7CFF 0%, #0FAF8E 100%);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 6px 14px rgba(8, 22, 48, 0.24);
+}
+
 .industrial-layout {
   grid-template-columns: 286px minmax(620px, 1fr) 382px;
   gap: 14px;

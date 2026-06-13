@@ -943,6 +943,33 @@
   padding: 3px 8px 3px 20px;
 }
 
+.right-panel.insight-panel .health-list strong.status-pending {
+  background: #EEF2F7;
+  color: #64748B;
+}
+
+.right-panel.insight-panel .health-list strong.status-pending::before {
+  background: #94A3B8;
+}
+
+.right-panel.insight-panel .health-list strong.status-error {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.right-panel.insight-panel .health-list strong.status-error::before {
+  background: #DC2626;
+}
+
+.right-panel.insight-panel .health-list strong.status-working {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.right-panel.insight-panel .health-list strong.status-working::before {
+  background: #F59E0B;
+}
+
 .right-panel.insight-panel .sample-list {
   gap: 0;
 }
