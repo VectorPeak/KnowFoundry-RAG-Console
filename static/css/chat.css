@@ -707,30 +707,44 @@
 
 .industrial-chat-head .context-tags #connectionPill.ok .status-dot {
   position: relative;
+  animation: readyDotGlow 1.8s ease-in-out infinite;
 }
 
 .industrial-chat-head .context-tags #connectionPill.ok .status-dot::after {
   content: "";
   position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(15, 159, 91, 0.32);
+  inset: -7px;
+  border: 2px solid rgba(15, 159, 91, 0.34);
   border-radius: inherit;
   animation: readyPulse 1.8s ease-out infinite;
 }
 
+@keyframes readyDotGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14), 0 0 0 rgba(15, 159, 91, 0);
+    transform: scale(1);
+  }
+  48% {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.20), 0 0 10px rgba(15, 159, 91, 0.42);
+    transform: scale(1.12);
+  }
+}
+
 @keyframes readyPulse {
   0% {
-    opacity: 0.72;
-    transform: scale(0.68);
+    opacity: 0.82;
+    transform: scale(0.48);
   }
   72%,
   100% {
     opacity: 0;
-    transform: scale(1.45);
+    transform: scale(1.55);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .industrial-chat-head .context-tags #connectionPill.ok .status-dot,
   .industrial-chat-head .context-tags #connectionPill.ok .status-dot::after {
     animation: none;
   }
