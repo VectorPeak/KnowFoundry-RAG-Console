@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KnowForge RAG 工业资料分类助手</title>
-  <script src="/static/js/vendor/lucide.min.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/vendor/lucide.min.js?v=20260613-dynamic-sidebar"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-scene-topbar" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-dynamic-sidebar" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -25,7 +25,6 @@
 
       <div class="topbar-actions industrial-actions">
         <a class="btn btn-ghost" href="admin" title="状态页"><i data-lucide="layout-dashboard"></i><span>状态页</span></a>
-        <button class="btn btn-icon" id="newSessionBtn" title="新会话"><i data-lucide="message-square-plus"></i></button>
         <span class="user-chip"><i data-lucide="circle-user-round"></i><span>admin</span><i data-lucide="chevron-down"></i></span>
       </div>
     </header>
@@ -57,7 +56,7 @@
               <label for="sourceFilter" class="sr-only">业务分类</label>
               <select id="sourceFilter"><option value="">全部分类</option></select>
             </div>
-            <div class="taxonomy-list">
+            <div class="taxonomy-list" id="categoryList">
               <span><i data-lucide="shield-check"></i>规范标准</span>
               <span><i data-lucide="calendar-days"></i>施工工艺</span>
               <span><i data-lucide="gantt-chart-square"></i>进度计划</span>
@@ -78,10 +77,6 @@
             </div>
           </section>
 
-          <div class="session-controls sidebar-actions">
-            <button class="btn btn-secondary btn-sm" id="sidebarNewSessionBtn"><i data-lucide="message-square-plus"></i><span>新会话</span></button>
-            <button class="btn btn-secondary btn-sm" id="clearHistoryBtn"><i data-lucide="trash-2"></i><span>清空</span></button>
-          </div>
           <div class="session-info" id="sessionInfo">会话初始化中...</div>
         </div>
       </aside>
@@ -92,7 +87,11 @@
             <div class="context-title" id="contextTitle">工业资料分类与问答</div>
             <div class="context-subtitle" id="contextSubtitle">基于企业知识库的 RAG 检索增强问答，支持工程资料分类与检索</div>
           </div>
-          <div class="context-actions"><button class="btn btn-secondary btn-sm" type="button"><i data-lucide="download"></i><span>导出对话</span></button></div>
+          <div class="context-actions">
+            <button class="btn btn-secondary btn-sm" id="newSessionBtn" type="button"><i data-lucide="message-square-plus"></i><span>新会话</span></button>
+            <button class="btn btn-secondary btn-sm" id="clearHistoryBtn" type="button"><i data-lucide="trash-2"></i><span>清空</span></button>
+            <button class="btn btn-secondary btn-sm" type="button"><i data-lucide="download"></i><span>导出对话</span></button>
+          </div>
           <div class="context-tags">
             <span class="pill ok" id="connectionPill"><i data-lucide="circle"></i><span>就绪</span></span>
             <span class="pill" id="kbPill"><i data-lucide="git-branch"></i><span>版本 -</span></span>
@@ -101,7 +100,7 @@
 
         <div class="workspace-grid">
           <aside class="conversation-rail">
-            <div class="rail-search"><i data-lucide="search"></i><input type="search" placeholder="搜索会话标题" /></div>
+            <div class="rail-search"><i data-lucide="search"></i><input id="sessionSearchInput" type="search" placeholder="搜索当前会话" /></div>
             <div class="history-list" id="historyList"></div>
           </aside>
           <div class="chat-history" id="chatHistory"></div>
@@ -109,7 +108,6 @@
 
         <div class="composer industrial-composer">
           <div class="composer-meta"><span id="composerScope" class="composer-scope">全部分类｜default/default｜public</span><span class="composer-hint">输入问题，Enter 发送，Shift + Enter 换行</span></div>
-          <div class="composer-toolbar"><button class="mode-button active" type="button"><i data-lucide="brain-circuit"></i><span>深度思考（精排）</span></button><label class="toggle-chip"><span>关联追问</span><input type="checkbox" checked /><i></i></label></div>
           <div class="composer-box"><textarea id="chatInput" class="chat-input" rows="1" placeholder="输入工程资料问题，例如：图纸变更后旧版本还能作为施工依据吗？"></textarea><button id="sendBtn" class="send-button" title="发送"><i data-lucide="send-horizontal"></i><span>发送</span></button></div>
         </div>
       </section>
@@ -126,14 +124,14 @@
     </main>
   </div>
 
-  <script src="/static/js/state.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/utils.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/render.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/api.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/scenario.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/session.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/chat.js?v=20260613-scene-topbar"></script>
-  <script src="/static/js/app.js?v=20260613-scene-topbar"></script>
+  <script src="/static/js/state.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/utils.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/render.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/api.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/scenario.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/session.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/chat.js?v=20260613-dynamic-sidebar"></script>
+  <script src="/static/js/app.js?v=20260613-dynamic-sidebar"></script>
   <script>
     // Keep Lucide icons active for the initial static shell; dynamic areas refresh in render.js.
     if (window.lucide) window.lucide.createIcons();

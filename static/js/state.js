@@ -12,13 +12,15 @@ const state = {
   lastHitType: '-',
   lastSourceCount: 0,
   lastStreamStatus: '等待提问',
-  lastDiagnostics: null
+  lastDiagnostics: null,
+  historyItems: []
 };
 
 const els = {
   scenarioSelect: document.getElementById('scenarioSelect'),
   scenarioDescription: document.getElementById('scenarioDescription'),
   sourceFilter: document.getElementById('sourceFilter'),
+  categoryList: document.getElementById('categoryList'),
   tenantInput: document.getElementById('tenantInput'),
   datasetInput: document.getElementById('datasetInput'),
   visibilitySelect: document.getElementById('visibilitySelect'),
@@ -35,6 +37,7 @@ const els = {
   chatInput: document.getElementById('chatInput'),
   sendBtn: document.getElementById('sendBtn'),
   composerScope: document.getElementById('composerScope'),
+  sessionSearchInput: document.getElementById('sessionSearchInput'),
   sampleQuestions: document.getElementById('sampleQuestions'),
   historyList: document.getElementById('historyList'),
   sideStats: document.getElementById('sideStats')

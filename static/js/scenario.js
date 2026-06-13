@@ -51,6 +51,45 @@ async function loadSources() {
     option.textContent = source.label;
     els.sourceFilter.appendChild(option);
   }
+  renderCategoryList(options);
+}
+
+function renderCategoryList(options) {
+  if (!els.categoryList) return;
+  const normalized = [{ value: '', label: '全部分类' }, ...options];
+  els.categoryList.innerHTML = normalized.map((source, index) => `
+    <button class="taxonomy-item${index === 0 ? ' active' : ''}" type="button" data-source="${escapeAttribute(source.value)}">
+      <i data-lucide="${escapeAttribute(categoryIcon(source.label, index))}"></i>
+      <span>${escapeHtml(source.label)}</span>
+    </button>
+  `).join('');
+  els.categoryList.querySelectorAll('.taxonomy-item').forEach(button => {
+    button.addEventListener('click', () => {
+      els.sourceFilter.value = button.dataset.source || '';
+      updateCategoryActive();
+      updateScopeDisplay();
+    });
+  });
+  refreshIcons();
+}
+
+function updateCategoryActive() {
+  if (!els.categoryList) return;
+  const activeValue = els.sourceFilter.value || '';
+  els.categoryList.querySelectorAll('.taxonomy-item').forEach(button => {
+    button.classList.toggle('active', (button.dataset.source || '') === activeValue);
+  });
+}
+
+function categoryIcon(label, index) {
+  const text = String(label || '');
+  if (text.includes('安全') || text.includes('风控') || text.includes('合规')) return 'shield-check';
+  if (text.includes('质量') || text.includes('验收') || text.includes('审核')) return 'badge-check';
+  if (text.includes('图纸') || text.includes('变更') || text.includes('合同')) return 'file-diff';
+  if (text.includes('进度') || text.includes('计划') || text.includes('流程')) return 'calendar-days';
+  if (text.includes('设备') || text.includes('巡检') || text.includes('运维')) return 'settings-2';
+  if (text.includes('客服') || text.includes('问答')) return 'messages-square';
+  return ['folder-tree', 'clipboard-list', 'database', 'file-text'][index % 4];
 }
 
 async function loadKbVersion() {
@@ -61,7 +100,8 @@ async function loadKbVersion() {
   } catch {
     state.kbVersion = null;
   }
-  els.kbPill.innerHTML = `<i class="fas fa-code-branch"></i><span>${escapeHtml(shortText(state.kbVersion || '未激活', 24))}</span>`;
+  els.kbPill.innerHTML = `<i data-lucide="git-branch"></i><span>${escapeHtml(shortText(state.kbVersion || '未激活', 24))}</span>`;
+  refreshIcons();
 }
 
 function currentScenario() {

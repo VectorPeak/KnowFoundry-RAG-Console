@@ -1,7 +1,7 @@
-@import url("./base.css?v=20260613-scene-topbar");
-@import url("./components.css?v=20260613-scene-topbar");
-@import url("./layout.css?v=20260613-scene-topbar");
-@import url("./sidebar.css?v=20260613-scene-topbar");
-@import url("./chat.css?v=20260613-scene-topbar");
-@import url("./composer.css?v=20260613-scene-topbar");
-@import url("./responsive.css?v=20260613-scene-topbar");
+@import url("./base.css?v=20260613-dynamic-sidebar");
+@import url("./components.css?v=20260613-dynamic-sidebar");
+@import url("./layout.css?v=20260613-dynamic-sidebar");
+@import url("./sidebar.css?v=20260613-dynamic-sidebar");
+@import url("./chat.css?v=20260613-dynamic-sidebar");
+@import url("./composer.css?v=20260613-dynamic-sidebar");
+@import url("./responsive.css?v=20260613-dynamic-sidebar");
