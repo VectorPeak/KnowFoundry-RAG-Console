@@ -42,11 +42,10 @@ function bindInsightCardToggles() {
     title.setAttribute('role', 'button');
     title.setAttribute('tabindex', '0');
     title.setAttribute('aria-expanded', 'true');
+    icon.setAttribute('aria-hidden', 'true');
     const toggle = () => {
       const collapsed = card.classList.toggle('is-collapsed');
       title.setAttribute('aria-expanded', String(!collapsed));
-      icon.setAttribute('data-lucide', collapsed ? 'chevron-down' : 'chevron-up');
-      refreshIcons();
     };
     title.addEventListener('click', toggle);
     title.addEventListener('keydown', event => {

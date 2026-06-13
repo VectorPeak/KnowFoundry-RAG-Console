@@ -1133,10 +1133,17 @@
 .right-panel.insight-panel .side-section-title .card-toggle-icon {
   justify-self: end;
   margin-left: 0;
+  transform-origin: center;
+  transition: transform var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
 }
 
 .right-panel.insight-panel .insight-card.is-collapsed .side-section-title {
   border-bottom: 0;
+}
+
+.right-panel.insight-panel .insight-card.is-collapsed .side-section-title .card-toggle-icon {
+  color: #2563EB;
+  transform: rotate(180deg);
 }
 
 .right-panel.insight-panel .insight-card.is-collapsed > :not(.side-section-title) {
