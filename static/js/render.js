@@ -229,15 +229,15 @@ function performanceStatus(diagnostics) {
   const firstToken = numberOrNull(diagnostics.firstTokenMs);
   const total = numberOrNull(diagnostics.totalElapsedMs);
   if (firstToken === null && total === null) {
-    return { level: 'idle', label: '等待数据', icon: 'fa-circle' };
+    return { level: 'idle', label: '等待数据', icon: 'circle' };
   }
   if ((firstToken !== null && firstToken > 8000) || (total !== null && total > 15000)) {
-    return { level: 'slow', label: '较慢', icon: 'fa-triangle-exclamation' };
+    return { level: 'slow', label: '较慢', icon: 'triangle-alert' };
   }
   if ((firstToken !== null && firstToken > 4000) || (total !== null && total > 8000)) {
-    return { level: 'warn', label: '偏慢', icon: 'fa-clock' };
+    return { level: 'warn', label: '偏慢', icon: 'clock' };
   }
-  return { level: 'ok', label: '正常', icon: 'fa-circle-check' };
+  return { level: 'ok', label: '正常', icon: 'circle-check' };
 }
 
 function renderStageBar(name, value, maxValue) {

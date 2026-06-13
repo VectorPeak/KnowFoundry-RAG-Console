@@ -291,6 +291,13 @@
   background: var(--danger-bg);
 }
 
+.performance-badge svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  stroke-width: 2.4;
+}
+
 /* ---- Side source list ---- */
 .side-source-list {
   display: grid;
