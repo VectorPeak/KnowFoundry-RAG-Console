@@ -71,7 +71,7 @@ function renderSessionCards() {
       <button class="history-item session-card${active}" data-session-id="${escapeAttribute(item.sessionId)}" type="button">
         <div class="history-question">${escapeHtml(shortText(item.title || '新会话', 34))}</div>
         <div class="history-answer">${escapeHtml(shortText(item.summary || '等待提问', 54))}</div>
-        <div class="history-session-id">${escapeHtml(shortText(displaySessionId(item.sessionId), 22))}</div>
+        <div class="history-session-id">${escapeHtml(shortText(displaySessionId(item.sessionId), 27))}</div>
       </button>
     `;
   }).join('');
