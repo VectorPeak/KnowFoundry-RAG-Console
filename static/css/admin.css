@@ -342,7 +342,7 @@
   gap: 9px;
   padding: 10px 14px;
   border: 1px solid rgba(147, 197, 253, 0.28);
-  border-radius: 999px;
+  border-radius: 6px;
   background:
     linear-gradient(180deg, rgba(30, 58, 138, 0.56), rgba(15, 23, 42, 0.40)),
     rgba(15, 23, 42, 0.30);
@@ -631,7 +631,7 @@ select.control-input option {
 .panel-kicker {
   flex: 0 0 auto;
   padding: 5px 9px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: #eff6ff;
   color: var(--admin-blue-dark);
   font-size: 12px;
