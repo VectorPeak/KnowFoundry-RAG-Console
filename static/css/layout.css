@@ -362,7 +362,7 @@
 
 .ops-pill.active strong,
 .ok-text {
-  color: var(--success);
+  color: #16A34A;
 }
 
 .ops-pill svg {

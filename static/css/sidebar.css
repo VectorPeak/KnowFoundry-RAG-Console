@@ -924,6 +924,7 @@
 .right-panel.insight-panel .ok-text {
   position: relative;
   padding: 3px 8px 3px 20px;
+  color: #16A34A;
 }
 
 .right-panel.insight-panel .ok-text::before {
@@ -1241,6 +1242,11 @@
   justify-self: end;
   max-width: 100%;
   text-align: right;
+}
+
+.right-panel.insight-panel .kb-summary strong.ok-text {
+  background: #DCFCE7;
+  color: #16A34A;
 }
 
 .right-panel.insight-panel .side-source-list {
