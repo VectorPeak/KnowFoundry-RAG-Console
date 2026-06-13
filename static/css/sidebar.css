@@ -774,3 +774,166 @@
 .right-panel.insight-panel .sample-question:last-child {
   border-bottom: 0;
 }
+
+/* Right rail visual pass matching the compact reference cards, 2026-06-13. */
+.right-panel.insight-panel {
+  background: #EEF3F9;
+}
+
+.right-panel.insight-panel > .insight-body {
+  gap: 8px;
+  padding: 10px;
+}
+
+.right-panel.insight-panel .insight-card {
+  border: 1px solid #E5ECF5;
+  border-radius: 8px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.right-panel.insight-panel .side-section-title {
+  min-height: 38px;
+  padding: 0 12px;
+  border-bottom: 1px solid #E8EEF6;
+  background: #FFFFFF;
+  color: #1B2A41;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.right-panel.insight-panel .side-section-title svg:first-child {
+  width: 16px;
+  height: 16px;
+  color: #1F73FF;
+  stroke-width: 2.6;
+}
+
+.right-panel.insight-panel .insight-card:nth-child(4) .side-section-title svg:first-child {
+  color: #22C55E;
+}
+
+.right-panel.insight-panel .side-section-title .card-toggle-icon {
+  width: 14px;
+  height: 14px;
+  color: #64748B;
+  stroke-width: 2.4;
+}
+
+.right-panel.insight-panel .classification-result,
+.right-panel.insight-panel .side-stats,
+.right-panel.insight-panel .kb-summary,
+.right-panel.insight-panel .health-list,
+.right-panel.insight-panel .sample-list {
+  padding: 10px 12px 11px;
+}
+
+.right-panel.insight-panel .classification-result > div,
+.right-panel.insight-panel .kb-summary div,
+.right-panel.insight-panel .health-list span,
+.right-panel.insight-panel .side-stat {
+  min-height: 24px;
+  padding: 2px 0;
+  color: #68768A;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.right-panel.insight-panel .kb-summary div,
+.right-panel.insight-panel .health-list span,
+.right-panel.insight-panel .side-stat {
+  display: grid;
+  grid-template-columns: minmax(74px, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.right-panel.insight-panel .classification-result > div {
+  grid-template-columns: minmax(68px, 0.8fr) minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.right-panel.insight-panel .classification-result > div span,
+.right-panel.insight-panel .classification-result > div em {
+  color: #546276;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.right-panel.insight-panel .classification-result > div strong {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #DDFBE9;
+  color: #0F9F5B;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.right-panel.insight-panel .classification-result ol {
+  gap: 5px;
+  margin: 2px 0 0;
+  color: #637185;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.right-panel.insight-panel .classification-result li span {
+  min-width: 76px;
+}
+
+.right-panel.insight-panel .classification-result p {
+  padding-top: 8px;
+  border-top: 0;
+  color: #6B7890;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.right-panel.insight-panel .classification-result li strong,
+.right-panel.insight-panel .kb-summary strong,
+.right-panel.insight-panel .health-list strong,
+.right-panel.insight-panel .side-stat strong {
+  min-width: 0;
+  color: #2B354A;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.right-panel.insight-panel .ok-text,
+.right-panel.insight-panel .health-list strong {
+  justify-self: end;
+  border-radius: 999px;
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.right-panel.insight-panel .ok-text {
+  padding: 3px 8px;
+}
+
+.right-panel.insight-panel .health-list strong {
+  min-width: 52px;
+  padding: 3px 8px 3px 20px;
+}
+
+.right-panel.insight-panel .sample-list {
+  gap: 0;
+}
+
+.right-panel.insight-panel .sample-question {
+  display: block;
+  min-height: 28px;
+  padding: 7px 0;
+  border-bottom: 1px solid #EEF2F7;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
