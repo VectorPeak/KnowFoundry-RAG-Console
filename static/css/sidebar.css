@@ -1298,3 +1298,18 @@
   grid-template-columns: minmax(104px, 0.92fr) 56px;
   gap: 12px;
 }
+
+/* Reduce empty vertical air in the top insight cards, 2026-06-13. */
+.right-panel.insight-panel .recent-card .sample-list {
+  padding-top: 8px;
+  padding-bottom: 10px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result {
+  padding-top: 8px;
+  padding-bottom: 12px;
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div {
+  min-height: 28px;
+}
