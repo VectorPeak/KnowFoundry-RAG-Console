@@ -125,9 +125,12 @@
 }
 
 .topbar-actions {
+  display: grid;
+  grid-template-columns: 78px 92px;
   justify-content: flex-end;
-  gap: 8px;
-  min-width: 0;
+  gap: 12px;
+  width: 182px;
+  min-width: 182px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -158,7 +161,8 @@
 
 .nav-link {
   min-height: 36px;
-  padding: 0 10px;
+  width: 78px;
+  padding: 0;
   border-color: transparent;
   background: transparent;
   color: #e5edf7;
@@ -208,6 +212,8 @@
 }
 
 .refresh-button {
+  width: 92px;
+  padding: 0;
   border-color: transparent;
   background: #2563eb;
   color: #fff;
