@@ -15,7 +15,7 @@ function renderWelcome(prefix = '') {
       samples.map(q => `- ${q}`).join('\n'),
     ].filter(line => line !== undefined).join('\n');
   } else {
-    content = '### 欢迎使用 KnowForge RAG Platform\n\n请在上方选择一个业务场景后开始提问。';
+    content = '### 欢迎使用 KnowFoundry RAG Console\n\n请在上方选择一个业务场景后开始提问。';
   }
   const welcome = appendMessage('assistant', content, '系统');
   welcome.wrapper.classList.add('welcome-message');
