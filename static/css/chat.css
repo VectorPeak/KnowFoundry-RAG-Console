@@ -705,6 +705,37 @@
   height: 8px;
 }
 
+.industrial-chat-head .context-tags #connectionPill.ok .status-dot {
+  position: relative;
+}
+
+.industrial-chat-head .context-tags #connectionPill.ok .status-dot::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(15, 159, 91, 0.32);
+  border-radius: inherit;
+  animation: readyPulse 1.8s ease-out infinite;
+}
+
+@keyframes readyPulse {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.68);
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .industrial-chat-head .context-tags #connectionPill.ok .status-dot::after {
+    animation: none;
+  }
+}
+
 .industrial-chat-head .context-tags #kbPill {
   overflow: visible;
 }
