@@ -374,10 +374,34 @@
   font-size: 13px;
 }
 
+.answer-actions button:nth-of-type(1) {
+  border-color: rgba(34, 197, 94, 0.24);
+  background: rgba(34, 197, 94, 0.08);
+  color: #2f7d4d;
+}
+
+.answer-actions button:nth-of-type(2) {
+  border-color: rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.07);
+  color: #9f4b4b;
+}
+
 .answer-actions button:hover {
   color: var(--primary);
   border-color: var(--primary);
   background: var(--primary-light);
+}
+
+.answer-actions button:nth-of-type(1):hover {
+  border-color: rgba(34, 197, 94, 0.42);
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+}
+
+.answer-actions button:nth-of-type(2):hover {
+  border-color: rgba(239, 68, 68, 0.38);
+  background: rgba(239, 68, 68, 0.13);
+  color: #b91c1c;
 }
 
 /* ---- Diagnostic panel inside messages ---- */
