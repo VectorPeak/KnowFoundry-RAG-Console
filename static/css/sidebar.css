@@ -1329,7 +1329,7 @@
 .right-panel.insight-panel .classification-card .classification-result li span::before {
   content: counter(classification-rank);
   flex: 0 0 16px;
-  color: #2D3A50;
+  color: currentColor;
   font-weight: 800;
 }
 
