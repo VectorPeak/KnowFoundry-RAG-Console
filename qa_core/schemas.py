@@ -7,8 +7,8 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class QueryRequest(BaseModel):
-    """普通查询、流式查询和检索调试接口的请求体。"""
+class RetrievalDebugRequest(BaseModel):
+    """HTTP 检索诊断接口的请求体。在线问答不复用该模型。"""
 
     query: str = Field(..., min_length=1)
     source_filter: str | None = None
@@ -20,21 +20,6 @@ class QueryRequest(BaseModel):
     user_role: str | None = None
     user_roles: list[str] = Field(default_factory=list)
     kb_version: str | None = None
-
-
-class QueryResponse(BaseModel):
-    """HTTP 查询响应；is_streaming=True 时前端应改走 WebSocket。"""
-
-    answer: str
-    is_streaming: bool
-    session_id: str
-    processing_time: float
-    scenario_id: str | None = None
-    hit_type: str = "unknown"
-    sources: list[dict[str, Any]] = Field(default_factory=list)
-    rewritten_query: str | None = None
-    intent: dict[str, Any] | None = None
-    retrieval: dict[str, Any] | None = None
 
 
 class FeedbackRequest(BaseModel):

@@ -97,7 +97,7 @@ td:first-child{color:var(--tx);font-family:monospace;font-size:12px}
 <div class="card">
 <h2>6 条业务决策路径</h2>
 <div class="grid2">
-<div class="path-card a" onclick="switchTab('faq')"><div class="label">A · 最快 &lt;500ms</div><div class="title">FAQ 精确直出</div><div class="desc"><code>try_fast_faq_direct_answer()</code> 在意图识别前尝试精确匹配，命中则跳过全部 RAG 流程</div></div>
+<div class="path-card a" onclick="switchTab('faq')"><div class="label">A · 最快 &lt;500ms</div><div class="title">FAQ 精确直出</div><div class="desc"><code>decide_route()</code> 在查询路由层产出 <code>route=faq_exact</code>，同时保留 <code>intent=FAQ_QUERY</code></div></div>
 <div class="path-card b" onclick="switchTab('faq')"><div class="label">B · 快 &lt;1s</div><div class="title">FAQ 相似直出</div><div class="desc">意图识别 → 检索计划 → <code>search_faq()</code> → 分数达动态阈值直出，跳过文档检索+LLM</div></div>
 <div class="path-card c" onclick="switchTab('pipeline')"><div class="label">C · 标准路径</div><div class="title">完整 RAG 流程</div><div class="desc">意图→改写→FAQ→文档→上下文筛选→LLM 流式生成→引用增强→写历史+Trace</div></div>
 <div class="path-card d"><div class="label">D · 安全兜底</div><div class="title">信息不足提示</div><div class="desc"><code>build_insufficient_context_answer()</code> — 检索无结果时返回确定性提示，避免 LLM 幻觉</div></div>
@@ -107,19 +107,20 @@ td:first-child{color:var(--tx);font-family:monospace;font-size:12px}
 
 <div class="card">
 <h2>真实入口协议</h2>
-<p>当前代码不是所有问题都直接进入 WebSocket。浏览器先调用 <code>POST /api/query</code> 做轻量预检；只有复杂业务知识问题返回 <code>is_streaming=true</code> 后，前端才建立 <code>WS /api/stream</code> 获取 token 流。</p>
+<p>当前代码中，在线问答统一由浏览器直接连接 <code>WS /api/stream</code>。问候、越界、转人工、FAQ 和复杂 RAG 都在同一条 WebSocket 事件链路里处理。</p>
 <div class="mermaid">
 flowchart TD
-  Page["浏览器页面<br/>static/js/chat.js"] --> Http["POST /api/query<br/>QAService.preview_query()"]
-  Http --> Preview{"intent.direct_answer?"}
-  Preview -->|"是"| Sync["同步返回完整答案<br/>问候 / 越界 / 人工客服"]
-  Preview -->|"否<br/>is_streaming=true"| WS["WS /api/stream<br/>QAService.stream_query()"]
-  WS --> Events["status / token / end / error<br/>前端逐 token 渲染"]
+  Page["浏览器页面<br/>static/js/chat.js"] --> WS["WS /api/stream<br/>QAService.stream_query()"]
+  WS --> Gate{"Pipeline 查询路由<br/>是否可直接回答?"}
+  Gate -->|"是"| Direct["WebSocket 事件返回<br/>问候 / 越界 / 人工客服"]
+  Gate -->|"否"| Rag["FAQ / Doc 检索<br/>LLM 流式生成"]
+  Direct --> Events["status / token / end / error<br/>前端逐 token 渲染"]
+  Rag --> Events
   Events --> Summary["_schedule_summary_refresh()<br/>end 后异步刷新历史摘要"]
-  style Sync fill:#16653420,stroke:#166534
+  style Direct fill:#16653420,stroke:#166534
   style WS fill:#58a6ff20,stroke:#58a6ff
 </div>
-<div class="step o"><span class="num">!</span><strong>为什么这样设计</strong>：HTTP 预检负责低成本直答和参数校验，WebSocket 只承载真正需要流式生成的 RAG 问题。这样既能保证简单问题响应快，也不会让复杂问题阻塞页面。</div>
+<div class="step o"><span class="num">!</span><strong>为什么这样设计</strong>：在线问答只保留一条 WebSocket 主链路，限流、历史、Trace、直答分流和流式事件都在同一套实现中完成，避免多套入口产生状态和回答口径不一致。</div>
 </div>
 
 <div class="card">
@@ -129,10 +130,10 @@ flowchart TD
 flowchart TD
   subgraph L1["入口层 (api/)"]
     WS["WebSocketHandler<br/>/api/stream → websocket_endpoint()"]
-    HTTP["HTTP Routes<br/>/api/query / debug / admin / versions"]
+    HTTP["HTTP Routes<br/>debug / history / feedback / admin / versions"]
   end
   subgraph L2["应用服务层 (application/)"]
-    QASvc["QAService<br/>preview_query() / stream_query() / debug_retrieval()"]
+    QASvc["QAService<br/>stream_query() / debug_retrieval()"]
     Factory["get_qa_service() — lru_cache 单例"]
   end
   subgraph L3["Pipeline 编排层 (pipeline/)"]
@@ -181,32 +182,19 @@ flowchart TD
 <p>以 <code>"入职流程有哪些步骤"</code> 为例，追踪整个系统从收到问题到返回答案的每一步业务决策。图上方菱形是判断节点，方框是处理动作，绿色圆角是答案终点。建议全屏查看（点击图工具栏的全屏按钮）。</p>
 <div class="mermaid">
 flowchart TD
-  Start(["用户输入: 入职流程有哪些步骤<br/>场景: 企业知识助手 / 分类: hr"]) --> HTTP{"POST /api/query 轻量预检<br/>能直接回答吗?"}
-
-  HTTP -->|"能"| HTTP_Done(["(终点) 同步返回<br/>问候/客服/越界"])
-  HTTP -->|"不能"| WS["建立 WebSocket<br/>前端准备接收 token 流"]
+  Start(["用户输入: 入职流程有哪些步骤<br/>场景: 企业知识助手 / 分类: hr"]) --> WS["建立 WebSocket /api/stream<br/>发送 query/session_id/source_filter"]
 
   WS --> Ctx["建立请求上下文<br/>场景=企业知识助手 / 版本=kb_v2 / 租户=acme / 公开数据"]
   Ctx --> StartEvt["通知前端: 已接收请求"]
 
-  StartEvt --> FastChk{"试探: 问题短且像FAQ?"}
-  FastChk -->|"是"| FastSearch["不经意图识别, 直接查FAQ<br/>限制12条, 不做精排"]
-  FastSearch --> FastMatch{"和某条FAQ一字不差?"}
-  FastMatch -->|"命中"| FastDone(["直接返回标准答案, <500ms"])
-  FastMatch -->|"未命中"| Cache["缓存结果供后续复用"]
-  FastChk -->|"否"| Intent
+  StartEvt --> DirectGuard{"RouteDecision.route?<br/>direct_answer / faq_exact / retrieval"}
+  DirectGuard -->|"direct_answer"| DirectDone(["直接回复, 不查知识库"])
+  DirectGuard -->|"faq_exact"| FastDone(["FAQ 精确直出, <500ms<br/>intent=FAQ_QUERY"])
+  DirectGuard -->|"retrieval"| Intent["进入检索准备<br/>意图/source/计划/变体"]
 
-  Cache --> Intent["开始理解意图 + 制定策略"]
-
-  Intent --> R1{"规则1: 打招呼?"}
-  R1 -->|"是"| I1["问候, 不检索"]
-  R1 -->|"否"| R2{"规则2: 越界?"}
-  R2 -->|"是"| I2["拒答"]
-  R2 -->|"否"| R3{"规则3: 找人工?"}
-  R3 -->|"是"| I3["给电话"]
-  R3 -->|"否"| R4{"规则4: 是追问?"}
+  Intent --> R4{"规则1: 是追问?"}
   R4 -->|"是"| I4["标记需改写, 稍后补全"]
-  R4 -->|"否"| R5{"规则5: 关键词能确定?"}
+  R4 -->|"否"| R5{"规则2: 关键词能确定?"}
   R5 -->|"FAQ"| I5a["高置信FAQ查询"]
   R5 -->|"知识"| I5b["高置信知识咨询"]
   R5 -->|"不确定"| LLM_Intent["交给LLM判断<br/>结构化输出限制字段"]
@@ -291,7 +279,7 @@ flowchart TD
 </div>
 
 <h3>读图指南</h3>
-<div class="step g"><span class="num">1</span><strong>从上到下跟踪主路径</strong><div class="desc">图中用粗体标注了本案例的实际走法: HTTP预检→WebSocket→上下文→快速试探(未命中)→意图识别(规则5命中KNOWLEDGE)→4层计划→变体→FAQ(不直出)→文档→筛选5条上下文→LLM生成→引用→保存→end。菱形中标注了分支条件, 方框中标注了处理结果。</div></div>
+<div class="step g"><span class="num">1</span><strong>从上到下跟踪主路径</strong><div class="desc">图中用粗体标注了本案例的实际走法: HTTP预检→WebSocket→上下文→查询路由(返回 retrieval)→检索准备(意图=KNOWLEDGE_QUERY、source=hr、计划和变体就绪)→FAQ(不直出)→文档→筛选5条上下文→LLM生成→引用→保存→end。菱形中标注了分支条件, 方框中标注了处理结果。</div></div>
 <div class="step"><span class="num">2</span><strong>绿色圆角 = 提前退出的快捷出口</strong><div class="desc">招呼/越界/客服(直接答)、FAQ精确匹配(<500ms)、FAQ相似匹配(<1s)。凡是不需要LLM生成的分支都会提前结束, 节省时间和算力。</div></div>
 <div class="step o"><span class="num">3</span><strong>4层决策的核心逻辑</strong><div class="desc">如果意图是FAQ_QUERY→文档减半阈值降低。如果带"费用"关键词→阈值提到0.84。如果带"合规"→阈值提到0.86。如果是表格查询→关闭相似直出。同一个问题换个意图或风险类别, 检索参数完全不同。</div></div>
 </div>
@@ -329,8 +317,8 @@ flowchart TD
 <h2>四个决定的技术实现对照</h2>
 <table>
 <tr><th style="width:18%">业务决定</th><th style="width:35%">核心逻辑</th><th style="width:47%">关键函数</th></tr>
-<tr><td>第一层: 需要检索吗?</td><td>判断是不是问候/客服/越界——这些话术无需查资料，直接回答即可。FAQ 精确匹配也能跳过检索计划。</td><td><code>classify_intent()</code> 规则1-3、<code>try_fast_faq_direct_answer()</code></td></tr>
-<tr><td>第二层: 什么意思?</td><td>理解用户意图——是问FAQ还是查文档? 带不带费用/合规风险? 需不需要结合历史改写? 然后根据这些信息制定一个"检索计划"：查多少条、用什么阈值。</td><td><code>classify_intent()</code> 规则4-6 + LLM、<code>rewrite_query_if_needed()</code>、<code>build_retrieval_plan()</code>（4层决策）、<code>generate_query_variants()</code></td></tr>
+<tr><td>第一层: 查询路由</td><td>先用低成本确定性规则决定 route：direct_answer 直接答，faq_exact 精确直出，retrieval 才进入检索准备。</td><td><code>decide_route()</code>、<code>classify_direct_intent()</code>、<code>try_fast_faq_direct_answer()</code></td></tr>
+<tr><td>第二层: 检索准备</td><td>加载历史并理解用户意图——是问FAQ还是查文档? source 如何过滤? 带不带费用/合规风险? 需不需要结合历史改写? 然后制定检索计划、生成查询变体并选择 Prompt Profile。</td><td><code>classify_intent()</code> 检索类规则 + LLM、<code>resolve_effective_source_filter()</code>、<code>rewrite_query_if_needed()</code>、<code>build_retrieval_plan()</code>（4层决策）、<code>generate_query_variants()</code></td></tr>
 <tr><td>第三层: FAQ能直接答吗?</td><td>先查FAQ库——如果命中了标准问题(如"忘记密码怎么办")且匹配度够高，直接用标准答案回复。注意: 费用/合规类问题即使FAQ命中也需要更高分数才敢直接答。</td><td><code>search_faq()</code>、<code>get_faq_direct_answer()</code>、<code>direct_faq_answer()</code></td></tr>
 <tr><td>第四层: 基于文档生成</td><td>FAQ不够确定时查文档。从几十条候选中筛选最相关的段落(过滤低分、去重、截断过长的)，拼成上下文交给LLM。LLM生成完后还要补上"参考资料"标签。</td><td><code>search_doc()</code>、<code>select_context_docs()</code>（三重约束）、<code>stream_llm_answer()</code>、<code>enforce_answer_citations()</code></td></tr>
 </table>
@@ -343,14 +331,11 @@ flowchart TD
 flowchart TD
   Q["收到 WebSocket 消息<br/>包含 query / session_id / scenario_id / source_filter"] --> Ctx["建立请求上下文<br/>确定用哪个场景、哪个知识库版本、数据可见范围<br/>(create_query_context)"]
   Ctx --> Start["通知前端: 已收到请求<br/>(yield start_event)"]
-  Start --> S1["试探 FAQ 精确匹配<br/>问题短且像标准问答时, 不经意图识别直接查 FAQ<br/>(try_fast_faq_direct_answer)"]
-  S1 --> S1C{"问题与某条 FAQ 标准问题<br/>一字不差?"}
-  S1C -->|"是"| E0(["直接返回标准答案, 首 token<500ms"])
-  S1C -->|"否"| S2["理解意图 + 制定检索策略<br/>判断用户想干什么, 问题带什么风险, 该查多少条<br/>(prepare_retrieval)"]
-  S2 --> S2a["判断意图类型<br/>规则优先: 先看是不是打招呼/要客服/越界<br/>再看是不是追问/FAQ咨询/知识咨询<br/>(classify_intent)"]
-  S2a --> S2C{"打的招呼? 要的客服? 越界了?"}
-  S2C -->|"是"| E1(["直接回复, 不查知识库"])
-  S2C -->|"否"| S2b["追问补全<br/>'那审批呢'→'入职流程中的审批步骤'<br/>(rewrite_query_if_needed)"]
+  Start --> S1["查询路由<br/>低成本决定 direct_answer / faq_exact / retrieval<br/>(decide_route)"]
+  S1 --> S1C{"RouteDecision.route?"}
+  S1C -->|"direct_answer"| E1(["直接回复, 不查知识库"])
+  S1C -->|"faq_exact"| E0(["FAQ 精确直出<br/>route=faq_exact, intent=FAQ_QUERY"])
+  S1C -->|"retrieval"| S2b["检索准备<br/>意图/source、按需改写、风险判断、top_k/阈值决策<br/>(prepare_retrieval)"]
   S2b --> S2c["制定检索计划<br/>根据意图+风险类别+问题长度<br/>决定查多少条、用什么阈值<br/>(build_retrieval_plan, 4层决策)"]
   S2c --> S2d["生成等价问法<br/>'Webhook失败'→'回调失败'<br/>提高命中不同表述的资料<br/>(generate_query_variants)"]
   S2d --> S3["查 FAQ 库<br/>用多个问法去 FAQ 集合检索, 合并去重后精排<br/>(search_faq)"]
@@ -375,9 +360,9 @@ flowchart TD
 
 <div class="step"><span class="num">0</span><strong>建立请求上下文</strong> — 确定用哪个场景、哪个知识库版本、数据可见范围。不检索，只准备请求级状态。<div class="desc">→ <code>create_query_context()</code></div></div>
 
-<div class="step g"><span class="num">1</span><strong>试探 FAQ 精确匹配</strong> — 问题短且像标准问答时，不经意图识别直接查 FAQ。只认一字不差的匹配，宁可不命中也不错答。<div class="desc">→ <code>try_fast_faq_direct_answer()</code> → <code>_exact_faq_answer(threshold=inf)</code></div></div>
+<div class="step g"><span class="num">1</span><strong>查询路由</strong> — 统一产出 <code>direct_answer</code>、<code>faq_exact</code> 或 <code>retrieval</code>。FAQ 精确命中是 route，不是新的 intent。<div class="desc">→ <code>decide_route()</code> → <code>RouteDecision(route, answer, intent)</code></div></div>
 
-<div class="step"><span class="num">2</span><strong>理解意图 + 制定检索策略</strong> — 判断用户在干什么（打招呼？问客服？查资料？），问题带什么风险（费用类要保守、合规类更保守），追问需要补全上下文。然后根据这些信息决定查多少条、用什么阈值。<div class="desc">→ <code>classify_intent()</code> → <code>rewrite_query_if_needed()</code> → <code>build_retrieval_plan()</code> → <code>generate_query_variants()</code></div></div>
+<div class="step o"><span class="num">2</span><strong>检索准备</strong> — 只有 route=retrieval 才进入这里，加载历史，判断用户想查什么、source 怎么过滤、问题带什么风险、追问是否要补全上下文，并生成检索计划和查询变体。<div class="desc">→ <code>classify_intent()</code> → <code>resolve_effective_source_filter()</code> → <code>rewrite_query_if_needed()</code> → <code>build_retrieval_plan()</code> → <code>generate_query_variants()</code></div></div>
 
 <div class="step o"><span class="num">3</span><strong>查 FAQ 库，判断能直接答吗</strong> — 先查标准问答集。问题完全一样→无条件信任。语义相近→分数必须超过动态阈值（普通问题 0.62，费用 0.84，合规 0.86）。表格类问题只允许精确匹配（关闭相似直出）。<div class="desc">→ <code>search_faq()</code> → <code>get_faq_direct_answer()</code> → <code>direct_faq_answer()</code></div></div>
 
@@ -481,18 +466,20 @@ flowchart TD
 <div class="card">
 <h2>FAQ 三条路径对比 — 业务视角</h2>
 <p>系统面对一个问题的核心判断：<strong>"这个答案在 FAQ 库里吗？如果在，我能信任这个匹配吗？"</strong>答案分为三个层次。</p>
-<div class="step g"><span class="num">A</span><strong>精确命中——"这个答案100%对"</strong><div class="desc">用户问的和 FAQ 库里某条标准问题一字不差。系统不需要做意图识别就知道这是 FAQ 查询，直接返回。这是最快、最安全的路径。</div></div>
+<div class="step g"><span class="num">A</span><strong>精确命中——"这个答案100%对"</strong><div class="desc">用户问的和 FAQ 库里某条标准问题一字不差。查询路由层返回 <code>route=faq_exact</code>，同时标记 <code>intent=FAQ_QUERY</code>，直接返回标准答案。</div></div>
 <div class="step o"><span class="num">B</span><strong>相似命中——"这个答案很可能对，但我不100%确定"</strong><div class="desc">用户问法不同但语义相近（"怎么重置密码" vs "忘记密码怎么办"）。系统先识别意图为 FAQ_QUERY，再根据问题类型决定一个动态阈值：普通问题 0.64(默认0.72-0.08)，费用问题必须 0.84 以上。这是"信任但要验证"的路径。</div></div>
 <div class="step"><span class="num">C</span><strong>不够确定——"FAQ 给不了答案，查文档吧"</strong><div class="desc">FAQ 没命中，或命中但分数不够。问题可能是知识咨询（"入职流程包含哪些步骤"），需要多段文档资料拼出完整答案。这是最慢但最全面的路径。</div></div>
 <p style="margin-top:16px">技术实现对照：</p>
 <div class="mermaid">
 flowchart TD
-  Q["收到问题"] --> FP{"问题短且像标准问答吗?<br/>(should_try_faq_fast_path)"}
-  FP -->|"✅ 路径 A: 像, 先试精确匹配"| A1["不经意图识别, 直接查 FAQ 库<br/>限制最多查 12 条, 不做精排<br/>(get_faq_store().search_many)"]
+  Q["收到问题"] --> Route["查询路由<br/>(decide_route)"]
+  Route -->|"route=direct_answer"| GDone(["直接回复<br/>不查 FAQ / 文档"])
+  Route -->|"route=faq_exact"| AH(["返回标准答案<br/>intent=FAQ_QUERY<br/>首 token<500ms"])
+  Route -->|"route=retrieval"| Normal["检索准备<br/>意图/source/计划/变体<br/>(prepare_retrieval)"]
+  Route -.-> FP{"内部试探:<br/>问题短且像标准问答吗?"}
+  FP -.-> A1["FAQ 精确查询<br/>限制最多查 12 条, 不做精排"]
   A1 --> A2{"问题与某条 FAQ<br/>一字不差?<br/>(_exact_faq_answer, threshold=inf)"}
-  A2 -->|"是"| AH(["返回标准答案<br/>首 token<500ms<br/>跳过意图识别+改写+LLM"])
-  A2 -->|"否"| Continue["缓存结果留到后续复用<br/>避免重复检索<br/>继续正常流程"]
-  FP -->|"路径 B/C: 正常流程"| Normal["先理解意图 + 制定检索策略<br/>追问需要改写补全<br/>(prepare_retrieval)"]
+  A2 -.->|"否"| Continue["缓存结果留到后续复用<br/>避免重复检索"]
   Normal --> B1["查 FAQ 库, 这次做全量检索+精排<br/>(search_faq, rerank=True)"]
   B1 --> B2{"命中的 FAQ 答案可信吗?<br/>问题一样→无条件信任<br/>语义相近→分数需超过动态阈值<br/>(get_faq_direct_answer)"}
   B2 -->|"✅ 路径 B: 可信, 直接答"| BH(["返回标准答案<br/>首 token<1s<br/>跳过文档检索+LLM"])
@@ -502,8 +489,9 @@ flowchart TD
 </div>
 
 <table>
-<tr><th></th><th>路径 A: 快速路径</th><th>路径 B: 相似直出</th><th>路径 C: 完整 RAG</th></tr>
-<tr><td>时机</td><td>意图识别之前</td><td>意图识别 + 检索计划之后</td><td>意图识别 + 检索计划之后</td></tr>
+<tr><th></th><th>路径 A: faq_exact 路由</th><th>路径 B: 相似直出</th><th>路径 C: 完整 RAG</th></tr>
+<tr><td>时机</td><td>查询路由层，检索准备之前</td><td>检索准备之后</td><td>检索准备之后</td></tr>
+<tr><td>route / intent</td><td>route=faq_exact / intent=FAQ_QUERY</td><td>route=retrieval / intent=FAQ_QUERY</td><td>route=retrieval / KNOWLEDGE_QUERY 等</td></tr>
 <tr><td>匹配方式</td><td>仅精确匹配</td><td>精确 + 相似分数</td><td>不满足直出条件</td></tr>
 <tr><td>阈值</td><td>inf（只精确）</td><td>0.62~0.86 动态</td><td>-</td></tr>
 <tr><td>rerank</td><td>否</td><td>是</td><td>是</td></tr>
@@ -875,7 +863,7 @@ flowchart TD
 <div class="card">
 <h2>逐层学习指南</h2>
 
-<div class="step g"><span class="num">1</span><strong>入口与配置</strong> — 了解系统骨架<div class="desc">先读 <code>schemas.py</code> 理解数据模型（QueryRequest/Response、RetrievalHit/Result），再读 <code>settings.py</code> 理解配置体系（pydantic-settings + .env），最后看 <code>preflight.py</code> 理解启动时做了哪些检查。这层不需要理解业务逻辑，只需知道"有什么配置、用什么数据结构"。</div></div>
+<div class="step g"><span class="num">1</span><strong>入口与配置</strong> — 了解系统骨架<div class="desc">先读 <code>schemas.py</code> 理解数据模型（RetrievalDebugRequest/Response、FeedbackRequest），再读 <code>settings.py</code> 理解配置体系（pydantic-settings + .env），最后看 <code>preflight.py</code> 理解启动时做了哪些检查。这层不需要理解业务逻辑，只需知道"有什么配置、用什么数据结构"。</div></div>
 
 <div class="step"><span class="num">2</span><strong>基础设施</strong> — 理解外部依赖<div class="desc"><code>llm/client.py</code> 的 <code>get_chat_model()</code> 是 LLM 客户端的唯一入口，<code>retrieval/models.py</code> 管理 embedding 和 reranker 模型加载（均用 lru_cache 缓存）。理解 <code>resolve_device()</code> 如何选择 CUDA/CPU。</div></div>
 
@@ -900,8 +888,9 @@ flowchart TD
 <li><code>QueryServiceContext.from_ws_payload()</code> — api/chat.py — 解析请求参数</li>
 <li><code>get_qa_service().stream_query()</code> — application/service.py — 委托至 pipeline 生成器</li>
 <li><code>create_query_context()</code> — pipeline/runtime.py — resolve_scenario + resolve_data_scope + resolve_active_kb_version</li>
-<li><code>try_fast_faq_direct_answer()</code> — pipeline/steps.py — 意图识别前先尝试 FAQ 精确直出</li>
-<li><code>prepare_retrieval()</code> — pipeline/steps.py — classify_intent + rewrite + build_retrieval_plan + generate_query_variants</li>
+<li><code>decide_route()</code> — pipeline/steps.py — 统一查询路由：direct_answer / faq_exact / retrieval</li>
+<li><code>try_fast_faq_direct_answer()</code> — pipeline/steps.py — 路由层内部的 FAQ 精确试探，命中时 route=faq_exact、intent=FAQ_QUERY</li>
+<li><code>prepare_retrieval()</code> — pipeline/steps.py — load_history + classify_intent + resolve_source + rewrite_if_needed + build_retrieval_plan + generate_query_variants + prompt_profile</li>
 <li><code>classify_intent()</code> — intent/classifier.py — 6 级规则优先级 + LLM 兜底</li>
 <li><code>rewrite_query_if_needed()</code> — pipeline/rewrite.py — 追问改写为独立检索问题</li>
 <li><code>build_retrieval_plan()</code> — retrieval/strategy.py — 默认值 + 4 层决策 → RetrievalPlan</li>
@@ -924,10 +913,10 @@ flowchart TD
 <h2>关键设计决策一览</h2>
 <table>
 <tr><th style="width:25%">决策</th><th>原因</th></tr>
-<tr><td>HTTP 预检 + WebSocket 流式双入口</td><td>简单问题走 HTTP 即时返回（问候/客服/越界），复杂 RAG 走 WebSocket 流式推送 token。避免一次问题触发两次生成。</td></tr>
+<tr><td>WebSocket 唯一在线问答入口</td><td>问候、客服、越界、FAQ 和复杂 RAG 都走 <code>/api/stream</code> 事件链路。避免多套入口造成重复状态、重复历史写入和回答口径不一致。</td></tr>
 <tr><td>规则优先 + LLM 兜底的意图识别</td><td>问候、越界、客服等场景确定性强，用规则更快更稳定。LLM 只处理模糊问题，控制成本和延迟。</td></tr>
 <tr><td>4 层动态检索计划</td><td>不同类型问题需要不同的检索参数。费用类(threshold>=0.84)比普通 FAQ(0.62)更保守。frozen dataclass 保证创建后不可修改。</td></tr>
-<tr><td>FAQ 直出分快慢两条路径</td><td>快速路径在意图识别前精确匹配（首 token<500ms），正常路径在检索计划后相似匹配（<1s）。两条路径的阈值和 rerank 策略不同。</td></tr>
+<tr><td>FAQ 直出分快慢两条路径</td><td>快速路径是查询路由层的 <code>route=faq_exact</code>（首 token&lt;500ms），正常路径是在检索计划后相似匹配（&lt;1s）。两条路径的阈值和 rerank 策略不同。</td></tr>
 <tr><td>同步生成器 + asyncio.to_thread</td><td>RAG 链路（Milvus gRPC + LLM HTTP）是阻塞操作。用 asyncio.to_thread 把生成器推进放到工作线程，主线程处理 WebSocket 收发。</td></tr>
 <tr><td>摘要 + 最近 8 条的历史管理</td><td>不全量发送历史给 LLM（token 膨胀+注意力稀释）。早期对话压缩为摘要(<=1200字)，最近 8 轮保留原文。</td></tr>
 <tr><td>TOML 驱动的多场景隔离</td><td>同一套 RAG 引擎服务 8 个业务场景。每个场景独立配置 collection、source 白名单和正则匹配规则。新增场景只需复制目录改 TOML。</td></tr>
@@ -952,7 +941,7 @@ flowchart TD
 ├── quality/       # 质量: ingestion.py(入库报告), conflicts.py(FAQ冲突检测)
 ├── observability/ # 可观测: trace_writer.py(trace), traces.py(聚合), evaluations.py(评测)
 ├── config/        # 配置: settings.py(全局), logging_config.py, preflight.py(预检)
-├── schemas.py     # Pydantic 数据模型: QueryRequest/Response, FeedbackRequest, RetrievalDebugResponse
+├── schemas.py     # Pydantic 数据模型: RetrievalDebugRequest/Response, FeedbackRequest
 ├── common.py      # 公共工具: utc_now(), utc_file_stamp(), read_json(), write_json(), list_json_reports()
 └── utils.py       # 工具: stable_hash(), file_fingerprint(), normalize_source_from_path()</code></pre>
 </div>

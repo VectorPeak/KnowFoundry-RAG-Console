@@ -60,7 +60,7 @@ langchain-classic==1.0.3
 langchain-community==0.4.1
 langchain-core==1.2.31
 langchain-huggingface==1.2.2
-langchain-milvus==0.3.3
+langchain-milvus==0.2.2
 langchain-openai==1.1.12
 langchain-text-splitters==1.1.1
 langgraph==1.1.6
@@ -103,7 +103,7 @@ pydantic==2.12.5
 pydantic-core==2.41.5
 pydantic-settings==2.13.1
 Pygments==2.19.2
-pymilvus==2.6.8
+pymilvus==2.5.18
 pymilvus-model==0.3.0
 PyMuPDF==1.26.7
 PyMySQL==1.1.1
@@ -154,6 +154,7 @@ typing-extensions==4.15.0
 typing-inspect==0.9.0
 typing-inspection==0.4.2
 tzdata==2025.2
+ujson==5.12.1
 urllib3==2.2.2
 uuid-utils==0.12.0
 uvicorn==0.42.0

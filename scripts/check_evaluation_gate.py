@@ -80,7 +80,7 @@ def _matched_value(row: dict[str, Any], match_field: str, expected_field: str, a
     """读取评测脚本写入的明细匹配结果。
 
     这里要求评测报告显式写出 `*_matched` 字段。原因是门禁脚本负责验收“当前标准”
-    下的报告质量，不再根据 expected/actual 临时反推结果，避免学生同时学习两套报告格式。
+    下的报告质量，不再根据 expected/actual 临时反推结果，避免同时维护两套报告格式。
     `expected_field` 和 `actual_field` 只保留在函数签名中，用于让调用处能直接看出该匹配项的业务含义。
     """
     _ = (expected_field, actual_field)

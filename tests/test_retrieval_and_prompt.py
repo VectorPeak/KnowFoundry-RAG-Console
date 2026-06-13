@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import time
 import unittest
+from unittest.mock import patch
 
 from langchain_core.documents import Document
+from pymilvus import DataType, Function, FunctionType
+from pymilvus.exceptions import MilvusException
 
 from qa_core.governance.data_scope import resolve_data_scope
 from qa_core.intent.classifier import IntentResult, classify_intent
@@ -12,7 +16,8 @@ from qa_core.intent.question_category import infer_question_category, is_table_q
 from qa_core.pipeline.citations import enforce_answer_citations, has_source_citation
 from qa_core.pipeline.context import build_context, direct_faq_answer, select_context_docs
 from qa_core.pipeline.query_variants import generate_query_variants
-from qa_core.pipeline.steps import should_try_faq_fast_path
+from qa_core.pipeline.runtime import RAGQueryContext
+from qa_core.pipeline.steps import decide_route, should_try_faq_fast_path
 from qa_core.prompts.selector import build_answer_prompt_profile
 from qa_core.retrieval.filters import build_source_expr
 from qa_core.retrieval.ranking import merge_hits_by_document, normalize_queries, sort_hits_by_score
@@ -65,6 +70,69 @@ class ContextBuilderTests(unittest.TestCase):
                 scenario,
             )
         )
+
+    def test_route_decision_handles_out_of_scope_before_faq_store(self) -> None:
+        scenario = get_scenario_registry().resolve("enterprise_knowledge")
+        context = RAGQueryContext(
+            history=object(),
+            validate_source=lambda source_filter, scenario: None,
+            query="彩票怎么买",
+            source_filter=None,
+            scenario=scenario,
+            data_scope=resolve_data_scope(),
+            session_id="unit-test",
+            trace_id="trace-test",
+            started=time.perf_counter(),
+            active_kb_version="kb_test",
+        )
+
+        with patch("qa_core.pipeline.steps.get_faq_store") as get_faq_store:
+            decision = decide_route(context)
+
+        self.assertEqual(decision.route, "direct_answer")
+        self.assertIn("超出了", decision.answer or "")
+        self.assertEqual(context.intent_payload["intent"], "OUT_OF_SCOPE")
+        self.assertEqual(context.retrieval_info["route"], "direct_answer")
+        get_faq_store.assert_not_called()
+
+    def test_route_decision_models_faq_exact_as_route_not_intent_type(self) -> None:
+        scenario = get_scenario_registry().resolve("enterprise_knowledge")
+        context = RAGQueryContext(
+            history=object(),
+            validate_source=lambda source_filter, scenario: None,
+            query="员工报销需要准备哪些材料？",
+            source_filter=None,
+            scenario=scenario,
+            data_scope=resolve_data_scope(),
+            session_id="unit-test",
+            trace_id="trace-test",
+            started=time.perf_counter(),
+            active_kb_version="kb_test",
+        )
+        faq_result = RetrievalResult(
+            hits=[
+                RetrievalHit(
+                    document=Document(
+                        page_content="员工报销需要准备哪些材料？",
+                        metadata={"standard_question": "员工报销需要准备哪些材料？", "answer": "请准备发票、审批单和付款凭证。"},
+                    ),
+                    score=0.42,
+                )
+            ],
+            query="员工报销需要准备哪些材料？",
+            source_type="faq",
+        )
+
+        with patch("qa_core.pipeline.steps.get_faq_store") as get_faq_store:
+            get_faq_store.return_value.search_many.return_value = faq_result
+            decision = decide_route(context)
+
+        self.assertEqual(decision.route, "faq_exact")
+        self.assertIsNotNone(decision.intent)
+        self.assertEqual(decision.intent.intent, "FAQ_QUERY")
+        self.assertEqual(decision.answer, "请准备发票、审批单和付款凭证。")
+        self.assertEqual(context.retrieval_info["route"], "faq_exact")
+        self.assertEqual(context.hit_type, "faq_direct")
 
     def test_build_context_deduplicates_and_labels_sources(self) -> None:
         docs = [
@@ -286,14 +354,9 @@ class MilvusHybridStoreTests(unittest.TestCase):
         self.assertEqual(result.hits, [])
         self.assertEqual(result.query, "")
 
-    def test_nq_zero_hybrid_error_falls_back_to_dense_search(self) -> None:
+    def test_nq_zero_hybrid_error_requires_collection_rebuild(self) -> None:
         class FakeStore:
-            def __init__(self) -> None:
-                self.dense_called = False
-
             def similarity_search_with_score(self, *args, **kwargs):
-                from pymilvus.exceptions import MilvusException
-
                 raise MilvusException(
                     code=65535,
                     message=(
@@ -302,24 +365,11 @@ class MilvusHybridStoreTests(unittest.TestCase):
                     ),
                 )
 
-            def similarity_search_with_score_by_vector(self, embedding, *args, **kwargs):
-                self.dense_called = True
-                self.embedding = embedding
-                return [(Document(page_content="dense fallback hit", metadata={"chunk_id": "c1"}), 0.7)]
-
-        class FakeEmbeddings:
-            def embed_query(self, query: str):
-                return [0.1, 0.2, 0.3]
-
-        fake_store = FakeStore()
         store = MilvusHybridStore("unit_test_collection")
-        store._store = fake_store
-        import qa_core.retrieval.store as store_module
+        store._store = FakeStore()
 
-        original_get_embeddings = store_module.get_embeddings
-        store_module.get_embeddings = lambda: FakeEmbeddings()
-        try:
-            result = store.search(
+        with self.assertRaisesRegex(RuntimeError, "BM25 Function|reset-collections"):
+            store.search(
                 "申报要素缺失会有什么风险？",
                 k=5,
                 source_filter=None,
@@ -327,13 +377,54 @@ class MilvusHybridStoreTests(unittest.TestCase):
                 source_type="faq",
                 rerank=False,
             )
-        finally:
-            store_module.get_embeddings = original_get_embeddings
 
-        self.assertTrue(fake_store.dense_called)
-        self.assertEqual(fake_store.embedding, [0.1, 0.2, 0.3])
-        self.assertEqual(result.hits[0].document.page_content, "dense fallback hit")
-        self.assertEqual(result.hits[0].score, 0.7)
+    def test_invalid_hybrid_schema_requires_collection_rebuild(self) -> None:
+        class FakeField:
+            def __init__(self, name, dtype, params=None, is_function_output=False):
+                self.name = name
+                self.dtype = dtype
+                self.params = params or {}
+                self.is_function_output = is_function_output
+
+        class FakeSchema:
+            fields = [
+                FakeField("pk", DataType.VARCHAR),
+                FakeField("text", DataType.VARCHAR, {"enable_analyzer": False}),
+                FakeField("dense", DataType.FLOAT_VECTOR),
+                FakeField("sparse", DataType.SPARSE_FLOAT_VECTOR),
+            ]
+            functions = []
+
+        class FakeCollection:
+            schema = FakeSchema()
+
+        class FakeStore:
+            col = FakeCollection()
+
+        store = MilvusHybridStore("unit_test_collection")
+        store._store = FakeStore()
+
+        with self.assertRaisesRegex(RuntimeError, "缺少 text -> sparse 的 BM25 Function|reset-collections"):
+            store.validate_hybrid_schema()
+
+        class ValidSchema:
+            fields = [
+                FakeField("pk", DataType.VARCHAR),
+                FakeField("text", DataType.VARCHAR, {"enable_analyzer": "true"}),
+                FakeField("dense", DataType.FLOAT_VECTOR),
+                FakeField("sparse", DataType.SPARSE_FLOAT_VECTOR, is_function_output=True),
+            ]
+            functions = [
+                Function(
+                    name="bm25_test",
+                    function_type=FunctionType.BM25,
+                    input_field_names="text",
+                    output_field_names="sparse",
+                )
+            ]
+
+        FakeCollection.schema = ValidSchema()
+        store.validate_hybrid_schema()
 
 
 class RetrievalPlanTests(unittest.TestCase):

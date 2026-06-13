@@ -1,4 +1,4 @@
-"""Milvus 连接、BM25 函数与客户端兼容补丁。
+"""Milvus 连接、BM25 函数与数据库初始化工具。
 底层适配逻辑，使 store.py 可专注混合检索流程。"""
 
 from __future__ import annotations
@@ -6,16 +6,10 @@ from __future__ import annotations
 import socket
 from urllib.parse import urlparse
 
-import pymilvus
 from langchain_milvus import BM25BuiltInFunction
 from pymilvus import MilvusClient, connections
 
-from qa_core.config.logging_config import get_logger
 from qa_core.config.settings import get_settings
-
-
-logger = get_logger(__name__)
-_MILVUS_CLIENT_PATCHED = False
 
 
 def collection_alias(collection_name: str) -> str:
@@ -41,7 +35,7 @@ def ensure_orm_alias_connection(alias: str, uri: str | None = None) -> None:
 
     langchain-milvus 是业务层 VectorStore 入口，但底层 hybrid search 仍可能按
     PyMilvus ORM alias 查找连接。把 alias 注册逻辑集中在这里，可以让 store.py
-    保持“只使用 LangChain Milvus 封装”的教学口径。
+    保持“业务层只使用 LangChain Milvus 封装”的工程边界。
     """
     settings = get_settings()
     target_uri = uri or settings.milvus_uri
@@ -93,35 +87,4 @@ def milvus_endpoint_available(timeout: float = 1.5) -> bool:
             return True
     except OSError:
         return False
-
-
-def patch_milvus_client_connection() -> None:
-    """修补 langchain-milvus 与 pymilvus ORM 的连接别名兼容性问题。
-
-    langchain-milvus 的 MilvusHybridStore 内部创建 MilvusClient 实例时不会自动向
-    pymilvus.connections 注册连接别名，但 store.py 中的混合检索查询（hybrid search）
-    依赖 pymilvus ORM 连接别名来协调稠密/稀疏向量子查询。不修补会导致
-    "connection not found" 异常。这个补丁让两个库共享同一个 TCP 连接。
-    """
-    global _MILVUS_CLIENT_PATCHED
-    if _MILVUS_CLIENT_PATCHED:
-        return
-    try:
-        original_init = pymilvus.MilvusClient.__init__
-
-        def patched_init(self, *args, **kwargs):
-            original_init(self, *args, **kwargs)
-            uri = kwargs.get("uri")
-            if uri is None and args:
-                uri = args[0]
-            if uri and getattr(self, "_using", None):
-                if not connections.has_connection(self._using):
-                    # 让 LangChain Milvus 和 pymilvus ORM 共享连接别名；失败应在预热阶段暴露
-                    ensure_orm_alias_connection(self._using, uri)
-
-        if getattr(pymilvus.MilvusClient.__init__, "__name__", "") != "patched_init":
-            pymilvus.MilvusClient.__init__ = patched_init
-        _MILVUS_CLIENT_PATCHED = True
-    except Exception as exc:
-        logger.debug("MilvusClient alias patch not applied: %s", exc)
 

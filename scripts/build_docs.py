@@ -243,10 +243,16 @@ def render_page(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{_escape(title)} — KnowForge RAG Platform 讲义</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script>mermaid.initialize({{startOnLoad:false,theme:"default"}});</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) {{ mermaid.initialize({{startOnLoad:false,theme:"default"}}); }}</script>
+<script>
+window.MathJax = {{
+  loader: {{ paths: {{ mathjax: "/static/js/vendor/mathjax" }} }},
+  options: {{ enableAssistiveMml: false }}
+}};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
 <link rel="stylesheet" href="/static/css/doc.css?v=3">
 </head>
 <body>
@@ -291,7 +297,9 @@ def render_page(
   }});
   btn.addEventListener("click", function() {{ window.scrollTo({{top:0,behavior:"smooth"}}); }});
   // Render mermaid diagrams
-  mermaid.run({{querySelector:".mermaid"}});
+  if (window.mermaid) {{
+    mermaid.run({{querySelector:".mermaid"}});
+  }}
 }})();
 </script>
 </body>

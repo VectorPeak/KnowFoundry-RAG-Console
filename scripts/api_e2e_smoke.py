@@ -32,7 +32,7 @@ def resolve_admin_token(raw_token: str | None) -> str:
 
     使用场景：
     - 本地手动烟测时，通常只传 `--base-url`，不希望每次都把管理令牌写在命令行里；
-    - 质量检查脚本会统一调用本脚本，如果命令行没有显式传令牌，就应该复用 `.env` 中的
+    - 质量检查脚本会统一调用本脚本，如果命令行没有显式传令牌，就应该复用当前运行配置中的
       `ADMIN_API_TOKEN`；
     - CI 或临时环境仍可以通过 `--admin-token` 覆盖，便于验证不同服务实例。
 
@@ -115,7 +115,7 @@ def build_parser() -> argparse.ArgumentParser:
     """构造命令行解析器。"""
     parser = argparse.ArgumentParser(description="Run HTTP API E2E checks.")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
-    parser.add_argument("--admin-token", default="", help="为空时自动读取 .env 中的 ADMIN_API_TOKEN。")
+    parser.add_argument("--admin-token", default="", help="为空时自动读取当前运行配置中的 ADMIN_API_TOKEN。")
     parser.add_argument("--scenario", default="enterprise_knowledge")
     parser.add_argument("--output", default="", help="可选 JSON 报告输出路径。")
     return parser

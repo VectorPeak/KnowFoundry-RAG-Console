@@ -60,7 +60,7 @@ services:
       retries: 3
 
   edu-milvus:
-    image: milvusdb/milvus:v2.6.4
+    image: milvusdb/milvus:v2.5.15
     container_name: edu-milvus
     command: ["milvus", "run", "standalone"]
     environment:

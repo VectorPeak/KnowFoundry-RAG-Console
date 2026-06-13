@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1讲：项目概述与环境搭建 — KnowForge RAG Platform 讲义</title>
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({startOnLoad:false,theme:"default"}); }</script>
+<script>
+window.MathJax = {
+  loader: { paths: { mathjax: "/static/js/vendor/mathjax" } },
+  options: { enableAssistiveMml: false }
+};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/business-flow.html">📊 业务流程图</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/course-outline.html">课程大纲</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link active" href="/docs/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-f-embedding-models.html">F Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-g-chunking-strategy.html">G 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-h-tool-foundations.html">H 项目工具类开发详解</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="1">第1讲：项目概述与环境搭建<a class="headerlink" href="#1" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>🎬 <strong>推荐</strong>：在学习本讲之前或之后，观看 <a href="animation/pipeline-demo.html">RAG Pipeline 执行流程动画演示</a> 建立对系统整体执行流程的直观认识。</p>
+</blockquote>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解 RAG 系统的基本概念和应用场景</li>
+<li>了解本项目的整体架构和技术栈</li>
+<li>完成开发环境的搭建和验证</li>
+</ul>
+<hr />
+<h2 id="_2">第一部分：前置知识<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="11-rag">1.1 什么是 RAG（检索增强生成）<a class="headerlink" href="#11-rag" title="Permanent link">&para;</a></h3>
+<p><strong>RAG = Retrieval-Augmented Generation</strong>，即"检索增强生成"。</p>
+<p>在没有 RAG 之前，大语言模型（LLM）存在几个核心问题：</p>
+<ol>
+<li><strong>知识截止日期</strong>：模型训练完成后，无法获取训练数据之后的新信息。例如 GPT-4 的知识截止到 2023 年某月，之后发生的事情它不知道。</li>
+<li><strong>幻觉问题</strong>：当模型不确定某个答案时，它可能会"编造"一个看起来很合理但实际上是错误的内容。这在企业场景中是不可接受的。</li>
+<li><strong>私有知识无法覆盖</strong>：企业内部的制度、流程、业务文档是私有数据，从未进入过公开训练集，模型自然无法回答。</li>
+</ol>
+<p><strong>RAG 的解决思路</strong>非常简单：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>用户提问 → 先从知识库中检索相关文档 → 把检索到的文档和问题一起发给 LLM → LLM 基于文档生成答案
+</code></pre></div></td></tr></table></div>
+<p>可以把 RAG 理解成"开卷考试"：LLM 不再只靠记忆回答，而是可以查阅我们提供的资料后再作答。</p>
+<p><strong>RAG 的核心价值</strong>：
+- 答案是<strong>可溯源</strong>的（每个回答都能追溯到具体的文档片段）
+- 知识可以<strong>实时更新</strong>（更新知识库不需要重新训练模型）
+- 幻觉大幅<strong>减少</strong>（模型被约束在提供的文档范围内回答）</p>
+<h3 id="12-rag">1.2 RAG 系统的基本组成<a class="headerlink" href="#12-rag" title="Permanent link">&para;</a></h3>
+<p>一个完整的 RAG 系统包含两条核心链路：</p>
+<div class="mermaid">flowchart LR
+    subgraph Offline["离线链路（入库）"]
+        A1["📄 文档加载<br/>PDF/MD/Word/Excel"] --> A2["✂️ 文档切分<br/>父子块策略"]
+        A2 --> A3["🧮 向量化<br/>BGE-M3 Embedding"]
+        A3 --> A4["💾 向量存储<br/>Milvus Collection"]
+    end
+
+    subgraph Online["在线链路（问答）"]
+        B1["❓ 用户提问"] --> B2["🎯 意图识别"]
+        B2 --> B3["🔍 语义检索<br/>Dense + Sparse Hybrid"]
+        B3 --> B4["📊 重排序<br/>BGE Reranker"]
+        B4 --> B5["📝 上下文构建"]
+        B5 --> B6["🤖 LLM 生成<br/>DashScope 流式输出"]
+    end
+
+    A4 -.->|"检索"| B3
+    B6 --> C["✅ 可溯源答案"]
+
+    style Offline fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
+    style Online fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p><strong>对比：传统 LLM vs RAG</strong></p>
+<div class="mermaid">flowchart TD
+    subgraph Traditional["传统 LLM（仅靠记忆）"]
+        T1["❓ 用户提问"] --> T2["🧠 LLM 回忆训练数据"]
+        T2 --> T3["⚠️ 可能幻觉<br/>知识有截止日期<br/>无法回答私有知识"]
+    end
+
+    subgraph RAG["RAG（开卷考试）"]
+        R1["❓ 用户提问"] --> R2["🔍 检索知识库"]
+        R2 --> R3["📋 获取相关文档片段"]
+        R3 --> R4["🧠 LLM 基于资料回答"]
+        R4 --> R5["✅ 有据可查的答案"]
+    end
+
+    style Traditional fill:#FEF2F2,stroke:#DC2626,stroke-width:2px
+    style RAG fill:#EFF6FF,stroke:#2563EB,stroke-width:2px</div>
+<p><strong>离线链路（入库）</strong>：
+1. <strong>文档加载</strong>：读取 PDF、Markdown、Word 等各种格式的文档
+2. <strong>文档切分</strong>：把长文档按语义边界切成小块（chunk），每块通常是几百到一千字
+3. <strong>向量化</strong>：用 Embedding 模型把每个 chunk 转成一串数字（向量），表达其语义
+4. <strong>存储</strong>：把向量和原文一起存入向量数据库</p>
+<p><strong>在线链路（问答）</strong>：
+1. <strong>意图识别</strong>：判断用户问的是什么类型的问题
+2. <strong>查询向量化</strong>：把用户问题转成向量
+3. <strong>语义检索</strong>：在向量数据库中找最相似的文档片段
+4. <strong>上下文构建</strong>：把检索到的片段整理成 LLM 的参考资料
+5. <strong>答案生成</strong>：LLM 基于资料生成回答</p>
+<h3 id="13">1.3 向量和向量检索是什么<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<p>这是理解 RAG 最关键的概念。我们通过一个类比来理解：</p>
+<p><strong>类比：图书馆找书</strong></p>
+<p>传统关键词搜索（比如 MySQL LIKE 查询）就像你告诉图书管理员"我要找书名里有'Python'的书"。问题在于：
+- 一本叫《Python 机器学习实战》的书会被找到
+- 但一本叫《用编程语言做数据分析》的书不会被找到，虽然它也讲 Python</p>
+<p>向量检索就像你告诉图书管理员"我要找一本关于'用代码分析数据'的书"。图书管理员理解了这个概念的"语义"，然后去书架上找到《Python 机器学习实战》、《R 语言统计分析》、《数据科学入门》等语义相近的书。</p>
+<p><strong>技术层面</strong>：
+- Embedding 模型把一段文本（比如一句话、一个段落）转换成一个固定长度的浮点数数组，例如 1024 维的向量
+- 语义相近的文本，它们的向量在数学空间中的"距离"也近
+- 向量数据库就是专门存储和检索这些向量的系统</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># 伪代码示例</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="n">文本1</span> <span class="o">=</span> <span class="s2">&quot;Python 是一门编程语言&quot;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="n">文本2</span> <span class="o">=</span> <span class="s2">&quot;Java 也是一门编程语言&quot;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="n">文本3</span> <span class="o">=</span> <span class="s2">&quot;今天天气很好&quot;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="n">向量1</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">(</span><span class="n">文本1</span><span class="p">)</span>  <span class="c1"># [0.12, 0.34, -0.56, ...] (1024个数字)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="n">向量2</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">(</span><span class="n">文本2</span><span class="p">)</span>  <span class="c1"># [0.11, 0.33, -0.54, ...] (与向量1很接近)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a><span class="n">向量3</span> <span class="o">=</span> <span class="n">embedding</span><span class="p">(</span><span class="n">文本3</span><span class="p">)</span>  <span class="c1"># [0.89, -0.21, 0.67, ...] (与向量1差异很大)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="c1"># 向量1和向量2的余弦相似度 ≈ 0.95（很高）</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="c1"># 向量1和向量3的余弦相似度 ≈ 0.12（很低）</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_3">第二部分：项目架构<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 一句话描述<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>这是一个基于 LangChain + Milvus 2.5 Hybrid Search 的多场景 RAG 教学平台。不是简单的 Demo，而是补齐了企业级 RAG 完整工程闭环的项目。</p>
+</blockquote>
+<h3 id="22">2.2 全景架构图<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    User["🖥️ 浏览器用户<br/>static/index.html"] --> Page["GET /api/scenarios"]
+    User --> Sources["GET /api/sources"]
+    User --> KbList["GET /api/kb_versions"]
+    User --> CreateSession["POST /api/create_session"]
+    User --> Stream["WebSocket /api/stream"]
+    User --> HistoryApi["GET /api/history/{id}"]
+    User --> ClearHistoryApi["DELETE /api/history/{id}"]
+    User --> FeedbackApi["POST /api/feedback"]
+
+    AdminPage["🖥️ 状态页<br/>static/admin.html"] --> AdminApi["GET /api/admin/*"]
+
+    subgraph FastAPI["FastAPI (app.py)"]
+        Router["路由层 qa_core/api"]
+        Pages["pages.py<br/>页面/健康检查"]
+        Chat["chat.py<br/>问答/历史/反馈"]
+        Admin["admin.py<br/>管理接口"]
+        KbVersions["kb_versions.py<br/>版本管理"]
+    end
+
+    Stream --> Chat
+    AdminApi --> Admin
+
+    subgraph Core["qa_core 核心引擎"]
+        QAService["QAService<br/>服务编排层"]
+        Intent["intent<br/>意图识别"]
+        Retrieval["retrieval<br/>Milvus Hybrid Search"]
+        Pipeline["pipeline<br/>RAG 主流程"]
+        Prompts["prompts<br/>Prompt Profile"]
+        Memory["memory<br/>聊天历史"]
+        Governance["governance<br/>版本/隔离"]
+        Indexing["indexing<br/>文档入库"]
+    end
+
+    Chat --> QAService
+    QAService --> Intent
+    QAService --> Retrieval
+    QAService --> Pipeline
+    QAService --> Prompts
+    QAService --> Memory
+    QAService --> Governance
+
+    Retrieval --> Milvus[("Milvus<br/>Dense + Sparse<br/>Hybrid Search")]
+    Memory --> MySQL[("MySQL<br/>Chat History<br/>Feedback")]
+
+    Indexing --> Milvus
+
+    Prompts --> LLM["🤖 DashScope LLM<br/>OpenAI 兼容接口"]
+    Pipeline --> LLM
+
+    style FastAPI fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style Core fill:#F8FAFC,stroke:#64748B,stroke-width:2px
+    style Milvus fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style MySQL fill:#FFFBEB,stroke:#D97706,stroke-width:2px
+    style LLM fill:#FEF2F2,stroke:#DC2626,stroke-width:2px</div>
+<h4 id="221">2.2.1 架构分层解读<a class="headerlink" href="#221" title="Permanent link">&para;</a></h4>
+<p>全景架构图从上到下可以划分为 <strong>五个层次</strong>，每一层各司其职：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>名称</th>
+<th>包含组件</th>
+<th>一句话职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一层</td>
+<td>用户入口层</td>
+<td>浏览器用户（问答页）、状态页（admin 页）</td>
+<td>用户看得见、点得到的地方</td>
+</tr>
+<tr>
+<td>第二层</td>
+<td>路由层</td>
+<td>FastAPI <code>qa_core/api</code>（pages / chat / admin / kb_versions）</td>
+<td>把 HTTP/WebSocket 请求分发给正确的后端模块</td>
+</tr>
+<tr>
+<td>第三层</td>
+<td>核心引擎层</td>
+<td><code>qa_core</code> 八大模块（QAService、Intent、Retrieval 等）</td>
+<td>所有 RAG 业务逻辑的真正执行者</td>
+</tr>
+<tr>
+<td>第四层</td>
+<td>外部依赖层</td>
+<td>Milvus、MySQL、DashScope LLM</td>
+<td>提供向量检索、会话存储、文本生成能力</td>
+</tr>
+<tr>
+<td>第五层</td>
+<td>入库链路（离线）</td>
+<td>Indexing → Milvus</td>
+<td>文档和 FAQ 怎么进知识库</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么要分层？</strong> 每一层只跟相邻层打交道：浏览器不直接调 Milvus，API 路由不直接拼 Prompt，核心引擎不直接写 HTTP 响应。这保证了任何一层被替换时，其他层不受影响。</p>
+<h4 id="222">2.2.2 第一层：用户入口 — 问答页和状态页各做什么<a class="headerlink" href="#222" title="Permanent link">&para;</a></h4>
+<p>全景架构图的顶部有两个入口角色：</p>
+<p><strong>问答页（<code>static/index.html</code>）</strong> 是面向普通用户的交互界面，它会发出以下常用请求：</p>
+<table>
+<thead>
+<tr>
+<th>端点</th>
+<th>方法</th>
+<th>触发时机</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /api/scenarios</code></td>
+<td>HTTP</td>
+<td>页面加载时</td>
+<td>拉取所有可用业务场景列表（下拉框的数据来源）</td>
+</tr>
+<tr>
+<td><code>GET /api/sources</code></td>
+<td>HTTP</td>
+<td>切换业务场景时</td>
+<td>拉取当前场景可选的 source 过滤项</td>
+</tr>
+<tr>
+<td><code>GET /api/kb_versions</code></td>
+<td>HTTP</td>
+<td>切换业务场景时</td>
+<td>查看当前场景的知识库版本状态</td>
+</tr>
+<tr>
+<td><code>POST /api/create_session</code></td>
+<td>HTTP</td>
+<td>用户选择场景后</td>
+<td>创建新会话，返回 <code>session_id</code>（后续所有问答都绑定这个 ID）</td>
+</tr>
+<tr>
+<td><code>WebSocket /api/stream</code></td>
+<td>WebSocket</td>
+<td>用户每次发送问题</td>
+<td>走完整 RAG 流式问答链路，逐 token 推送答案</td>
+</tr>
+<tr>
+<td><code>GET /api/history/{id}</code></td>
+<td>HTTP</td>
+<td>用户刷新页面或切换会话</td>
+<td>恢复之前的聊天记录</td>
+</tr>
+<tr>
+<td><code>DELETE /api/history/{id}</code></td>
+<td>HTTP</td>
+<td>用户清空会话时</td>
+<td>删除该会话历史和摘要</td>
+</tr>
+<tr>
+<td><code>POST /api/feedback</code></td>
+<td>HTTP</td>
+<td>用户点赞/点踩</td>
+<td>记录用户对某个回答的满意度</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>关键理解</strong>：这些端点里，只有 <code>/api/stream</code> 是 WebSocket 长连接——它承载了最重的 RAG 逻辑。其他端点都是轻量 HTTP 请求，负责页面初始化、历史、反馈、版本或过滤项查询。</p>
+</blockquote>
+<p><strong>状态页（<code>static/admin.html</code>）</strong> 是面向开发者/管理员的诊断界面，它通过 <code>GET /api/admin/*</code> 访问 LangSmith 状态、active 版本、入库质量报告和回归报告入口。状态页不参与在线问答，只做"事后排查"。</p>
+<h4 id="223-fastapi">2.2.3 第二层：FastAPI 路由层 — 请求如何分发<a class="headerlink" href="#223-fastapi" title="Permanent link">&para;</a></h4>
+<p><code>app.py</code> 只做四件事：创建 FastAPI 应用、配置 CORS、启动时执行环境校验、注册路由。业务逻辑全在路由模块里：</p>
+<table>
+<thead>
+<tr>
+<th>路由模块</th>
+<th>文件</th>
+<th>承接的请求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pages.py</code></td>
+<td><code>qa_core/api/pages.py</code></td>
+<td>页面渲染（<code>GET /</code>、<code>GET /admin</code>）、健康检查（<code>GET /health</code>）、创建会话</td>
+</tr>
+<tr>
+<td><code>chat.py</code></td>
+<td><code>qa_core/api/chat.py</code></td>
+<td><strong>主链路</strong>：WebSocket 流式问答、历史查询、反馈、检索诊断</td>
+</tr>
+<tr>
+<td><code>admin.py</code></td>
+<td><code>qa_core/api/admin.py</code></td>
+<td>管理接口：LangSmith 状态、入库报告、回归报告入口、回归状态</td>
+</tr>
+<tr>
+<td><code>kb_versions.py</code></td>
+<td><code>qa_core/api/kb_versions.py</code></td>
+<td>知识库版本查看、激活、归档</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键设计决策</strong>：在线问答统一走 WebSocket（<code>/api/stream</code>），不再提供额外的 HTTP 问答入口。如果 HTTP 和 WebSocket 两套问答入口并存，容易出现"HTTP 返回的结果和 WebSocket 不一样"的不一致问题。问候、越界、人工客服短句这些无需检索的问题，也在 WebSocket 主链路的意图识别阶段直接返回。</p>
+<h4 id="224-qa_core">2.2.4 第三层：qa_core 核心引擎 — 八大模块如何协作<a class="headerlink" href="#224-qa_core" title="Permanent link">&para;</a></h4>
+<p>这是整个项目的大脑。图表中的八个模块各自承担独立的职责，通过 <code>QAService</code>（服务编排层）统一调度：</p>
+<p><strong>① QAService — 服务编排层（总指挥）</strong></p>
+<p>QAService 是唯一对外的业务入口。路由层的 <code>chat.py</code> 不直接调 Intent、不直接拼 Prompt，一切通过 QAService 调度。它提供两个问答相关核心方法：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1"># 流式主链路：完整 RAG，通过 Generator 逐事件产出</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="n">service</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="c1"># 检索诊断：只查不生成，用于调试和评测</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="n">service</span><span class="o">.</span><span class="n">debug_retrieval</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>QAService 是进程级单例（应用启动时创建一次，全局复用），但<strong>不保存任何请求级状态</strong>——所有变化的数据都在方法局部变量中，多用户并发不会互相覆盖。</p>
+<p><strong>② Intent — 意图识别（检索准备中的业务判断）</strong></p>
+<p>在线主链路的第一个决策点是 <code>decide_route()</code>：先处理问候、转人工、越界、场景边界和 FAQ 精确命中。只有 <code>route=retrieval</code> 时，才进入 <code>classify_intent()</code> 做检索类意图识别。Intent 模块回答三个问题：</p>
+<ol>
+<li>这是什么类型的问题？（问候 / 标准问答 / 知识咨询 / 追问 / 人工客服 / 越界）</li>
+<li>能不能直接回答？（问候直接回"你好"，越界直接拒答）</li>
+<li>如果不能直接回答，后续该怎么处理？（改写成独立问题？FAQ 优先还是文档优先？）</li>
+</ol>
+<p>检索类意图识别的核心策略是 <strong>规则优先 + LLM 补充</strong>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
+<span class="normal"><a href="#__codelineno-3-2">2</a></span>
+<span class="normal"><a href="#__codelineno-3-3">3</a></span>
+<span class="normal"><a href="#__codelineno-3-4">4</a></span>
+<span class="normal"><a href="#__codelineno-3-5">5</a></span>
+<span class="normal"><a href="#__codelineno-3-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a>在线主链路顺序：
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>1. decide_route() 先收口 direct_answer / faq_exact / retrieval
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>2. route=retrieval 后加载历史并 classify_intent()
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>3. 有历史且像追问                 →  标记 requires_rewrite
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>4. 强规则命中高频业务问题          →  直接返回 FAQ_QUERY / KNOWLEDGE_QUERY
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>5. 以上都不命中                   →  调 LLM 结构化输出做最终判断
+</code></pre></div></td></tr></table></div>
+<p>这一步的决策结果会影响后面的所有步骤：检索计划、查询改写、Prompt 模板选择、FAQ 直出阈值。</p>
+<p><strong>③ Retrieval — 检索系统（查什么、怎么查）</strong></p>
+<p>Retrieval 模块负责和 Milvus 打交道，它封装了：</p>
+<ul>
+<li><strong>MilvusHybridStore</strong>：连接管理、Collection 操作、add_documents / search</li>
+<li><strong>检索计划（RetrievalPlan）</strong>：把意图转成具体参数——FAQ 查几条、Doc 查几条、阈值多高、是否 rerank</li>
+<li><strong>过滤表达式</strong>：把 <code>scenario_id</code>、<code>kb_version</code>、<code>tenant_id</code>、<code>dataset_id</code>、<code>visibility</code>、<code>source</code> 拼成 Milvus expr，保证不会跨场景、跨版本混查</li>
+<li><strong>重排序（Reranker）</strong>：用 BGE Reranker CrossEncoder 对召回结果精排</li>
+<li><strong>去重</strong>：FAQ 和 Doc 各自的去重逻辑</li>
+</ul>
+<p>检索不是"一把梭"，而是分层策略：先查 FAQ（高频确定答案），FAQ 不命中再查文档（需要整合资料），两者分开决策、分开返回。</p>
+<p><strong>④ Pipeline — RAG 主流程（流水线）</strong></p>
+<p>Pipeline 是问答的"流水线车间"，包含五个关键环节：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>触发条件</th>
+<th>做了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查询改写（rewrite）</td>
+<td>意图为 FOLLOW_UP 时</td>
+<td>"那审批呢" → "入职流程中的审批步骤是什么"，把省略的主语和背景补全</td>
+</tr>
+<tr>
+<td>查询变体（query_variants）</td>
+<td>所有 RAG 问题</td>
+<td>原问题 + 等价问法（规则命中本地生成，否则 LLM 生成），提高召回覆盖</td>
+</tr>
+<tr>
+<td>上下文构建（context）</td>
+<td>Doc RAG 时有多个 chunk</td>
+<td>FAQ 前 2 条 + Doc 得分达标片段，按 <code>[1] 来源 + 内容</code> 格式拼接</td>
+</tr>
+<tr>
+<td>事件生成（events）</td>
+<td>流式问答全程</td>
+<td>产出 <code>start → status → token... → end</code> 事件序列，前端按 type 渲染</td>
+</tr>
+<tr>
+<td>引用标注（citations）</td>
+<td>Doc RAG 时</td>
+<td>为每个来源片段标注文件名和 chunk 位置</td>
+</tr>
+</tbody>
+</table>
+<p><strong>⑤ Prompts — 提示词工程（给 LLM 的指令）</strong></p>
+<p>不同的意图和问题类别需要不同的 System Prompt。例如：</p>
+<ul>
+<li><code>faq_answer</code>：严格用标准答案回答，不要自行发挥</li>
+<li><code>knowledge_answer</code>：基于提供的文档资料整合回答</li>
+<li><code>follow_up</code>：结合对话历史理解用户追问的上下文</li>
+<li><code>default</code>：通用问答模板</li>
+</ul>
+<p>Prompt 选择由 <code>build_answer_prompt_profile</code> 根据意图和问题类别自动决定，而不是 hardcode 一个通用模板。</p>
+<p><strong>⑥ Memory — 聊天记忆（上下文连续性）</strong></p>
+<p>Memory 模块管理两件事：</p>
+<ul>
+<li><strong>聊天历史（HistoryStore）</strong>：基于 LangChain 的 <code>SQLChatMessageHistory</code>，每次问答后写入 MySQL 的 <code>chat_messages</code> 表。下次提问时读取最近 N 条消息 + 历史摘要，让模型知道"刚才在聊什么"</li>
+<li><strong>反馈（FeedbackStore）</strong>：用户点赞/点踩后写入 MySQL，用于后续 bad case 分析和评测集补充</li>
+</ul>
+<p><strong>⑦ Governance — 知识库治理（版本与隔离）</strong></p>
+<p>Governance 模块保证不同场景、不同版本、不同权限的数据不会"串门"：</p>
+<ul>
+<li><strong>kb_version</strong>：每个 FAQ 和 chunk 都标记了入库版本号。在线检索时自动拼入 <code>kb_version == "xxx"</code> 过滤条件，确保只查 active 版本</li>
+<li><strong>data_scope</strong>：每条数据还有 <code>tenant_id</code>、<code>dataset_id</code>、<code>visibility</code>、<code>allowed_roles</code> 字段。检索时拼成 Milvus 表达式，实现租户级数据隔离</li>
+</ul>
+<p><strong>⑧ Indexing — 文档入库（离线链路）</strong></p>
+<p>Indexing 模块不在在线问答链路中执行（太慢），而是通过离线脚本触发：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a>文档/FAQ → 加载（按后缀选 loader）→ normalize（补 metadata）→ 切分（父子块策略）→ 向量化（BGE-M3）→ 写入 Milvus
+</code></pre></div></td></tr></table></div>
+<p>入库时还会做增量判断：通过文件 fingerprint（哈希指纹）检查内容是否变化，没变化的跳过，有变化的先删旧 chunk 再写新的。</p>
+<h4 id="225">2.2.5 第四层：外部依赖 — 三个独立服务各管什么<a class="headerlink" href="#225" title="Permanent link">&para;</a></h4>
+<p>全景架构图底部有三个圆柱形节点（<code>[(...)]</code>），代表独立部署的外部服务：</p>
+<p><strong>Milvus — 向量数据库</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1">1</a></span>
+<span class="normal"><a href="#__codelineno-5-2">2</a></span>
+<span class="normal"><a href="#__codelineno-5-3">3</a></span>
+<span class="normal"><a href="#__codelineno-5-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a>职责：存储 Dense 向量 + Sparse 向量，支持 Hybrid Search
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a>部署：Docker Compose 中的 milvus 容器
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>端口：19530
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>依赖：etcd（元数据）+ MinIO（索引和日志文件）
+</code></pre></div></td></tr></table></div>
+<p>每次入库时，BGE-M3 为每个 chunk 同时生成两种向量——Dense（语义向量，1024 维浮点数）和 Sparse（关键词权重，由 Milvus 内置 BM25 函数生成）。检索时两种向量一起查，兼顾语义相近和关键词命中。</p>
+<p><strong>MySQL — 关系型数据库</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span>
+<span class="normal"><a href="#__codelineno-6-2">2</a></span>
+<span class="normal"><a href="#__codelineno-6-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a>职责：只存聊天历史（chat_messages）、会话摘要（chat_session_summaries）、用户反馈
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>部署：Docker Compose 中的 MySQL 容器
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a>端口：3306
+</code></pre></div></td></tr></table></div>
+<p>MySQL <strong>不承担知识检索</strong>。FAQ 和文档的检索全在 Milvus 中进行。MySQL 的角色非常单一——"聊天记录存储"。这个边界很重要，避免了"用 MySQL LIKE 模糊查询冒充语义检索"的情况。</p>
+<p><strong>DashScope LLM — 大语言模型</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a>职责：意图分类（结构化输出）+ 答案生成（流式输出）
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>接口：OpenAI 兼容 API（通过 LangChain ChatOpenAI 统一调用）
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>部署：阿里云 DashScope 云端服务
+</code></pre></div></td></tr></table></div>
+<p>项目中有两处调用 LLM：意图识别不确定时的结构化输出（<code>with_structured_output</code>），以及最终答案的流式生成（<code>llm.stream</code>）。两处共用同一个 <code>get_chat_model()</code> 工厂方法，只是 streaming 参数不同。</p>
+<h4 id="226">2.2.6 完整问答链路走读：一次用户提问经历了什么<a class="headerlink" href="#226" title="Permanent link">&para;</a></h4>
+<p>把全景架构图的箭头串起来，就是一次完整问答请求的真实轨迹。以下用"入职流程有哪些步骤"这个提问来走一遍：</p>
+<div class="mermaid">sequenceDiagram
+    actor User as 用户 / Browser
+    participant WS as WebSocket<br/>(/api/stream)
+    participant Chat as chat.py
+    participant QS as QAService
+    participant RT as Route<br/>decide_route()
+    participant IC as Intent<br/>Classifier
+    participant ML as Milvus<br/>(检索/召回)
+    participant PL as Pipeline<br/>(rag.py)
+    participant LLM as LLM<br/>(DashScope)
+    participant Mem as History<br/>/ Memory
+
+    User->>WS: 输入"入职流程有哪些步骤"并点击发送
+    WS->>Chat: {"type":"query","content":"入职流程有哪些步骤",<br/>"session_id":"xxx","scenario_id":"enterprise_knowledge"}
+    Chat->>QS: stream_query(query, session_id, scenario_id)
+
+    Note over QS: ① resolve_scenario() → 加载场景 TOML 配置
+    Note over QS: ② resolve_active_kb_version() → 查当前 active 版本
+
+    QS-->>WS: ③ {"type":"start","session_id":"xxx"}
+    WS-->>User: 问答已开始
+    QS-->>WS: ④ {"type":"status","message":"正在进行查询路由"}
+    WS-->>User: 进度：正在进行查询路由
+
+    QS->>RT: ⑤ decide_route(query)
+    RT-->>QS: route=retrieval
+
+    QS-->>WS: ⑥ {"type":"status","message":"正在识别问题意图"}
+    WS-->>User: 进度：正在识别问题意图
+
+    QS->>Mem: ⑦ 读取聊天历史（MySQL chat_messages）
+    Mem-->>QS: 历史消息列表
+
+    QS->>IC: ⑧ classify_intent(query, history, scenario)
+    IC-->>QS: Intent=KNOWLEDGE_QUERY, source=hr_process
+
+    QS->>PL: ⑨ build_retrieval_plan(intent)
+    PL-->>QS: FAQ top_k=3, Doc top_k=8, rerank=True
+
+    QS-->>WS: ⑩ {"type":"status","message":"正在检索业务 FAQ 知识库"}
+    WS-->>User: 进度：正在检索
+
+    QS->>ML: ⑪ FAQ Hybrid Search（Dense + Sparse）
+    ML-->>QS: 0 条命中（FAQ 未命中）
+
+    Note over QS: ⑫ FAQ 未命中 → 进入 Doc RAG
+
+    QS-->>WS: ⑬ {"type":"status","message":"正在匹配相关业务资料"}
+    QS->>ML: ⑭ Doc Hybrid Search（Dense + Sparse）
+    ML-->>QS: 召回 8 条相关 chunk
+
+    QS->>ML: ⑮ BGE Reranker CrossEncoder 精排
+    ML-->>QS: 保留得分最高的 5 条
+
+    QS->>PL: ⑯ prepare_answer() / build_context()
+    PL-->>QS: 按 [文件名] + 内容 拼接
+
+    QS->>PL: ⑰ build_answer_prompt_profile(intent)
+    PL-->>QS: 选择 knowledge_answer 模板
+
+    QS-->>WS: ⑱ {"type":"status","message":"正在生成回答"}
+    WS-->>User: 进度：正在生成回答
+
+    QS->>LLM: ⑲ llm.stream(SystemMessage(模板), HumanMessage(ctx))
+    LLM-->>QS: 逐 token 返回
+    QS-->>WS: 每 token → {"type":"token","content":"..."}
+    WS-->>User: 逐字打印答案
+
+    QS->>PL: ⑳ enforce_answer_citations(answer, context_docs)
+    QS->>Mem: ㉑ add_turn(question, full_answer) → 写入 MySQL
+    Note over QS: ㉒ finish_success() → Trace
+
+    QS-->>WS: ㉓ {"type":"end","sources":[...], ...}
+    WS-->>User: 回答结束，展示来源引用</div>
+<blockquote>
+<p><strong>耗时分布（典型值）</strong>：意图识别 ~50ms | FAQ 检索 ~80ms | Doc 检索 ~120ms | Rerank ~200ms | LLM 生成首 token ~2500ms | 总计 ~3000-4000ms。最慢的环节永远是 LLM 生成——因为需要等待云端模型推理，这是所有 RAG 系统的共性。</p>
+</blockquote>
+<p><strong>两条特殊路径</strong>（图中箭头覆盖但上面没走到的）：</p>
+<ol>
+<li>
+<p><strong>问候/越界快速通道</strong>：<code>User → /api/stream → chat.py → QAService.stream_query → decide_route()</code> 在主链路内直接产出答案事件，后面的检索准备、检索和 LLM 全部跳过。耗时取决于运行环境和限流/数据库状态，通常远低于完整 RAG。</p>
+</li>
+<li>
+<p><strong>FAQ 直出通道</strong>：分两种情况：Stage 1 的 <code>route=faq_exact</code> 只允许标准问题精确匹配；Stage 3 的 FAQ 标准直出则发生在检索准备之后，允许精确匹配或达到动态阈值。两者都会返回 <code>metadata.answer</code>，不进入 Doc 检索和 LLM 生成。</p>
+</li>
+<li>
+<p><strong>追问改写通道</strong>：用户说"那审批呢"→ 意图识别为 FOLLOW_UP → Pipeline 读取历史，把"入职流程中的审批步骤"补全 → 后续流程和普通 RAG 一样。</p>
+</li>
+</ol>
+<h3 id="23">2.3 部署架构图<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart LR
+    subgraph Host["宿主机"]
+        API["🐍 FastAPI App<br/>127.0.0.1:8000"]
+    end
+
+    subgraph Docker["Docker Compose"]
+        MilvusSvc["🔍 Milvus Standalone<br/>127.0.0.1:19530"]
+        Etcd["⚙️ etcd<br/>元数据存储"]
+        MinIO["📦 MinIO<br/>索引/日志存储"]
+        MySQLSvc["🗄️ MySQL<br/>127.0.0.1:3306"]
+    end
+
+    subgraph Local["本地模型"]
+        BGE["🧮 BGE-M3<br/>Embedding"]
+        Reranker["📊 BGE Reranker<br/>CrossEncoder"]
+    end
+
+    subgraph Cloud["云服务"]
+        DashScope["☁️ DashScope<br/>LLM API"]
+    end
+
+    API --> MilvusSvc
+    API --> MySQLSvc
+    API --> BGE
+    API --> Reranker
+    API --> DashScope
+    MilvusSvc --> Etcd
+    MilvusSvc --> MinIO
+
+    style Docker fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style Local fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style Cloud fill:#FFFBEB,stroke:#D97706,stroke-width:2px</div>
+<h4 id="231">2.3.1 部署拓扑解读<a class="headerlink" href="#231" title="Permanent link">&para;</a></h4>
+<p>部署架构图将整个系统划分为<strong>四个物理区域</strong>，每个区域的部署方式和选型理由各不相同：</p>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>位置</th>
+<th>包含组件</th>
+<th>部署方式</th>
+<th>为什么放这里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>宿主机</td>
+<td>本地</td>
+<td>FastAPI App (127.0.0.1:8000)</td>
+<td>Python 进程直接运行</td>
+<td>应用代码需要频繁修改调试，不适合容器化</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>本地容器</td>
+<td>Milvus + etcd + MinIO + MySQL</td>
+<td>Docker Compose 编排</td>
+<td>这些是"基础设施"，不需要修改代码，容器化能一键启动、统一管理</td>
+</tr>
+<tr>
+<td>本地模型</td>
+<td>本地磁盘</td>
+<td>BGE-M3 + BGE Reranker</td>
+<td>Python 进程加载本地文件</td>
+<td>Embedding 和 Rerank 延迟敏感，不能走网络；且涉及私有数据不适合上传</td>
+</tr>
+<tr>
+<td>云服务</td>
+<td>阿里云</td>
+<td>DashScope LLM API</td>
+<td>HTTPS 远程调用</td>
+<td>LLM 推理需要 GPU 集群，本地跑不动；API 调用按量付费，成本可控</td>
+</tr>
+</tbody>
+</table>
+<h4 id="232">2.3.2 六条连接线逐一解读<a class="headerlink" href="#232" title="Permanent link">&para;</a></h4>
+<p>图中的每一条箭头都是一条运行时依赖，按调用频率和延迟敏感度排列：</p>
+<p><strong>① FastAPI → Milvus（高频 · 延迟敏感）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span>
+<span class="normal"><a href="#__codelineno-8-3">3</a></span>
+<span class="normal"><a href="#__codelineno-8-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a>协议：gRPC（pymilvus）
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>端口：127.0.0.1:19530
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>每次问答调用：1-2 次（FAQ 检索 + Doc 检索）
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>数据量：Dense 向量(1024维) + Sparse 向量 + metadata
+</code></pre></div></td></tr></table></div>
+<p>这是调用最频繁的外部依赖。每次用户提问，FastAPI 都要把问题向量化后发给 Milvus 做语义检索。部署在本地 Docker 是因为延迟必须可控——如果 Milvus 在云端，每次检索多 50-100ms 网络延迟，用户体验会明显变差。</p>
+<p><strong>② FastAPI → MySQL（中频 · 延迟不敏感）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span>
+<span class="normal"><a href="#__codelineno-9-2">2</a></span>
+<span class="normal"><a href="#__codelineno-9-3">3</a></span>
+<span class="normal"><a href="#__codelineno-9-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a>协议：TCP（pymysql / SQLAlchemy）
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a>端口：127.0.0.1:3306
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>每次问答调用：2-3 次（读历史 + 写消息 + 刷新摘要）
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>数据量：每轮对话约 1-5KB 文本
+</code></pre></div></td></tr></table></div>
+<p>MySQL 只存聊天记录和反馈。部署在本地 Docker 同样是为了避免网络延迟累积——虽然单次 MySQL 查询很快（&lt;5ms），但每次问答要读写多次，走公网会显著拖慢。</p>
+<p><strong>③ FastAPI → BGE-M3（高频 · 极度延迟敏感）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span>
+<span class="normal"><a href="#__codelineno-10-2">2</a></span>
+<span class="normal"><a href="#__codelineno-10-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a>协议：本地函数调用（transformers / sentence-transformers）
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a>每次问答调用：每个 chunk 入库时 1 次 + 每次查询 1 次
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>数据量：输入文本 → 输出 1024 维 float32 向量
+</code></pre></div></td></tr></table></div>
+<p>BGE-M3 是 CPU/GPU 本地推理，不走网络。为什么必须本地？因为 Embedding 调用极其高频——入库时每个 chunk 都要向量化，在线问答时每个 query variant 都要向量化。如果走 API，不仅延迟不可控，API 调用费用也会非常高。而且，私有文档内容发送给第三方 Embedding 服务本身就有数据安全风险。</p>
+<p><strong>④ FastAPI → BGE Reranker（中频 · 延迟敏感）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
+<span class="normal"><a href="#__codelineno-11-2">2</a></span>
+<span class="normal"><a href="#__codelineno-11-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a>协议：本地函数调用（CrossEncoder）
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a>每次问答调用：1 次（对召回结果统一排序）
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>数据量：输入 query+doc 对 → 输出相关性分数 (0-1)
+</code></pre></div></td></tr></table></div>
+<p>Reranker 用 CrossEncoder 架构对 Milvus 召回的候选文档逐对打分。这个环节对精度影响最大——同样的召回结果，Rerank 前后 MRR 可能差 10-15 个百分点。本地部署保证了延迟和精度都可控。</p>
+<p><strong>⑤ FastAPI → DashScope LLM（低频 · 延迟最高）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
+<span class="normal"><a href="#__codelineno-12-2">2</a></span>
+<span class="normal"><a href="#__codelineno-12-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a>协议：HTTPS（OpenAI 兼容 API）
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a>每次问答调用：0-2 次（意图分类可能需要 1 次 + 答案生成 1 次）
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>数据量：输入 System Prompt + 上下文 ~2000-4000 token，输出 ~200-800 token
+</code></pre></div></td></tr></table></div>
+<p>LLM 是整个链路中唯一部署在云端的组件，也是最慢的环节（首 token 延迟 ~2500ms）。为什么 LLM 可以走云端而 Embedding 不行？</p>
+<ul>
+<li>LLM 推理需要 GPU 显存（至少 16GB+），本地开发机通常跑不动</li>
+<li>LLM 调用频率相对低（每次问答 1-2 次），不像 Embedding 那样一次入库就调用上百次</li>
+<li>API 调用按 token 计费，成本可控</li>
+<li>LLM 是文本进文本出，不涉及向量数据，传输量小</li>
+</ul>
+<p><strong>⑥⑦ Milvus → etcd / MinIO（内部依赖 · 用户无感）</strong></p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span>
+<span class="normal"><a href="#__codelineno-13-2">2</a></span>
+<span class="normal"><a href="#__codelineno-13-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>协议：gRPC / S3 兼容 API
+<a id="__codelineno-13-2" name="__codelineno-13-2"></a>触发：Milvus 内部读写元数据和索引文件
+<a id="__codelineno-13-3" name="__codelineno-13-3"></a>用户不需要关心这两条线，Docker Compose 自动管理
+</code></pre></div></td></tr></table></div>
+<ul>
+<li><strong>etcd</strong>：存 Milvus 的元数据（Collection Schema、索引配置、段信息）。类比 MySQL 的 information_schema。</li>
+<li><strong>MinIO</strong>：存 Milvus 的索引文件、日志和 binlog。类比 MySQL 的 ibdata 文件。</li>
+</ul>
+<h4 id="233">2.3.3 端口与网络边界<a class="headerlink" href="#233" title="Permanent link">&para;</a></h4>
+<div class="mermaid">flowchart TB
+    subgraph Host["宿主机 Host Machine"]
+        direction TB
+        API["FastAPI 应用<br/>127.0.0.1:8000"]
+        LocalModels["BGE-M3 Embedding<br/>BGE Reranker<br/>（本地文件加载）"]
+
+        subgraph Bridge["Docker 桥接网络"]
+            direction TB
+            Milvus["Milvus Standalone<br/>127.0.0.1:19530"]
+            Etcd["etcd<br/>元数据存储"]
+            MinIO["MinIO<br/>索引/日志"]
+            MySQL["MySQL<br/>127.0.0.1:3306"]
+        end
+
+        API -->|gRPC| Milvus
+        API -->|TCP| MySQL
+        Milvus --> Etcd
+        Milvus --> MinIO
+        API -->|进程内调用| LocalModels
+    end
+
+    Host -->|"HTTPS 出站"| DashScope["☁️ DashScope 云端 LLM"]
+
+    style Bridge fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style Host fill:#F9FAFB,stroke:#6B7280,stroke-width:2px
+    style DashScope fill:#FFFBEB,stroke:#D97706,stroke-width:2px</div>
+<p>所有本地组件都绑定在 <code>127.0.0.1</code>，不暴露到公网，安全性由操作系统网络栈保证。</p>
+<h3 id="24">2.4 技术栈详解<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>技术</th>
+<th>为什么选它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API 框架</td>
+<td>FastAPI</td>
+<td>原生支持异步、WebSocket、自动生成 OpenAPI 文档</td>
+</tr>
+<tr>
+<td>RAG 编排</td>
+<td>LangChain</td>
+<td>开源生态成熟，封装了 ChatModel、VectorStore、MessageHistory 等</td>
+</tr>
+<tr>
+<td>向量数据库</td>
+<td>Milvus 2.5.x</td>
+<td>支持 Dense + Sparse 混合检索，一次入库同时生成两种向量</td>
+</tr>
+<tr>
+<td>Embedding</td>
+<td>BGE-M3</td>
+<td>中文语义理解能力强，支持本地部署，生成 1024 维 Dense 向量</td>
+</tr>
+<tr>
+<td>Sparse 向量</td>
+<td>Milvus BM25BuiltInFunction</td>
+<td>服务端内置函数，不需要额外部署分词器</td>
+</tr>
+<tr>
+<td>Reranker</td>
+<td>BGE Reranker Large</td>
+<td>CrossEncoder 架构，对召回结果做精细排序</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>DashScope (OpenAI 兼容)</td>
+<td>通过 LangChain ChatOpenAI 统一调用</td>
+</tr>
+<tr>
+<td>会话存储</td>
+<td>MySQL</td>
+<td>LangChain SQLChatMessageHistory 自动管理表结构</td>
+</tr>
+<tr>
+<td>配置</td>
+<td><code>.env.compose</code> / <code>.env</code> + <code>scenario.toml</code></td>
+<td>运行时环境变量 + 场景级 TOML 配置</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25">2.5 八大业务场景<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<p>项目内置 8 个行业场景，共享同一套核心引擎：</p>
+<table>
+<thead>
+<tr>
+<th>场景 ID</th>
+<th>行业</th>
+<th>典型问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enterprise_knowledge</code></td>
+<td>企业内部知识</td>
+<td>"入职流程有哪些步骤"</td>
+</tr>
+<tr>
+<td><code>saas_support</code></td>
+<td>SaaS 客服</td>
+<td>"API 限流导致接口失败怎么排查"</td>
+</tr>
+<tr>
+<td><code>equipment_ops</code></td>
+<td>设备运维</td>
+<td>"日检异常怎么升级"</td>
+</tr>
+<tr>
+<td><code>compliance_qa</code></td>
+<td>合规风控</td>
+<td>"供应商尽调需要哪些材料"</td>
+</tr>
+<tr>
+<td><code>cross_border_risk</code></td>
+<td>跨境贸易</td>
+<td>"HS 归类争议怎么处理"</td>
+</tr>
+<tr>
+<td><code>tender_contract_risk</code></td>
+<td>招投标合同</td>
+<td>"合同变更流程是什么"</td>
+</tr>
+<tr>
+<td><code>insurance_claims</code></td>
+<td>保险理赔</td>
+<td>"收款账户不一致可以打款吗"</td>
+</tr>
+<tr>
+<td><code>engineering_project_qa</code></td>
+<td>工程项目</td>
+<td>"施工图纸和强制性规范冲突怎么办"</td>
+</tr>
+</tbody>
+</table>
+<h3 id="26">2.6 核心模块一览<a class="headerlink" href="#26" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-14-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-14-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-14-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-14-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-14-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-14-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-14-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-14-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-14-10">10</a></span>
+<span class="normal"><a href="#__codelineno-14-11">11</a></span>
+<span class="normal"><a href="#__codelineno-14-12">12</a></span>
+<span class="normal"><a href="#__codelineno-14-13">13</a></span>
+<span class="normal"><a href="#__codelineno-14-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a>qa_core/
+<a id="__codelineno-14-2" name="__codelineno-14-2"></a>├── api/              # FastAPI 路由 — HTTP/WebSocket 请求入口
+<a id="__codelineno-14-3" name="__codelineno-14-3"></a>├── application/      # 服务编排 — QAService 统一业务入口
+<a id="__codelineno-14-4" name="__codelineno-14-4"></a>├── intent/           # 意图识别 — 判断用户想干什么
+<a id="__codelineno-14-5" name="__codelineno-14-5"></a>├── retrieval/        # 检索系统 — Milvus 连接、过滤、重排
+<a id="__codelineno-14-6" name="__codelineno-14-6"></a>├── pipeline/         # RAG 主流程 — 事件生成、上下文构建
+<a id="__codelineno-14-7" name="__codelineno-14-7"></a>├── prompts/          # 提示词 — 模板选择、场景注入
+<a id="__codelineno-14-8" name="__codelineno-14-8"></a>├── indexing/         # 入库 — 文档加载、切分、FAQ 入库
+<a id="__codelineno-14-9" name="__codelineno-14-9"></a>├── governance/       # 治理 — 知识库版本、数据隔离
+<a id="__codelineno-14-10" name="__codelineno-14-10"></a>├── memory/           # 记忆 — 聊天历史、摘要、反馈
+<a id="__codelineno-14-11" name="__codelineno-14-11"></a>├── quality/          # 质量 — 入库质量、冲突检测
+<a id="__codelineno-14-12" name="__codelineno-14-12"></a>├── scenarios/        # 场景 — 多行业配置、source 推断
+<a id="__codelineno-14-13" name="__codelineno-14-13"></a>├── config/           # 配置 — 设置、日志、启动校验
+<a id="__codelineno-14-14" name="__codelineno-14-14"></a>└── observability/    # 可观测 — 追踪、评测、Bad Case
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_4">第三部分：环境搭建与部署<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 前置依赖<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>用途</th>
+<th>必需？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python 3.11+</td>
+<td>应用运行环境</td>
+<td>是</td>
+</tr>
+<tr>
+<td>Docker + Docker Compose</td>
+<td>运行 Milvus、MySQL</td>
+<td>是</td>
+</tr>
+<tr>
+<td>约 4GB 磁盘空间</td>
+<td>存放本地模型 (BGE-M3 + BGE Reranker)</td>
+<td>是</td>
+</tr>
+<tr>
+<td>DashScope API Key</td>
+<td>LLM 调用</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<p>项目只保留两个环境模板，先按运行模式选一个，不要混用：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th style="text-align: right;">是否提交</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.env.compose.example</code></td>
+<td style="text-align: right;">是</td>
+<td>Docker Compose 模板，地址使用 <code>mysql</code>、<code>milvus</code>、<code>/app/models/...</code></td>
+</tr>
+<tr>
+<td><code>.env.compose</code></td>
+<td style="text-align: right;">否</td>
+<td>Docker Compose 实际运行配置，由 <code>.env.compose.example</code> 复制后填写</td>
+</tr>
+<tr>
+<td><code>.env.local.example</code></td>
+<td style="text-align: right;">是</td>
+<td>本机 API 调试模板，地址使用 <code>localhost</code> 和 <code>models/...</code></td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td style="text-align: right;">否</td>
+<td>本机 API 实际运行配置，由 <code>.env.local.example</code> 复制后填写</td>
+</tr>
+</tbody>
+</table>
+<p>仓库不再保留通用 <code>.env.example</code>，因为这个名字无法表达“容器内视角”还是“宿主机视角”，容易让学生把 Milvus/MySQL 地址和模型路径写错。</p>
+<h3 id="32-docker">3.2 推荐启动路径：全 Docker 验收<a class="headerlink" href="#32-docker" title="Permanent link">&para;</a></h3>
+<p>第 1 讲优先使用全 Docker 模式：MySQL、Milvus 和 FastAPI API 都由 Docker Compose 管理。这样学生不需要同时理解“宿主机进程”和“容器网络”两套视角，启动顺序也能交给脚本统一处理。</p>
+<h4 id="321">3.2.1 部署拓扑<a class="headerlink" href="#321" title="Permanent link">&para;</a></h4>
+<div class="mermaid">flowchart LR
+    Browser["浏览器<br/>http://127.0.0.1:8000"] --> API["api 容器<br/>FastAPI :8000"]
+
+    subgraph Compose["Docker Compose"]
+        API --> MySQL["mysql 容器<br/>mysql:3306"]
+        API --> Milvus["milvus 容器<br/>milvus:19530"]
+        Milvus --> Etcd["etcd 容器"]
+        Milvus --> MinIO["minio 容器"]
+        API --> Models["宿主机 ./models<br/>挂载到 /app/models"]
+        API --> Scenarios["宿主机 ./scenarios<br/>挂载到 /app/scenarios"]
+    end
+
+    style Compose fill:#EFF6FF,stroke:#2563EB,stroke-width:2px
+    style API fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p>全 Docker 模式和本机 API 调试模式最容易混淆的是地址和模型路径：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>本地开发模式</th>
+<th>生产 Compose 模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MYSQL_HOST</code></td>
+<td><code>localhost</code></td>
+<td><code>mysql</code></td>
+</tr>
+<tr>
+<td><code>MILVUS_URI</code></td>
+<td><code>http://localhost:19530</code></td>
+<td><code>http://milvus:19530</code></td>
+</tr>
+<tr>
+<td><code>EMBEDDING_MODEL_PATH</code></td>
+<td><code>models/bge-m3</code></td>
+<td><code>/app/models/bge-m3</code></td>
+</tr>
+<tr>
+<td><code>RERANKER_MODEL_PATH</code></td>
+<td><code>models/bge-reranker-large</code></td>
+<td><code>/app/models/bge-reranker-large</code></td>
+</tr>
+</tbody>
+</table>
+<p>原因很简单：API 如果在宿主机上运行，访问的是宿主机暴露端口；API 如果在 Compose 网络里运行，访问的是容器服务名。</p>
+<h4 id="322">3.2.2 首次启动<a class="headerlink" href="#322" title="Permanent link">&para;</a></h4>
+<p>进入项目根目录后，先生成 Compose 模式配置。仓库只提交 <code>.env.compose.example</code>，真正运行
+<code>docker compose --env-file .env.compose ...</code> 前，必须先生成本地 <code>.env.compose</code>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1">1</a></span>
+<span class="normal"><a href="#__codelineno-15-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="k">if</span> <span class="p">(!(</span><span class="nb">Test-Path</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span><span class="p">))</span> <span class="p">{</span> <span class="nb">Copy-Item</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span><span class="p">.</span><span class="n">example</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="p">}</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a><span class="n">notepad</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span>
+</code></pre></div></td></tr></table></div>
+<p>至少确认这些项已经改成真实值：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a>DASHSCOPE_API_KEY=真实可用的 DashScope Key
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a>ADMIN_API_TOKEN=随机长令牌
+</code></pre></div></td></tr></table></div>
+<p>同时确认 Compose 模式地址保持为容器服务名，不要改成 <code>localhost</code>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-17-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-17-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-17-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-17-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-17-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-17-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-17-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-17-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-17-10">10</a></span>
+<span class="normal"><a href="#__codelineno-17-11">11</a></span>
+<span class="normal"><a href="#__codelineno-17-12">12</a></span>
+<span class="normal"><a href="#__codelineno-17-13">13</a></span>
+<span class="normal"><a href="#__codelineno-17-14">14</a></span>
+<span class="normal"><a href="#__codelineno-17-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a>APP_ENV=dev
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a>API_PORT=8000
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a>ENV_FILE=.env.compose
+<a id="__codelineno-17-4" name="__codelineno-17-4"></a>ACTIVE_SCENARIO_ID=enterprise_knowledge
+<a id="__codelineno-17-5" name="__codelineno-17-5"></a>
+<a id="__codelineno-17-6" name="__codelineno-17-6"></a>MYSQL_HOST=mysql
+<a id="__codelineno-17-7" name="__codelineno-17-7"></a>MYSQL_PORT=3306
+<a id="__codelineno-17-8" name="__codelineno-17-8"></a>MILVUS_URI=http://milvus:19530
+<a id="__codelineno-17-9" name="__codelineno-17-9"></a>
+<a id="__codelineno-17-10" name="__codelineno-17-10"></a>EMBEDDING_MODEL_PATH=/app/models/bge-m3
+<a id="__codelineno-17-11" name="__codelineno-17-11"></a>RERANKER_MODEL_PATH=/app/models/bge-reranker-large
+<a id="__codelineno-17-12" name="__codelineno-17-12"></a>
+<a id="__codelineno-17-13" name="__codelineno-17-13"></a>DASHSCOPE_API_KEY=真实可用的 DashScope Key
+<a id="__codelineno-17-14" name="__codelineno-17-14"></a>ADMIN_API_TOKEN=随机长令牌
+<a id="__codelineno-17-15" name="__codelineno-17-15"></a>CORS_ALLOW_ORIGINS=[&quot;http://localhost:8000&quot;,&quot;http://127.0.0.1:8000&quot;]
+</code></pre></div></td></tr></table></div>
+<p>确认模型目录存在：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1">1</a></span>
+<span class="normal"><a href="#__codelineno-18-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a><span class="nb">Test-Path</span> <span class="n">models</span><span class="p">/</span><span class="n">bge-m3</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a><span class="nb">Test-Path</span> <span class="n">models</span><span class="p">/</span><span class="n">bge-reranker-large</span>
+</code></pre></div></td></tr></table></div>
+<p>推荐直接使用项目提供的部署脚本。它会按顺序启动 MySQL/Milvus、构建 API 镜像、重建并激活知识库，然后启动 API：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">deploy_docker</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div></td></tr></table></div>
+<p>如果你没有提前创建 <code>.env.compose</code>，脚本会先从 <code>.env.compose.example</code> 生成文件并退出，提示你填写
+<code>DASHSCOPE_API_KEY</code> 和 <code>ADMIN_API_TOKEN</code>。填好后再运行一次同一条命令即可。</p>
+<p>如果要一次性初始化 8 个冻结业务场景：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">deploy_docker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-AllScenarios</span>
+</code></pre></div></td></tr></table></div>
+<p>这个顺序不能反过来，因为 API 启动前会检查 active KB 版本；空库直接启动 API 会被 preflight 拒绝。</p>
+<h4 id="323">3.2.3 手动等价命令<a class="headerlink" href="#323" title="Permanent link">&para;</a></h4>
+<p>如果不用部署脚本，也可以按下面的手动顺序执行。第一遍只初始化当前 active 场景：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-1">1</a></span>
+<span class="normal"><a href="#__codelineno-21-2">2</a></span>
+<span class="normal"><a href="#__codelineno-21-3">3</a></span>
+<span class="normal"><a href="#__codelineno-21-4">4</a></span>
+<span class="normal"><a href="#__codelineno-21-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">up</span> <span class="n">-d</span> <span class="n">mysql</span> <span class="n">etcd</span> <span class="n">minio</span> <span class="n">milvus</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">build</span> <span class="n">api</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="n">enterprise_knowledge</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">up</span> <span class="n">-d</span> <span class="n">api</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="nb">ps</span>
+</code></pre></div></td></tr></table></div>
+<p>新环境首次部署，如果要一次性初始化全部 8 个冻结业务场景，把单场景命令替换为：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_scenarios</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-reset-collections</span>
+</code></pre></div></td></tr></table></div>
+<p>如果之前已经存在知识库，只是资料内容变化，批量刷新全部 8 个场景时不要删除 collection：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-23-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_scenarios</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div></td></tr></table></div>
+<p>如果只重建一个已有场景，例如企业知识场景：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-24-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="n">enterprise_knowledge</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+</code></pre></div></td></tr></table></div>
+<p>只有在新环境全量初始化、旧 collection schema 不兼容，或明确要清空重建单场景 collection 时，才追加 <code>--reset-collections</code>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-25-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="n">enterprise_knowledge</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-reset-collections</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+</code></pre></div></td></tr></table></div>
+<p>注意：<code>--force</code> 只表示忽略文件指纹、强制重新写入数据；它不会修改已经存在的 Milvus
+Collection Schema。只有 <code>--reset-collections</code> 才会删除旧 collection，让入库链路按当前
+代码重新创建 <code>text + dense + sparse + BM25 Function</code> 的 Hybrid Search 结构。</p>
+<h4 id="324">3.2.4 访问和验收<a class="headerlink" href="#324" title="Permanent link">&para;</a></h4>
+<p>查看容器状态和 API 日志：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-26-1">1</a></span>
+<span class="normal"><a href="#__codelineno-26-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="nb">ps</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">logs</span> <span class="p">-</span><span class="n">-tail</span> <span class="n">80</span> <span class="n">api</span>
+</code></pre></div></td></tr></table></div>
+<p>看到 <code>Runtime preflight passed</code> 后，说明 API 已经通过启动前置校验。</p>
+<p>浏览器访问：</p>
+<ul>
+<li>问答页：http://127.0.0.1:8000/</li>
+<li>状态页：http://127.0.0.1:8000/admin</li>
+<li>文档页：http://127.0.0.1:8000/docs</li>
+<li>健康检查：http://127.0.0.1:8000/health</li>
+</ul>
+<p>执行接口冒烟测试：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-27-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">exec</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">api_e2e_smoke</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-base-url</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8000</span>
+</code></pre></div></td></tr></table></div>
+<p>讲义站点由宿主机 <code>./site</code> 挂载到 API 容器的 <code>/app/site</code>。修改 <code>docs/</code> 或
+<code>docs/animation/</code> 后，在宿主机执行下面命令即可刷新 <code>/docs</code>，不需要为了讲义内容重建 API 镜像：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-28-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">mkdocs</span> <span class="n">build</span> <span class="p">-</span><span class="n">-clean</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="33-api">3.3 可选路径：本机 API 调试<a class="headerlink" href="#33-api" title="Permanent link">&para;</a></h3>
+<p>本机 API 调试适合改 Python 代码时使用：MySQL、Milvus 仍由 Docker 管理，FastAPI 在宿主机上用 <code>uvicorn</code> 启动。第一遍验收不建议从这条路径开始。</p>
+<h4 id="331">3.3.1 准备本机模式配置<a class="headerlink" href="#331" title="Permanent link">&para;</a></h4>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-29-1">1</a></span>
+<span class="normal"><a href="#__codelineno-29-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1"></a><span class="k">if</span> <span class="p">(!(</span><span class="nb">Test-Path</span> <span class="p">.</span><span class="n">env</span><span class="p">))</span> <span class="p">{</span> <span class="nb">Copy-Item</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">local</span><span class="p">.</span><span class="n">example</span> <span class="p">.</span><span class="n">env</span> <span class="p">}</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2"></a><span class="n">notepad</span> <span class="p">.</span><span class="n">env</span>
+</code></pre></div></td></tr></table></div>
+<p>至少填写：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-30-1">1</a></span>
+<span class="normal"><a href="#__codelineno-30-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1"></a>DASHSCOPE_API_KEY=真实可用的 DashScope Key
+<a id="__codelineno-30-2" name="__codelineno-30-2"></a>ADMIN_API_TOKEN=随机长令牌
+</code></pre></div></td></tr></table></div>
+<p>同时确认本机模式地址保持为宿主机地址：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-31-1">1</a></span>
+<span class="normal"><a href="#__codelineno-31-2">2</a></span>
+<span class="normal"><a href="#__codelineno-31-3">3</a></span>
+<span class="normal"><a href="#__codelineno-31-4">4</a></span>
+<span class="normal"><a href="#__codelineno-31-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1"></a>MYSQL_HOST=localhost
+<a id="__codelineno-31-2" name="__codelineno-31-2"></a>MYSQL_PORT=3306
+<a id="__codelineno-31-3" name="__codelineno-31-3"></a>MILVUS_URI=http://localhost:19530
+<a id="__codelineno-31-4" name="__codelineno-31-4"></a>EMBEDDING_MODEL_PATH=models/bge-m3
+<a id="__codelineno-31-5" name="__codelineno-31-5"></a>RERANKER_MODEL_PATH=models/bge-reranker-large
+</code></pre></div></td></tr></table></div>
+<h4 id="332">3.3.2 启动依赖并安装依赖<a class="headerlink" href="#332" title="Permanent link">&para;</a></h4>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-32-1">1</a></span>
+<span class="normal"><a href="#__codelineno-32-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="n">up</span> <span class="n">-d</span> <span class="n">mysql</span> <span class="n">etcd</span> <span class="n">minio</span> <span class="n">milvus</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2"></a><span class="n">pip</span> <span class="n">install</span> <span class="n">-r</span> <span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
+</code></pre></div></td></tr></table></div>
+<p>确认模型目录存在：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-33-1">1</a></span>
+<span class="normal"><a href="#__codelineno-33-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1"></a><span class="nb">Test-Path</span> <span class="n">models</span><span class="p">/</span><span class="n">bge-m3</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2"></a><span class="nb">Test-Path</span> <span class="n">models</span><span class="p">/</span><span class="n">bge-reranker-large</span>
+</code></pre></div></td></tr></table></div>
+<h4 id="333-api">3.3.3 构建知识库并启动 API<a class="headerlink" href="#333-api" title="Permanent link">&para;</a></h4>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-34-1">1</a></span>
+<span class="normal"><a href="#__codelineno-34-2">2</a></span>
+<span class="normal"><a href="#__codelineno-34-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">rebuild_kb_version</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-scenario</span> <span class="n">enterprise_knowledge</span> <span class="p">-</span><span class="n">-new-version</span> <span class="p">-</span><span class="n">-force</span> <span class="p">-</span><span class="n">-quality-gate</span> <span class="p">-</span><span class="n">-activate</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_langchain_stack</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">uvicorn</span> <span class="n">app</span><span class="p">:</span><span class="n">app</span> <span class="p">-</span><span class="n">-host</span> <span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span> <span class="p">-</span><span class="n">-port</span> <span class="n">8000</span>
+</code></pre></div></td></tr></table></div>
+<p>启动成功后会看到类似：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-35-1">1</a></span>
+<span class="normal"><a href="#__codelineno-35-2">2</a></span>
+<span class="normal"><a href="#__codelineno-35-3">3</a></span>
+<span class="normal"><a href="#__codelineno-35-4">4</a></span>
+<span class="normal"><a href="#__codelineno-35-5">5</a></span>
+<span class="normal"><a href="#__codelineno-35-6">6</a></span>
+<span class="normal"><a href="#__codelineno-35-7">7</a></span>
+<span class="normal"><a href="#__codelineno-35-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1"></a>Runtime preflight passed: {
+<a id="__codelineno-35-2" name="__codelineno-35-2"></a>  &quot;scenario_id&quot;: &quot;enterprise_knowledge&quot;,
+<a id="__codelineno-35-3" name="__codelineno-35-3"></a>  &quot;milvus_uri&quot;: &quot;http://localhost:19530&quot;,
+<a id="__codelineno-35-4" name="__codelineno-35-4"></a>  &quot;mysql&quot;: &quot;localhost:3306/subjects_kg&quot;,
+<a id="__codelineno-35-5" name="__codelineno-35-5"></a>  &quot;embedding_model_path&quot;: &quot;models/bge-m3&quot;,
+<a id="__codelineno-35-6" name="__codelineno-35-6"></a>  &quot;reranker_model_path&quot;: &quot;models/bge-reranker-large&quot;,
+<a id="__codelineno-35-7" name="__codelineno-35-7"></a>  &quot;active_kb_version&quot;: &quot;kb_enterprise_knowledge_20260506_103000_9f2a1b3c&quot;
+<a id="__codelineno-35-8" name="__codelineno-35-8"></a>}
+</code></pre></div></td></tr></table></div>
+<p>另开一个 PowerShell 窗口执行验收：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-36-1">1</a></span>
+<span class="normal"><a href="#__codelineno-36-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_project_guardrails</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">api_e2e_smoke</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-base-url</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8000</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="34">3.4 配置变更后如何重启<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p><code>.env.compose</code> 是 API 容器启动时读取的环境文件。<strong>修改 <code>.env.compose</code> 后，不能只执行 <code>docker compose restart api</code>。</strong> <code>restart</code> 通常只重启已有容器，旧容器创建时注入的环境变量可能不会重新加载。</p>
+<p>正确做法是重新创建 API 容器：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-37-1">1</a></span>
+<span class="normal"><a href="#__codelineno-37-2">2</a></span>
+<span class="normal"><a href="#__codelineno-37-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1"></a><span class="n">notepad</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">up</span> <span class="n">-d</span> <span class="p">-</span><span class="n">-force-recreate</span> <span class="n">api</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">logs</span> <span class="p">-</span><span class="n">-tail</span> <span class="n">80</span> <span class="n">api</span>
+</code></pre></div></td></tr></table></div>
+<p>如果 <code>.env.compose</code> 变更涉及镜像构建相关内容，或者你同时修改了 <code>Dockerfile</code>、<code>requirements.txt</code>、依赖包版本，需要重新构建镜像：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-38-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">up</span> <span class="n">-d</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-force-recreate</span> <span class="n">api</span>
+</code></pre></div></td></tr></table></div>
+<p>如果只修改了这些内容，通常不需要重建镜像，只需要重新创建 API 容器：</p>
+<table>
+<thead>
+<tr>
+<th>变更内容</th>
+<th>推荐命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DASHSCOPE_API_KEY</code>、<code>LLM_MODEL</code>、<code>ADMIN_API_TOKEN</code></td>
+<td><code>docker compose --env-file .env.compose up -d --force-recreate api</code></td>
+</tr>
+<tr>
+<td><code>ACTIVE_SCENARIO_ID</code>、<code>LANGSMITH_TRACING</code>、<code>CORS_ALLOW_ORIGINS</code></td>
+<td><code>docker compose --env-file .env.compose up -d --force-recreate api</code></td>
+</tr>
+<tr>
+<td><code>MYSQL_HOST</code>、<code>MILVUS_URI</code>、模型路径</td>
+<td><code>docker compose --env-file .env.compose up -d --force-recreate api</code>，并检查日志</td>
+</tr>
+<tr>
+<td>Python 依赖、Dockerfile、镜像内文件</td>
+<td><code>docker compose --env-file .env.compose up -d --build --force-recreate api</code></td>
+</tr>
+<tr>
+<td>文档/动画</td>
+<td><code>python -m mkdocs build</code>，刷新 <code>/docs</code></td>
+</tr>
+<tr>
+<td>场景资料、静态文件、模型文件</td>
+<td>通常不需要重建镜像；必要时重建知识库或重启 API</td>
+</tr>
+</tbody>
+</table>
+<p>验证 <code>.env.compose</code> 是否已生效：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-39-1">1</a></span>
+<span class="normal"><a href="#__codelineno-39-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">exec</span> <span class="n">api</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">tools</span><span class="p">/</span><span class="n">check_local_runtime</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="n">exec</span> <span class="n">api</span> <span class="n">python</span> <span class="n">-c</span> <span class="s2">&quot;from qa_core.config.settings import get_settings; s=get_settings(); print(&#39;active_scenario_id =&#39;, s.active_scenario_id); print(&#39;milvus_uri =&#39;, s.milvus_uri); print(&#39;mysql_host =&#39;, s.mysql_host); print(&#39;embedding_model_path =&#39;, s.embedding_model_path)&quot;</span>
+</code></pre></div></td></tr></table></div>
+<p>常见误区：</p>
+<ul>
+<li><strong>只改 <code>.env.compose</code> 不重建 API 容器</strong>：页面还在使用旧配置。</li>
+<li><strong>把生产 <code>.env.compose</code> 写成 localhost</strong>：API 容器内的 <code>localhost</code> 指向 API 容器自己，不是宿主机，也不是 Milvus/MySQL 容器。</li>
+<li><strong>改了 <code>ACTIVE_SCENARIO_ID</code> 但没构建该场景知识库</strong>：启动前置校验会失败，提示没有 active KB 版本。</li>
+<li><strong>改了 <code>API_PORT</code> 但访问旧端口</strong>：<code>API_PORT</code> 控制宿主机端口映射，变更后要重新创建容器并访问新端口。</li>
+</ul>
+<p>如果部署在远程虚拟机上，把访问地址中的 <code>127.0.0.1</code> 替换成虚拟机 IP，并同步调整 <code>.env.compose</code> 中的 <code>CORS_ALLOW_ORIGINS</code>。</p>
+<p>如果使用本机 API 调试模式，修改 <code>.env</code> 后直接停止并重新启动 <code>uvicorn</code> 进程；如果修改了 Python 依赖，再执行一次 <code>pip install -r requirements.txt</code>。</p>
+<h3 id="35">3.5 启动前置校验的工作机制<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
+<p>Milvus、MySQL、本地模型、LLM Key、场景配置和 active 知识库版本都是启动必需条件，任一缺失直接启动失败。</p>
+<div class="mermaid">flowchart TD
+    Start["🚀 服务启动"] --> C1{"1️⃣ LLM API Key<br/>是否配置？"}
+    C1 -- "❌ 占位符/空" --> Fail1["❌ 启动失败<br/>DASHSCOPE_API_KEY 未配置"]
+    C1 -- "✅" --> C2{"2️⃣ Admin Token<br/>是否配置？"}
+    C2 -- "❌" --> Fail2["❌ 启动失败<br/>ADMIN_API_TOKEN 未配置"]
+    C2 -- "✅" --> C3{"3️⃣ 模型目录<br/>是否存在？"}
+    C3 -- "❌" --> Fail3["❌ 启动失败<br/>models/bge-m3 不存在"]
+    C3 -- "✅" --> C4{"4️⃣ Milvus TCP<br/>是否可达？"}
+    C4 -- "❌" --> Fail4["❌ 启动失败<br/>Milvus 不可连接"]
+    C4 -- "✅" --> C5{"5️⃣ MySQL TCP<br/>是否可达？"}
+    C5 -- "❌" --> Fail5["❌ 启动失败<br/>MySQL 不可连接"]
+    C5 -- "✅" --> C6{"6️⃣ LLM 连通性<br/>是否正常？"}
+    C6 -- "❌" --> Fail6["❌ 启动失败<br/>LLM 服务不可用"]
+    C6 -- "✅" --> C7{"7️⃣ Active KB<br/>版本是否存在？"}
+    C7 -- "❌" --> Fail7["❌ 启动失败<br/>请先执行入库脚本"]
+    C7 -- "✅" --> C8{"8️⃣ 场景配置<br/>是否完整？"}
+    C8 -- "❌" --> Fail8["❌ 启动失败<br/>场景配置缺失"]
+    C8 -- "✅" --> Warmup["🔥 检索栈预热<br/>加载 8 个场景的<br/>FAQ/Doc Collection"]
+    Warmup --> Ready["✅ 服务就绪<br/>开始接受请求"]
+
+    style Fail1 fill:#FEF2F2,stroke:#DC2626
+    style Fail2 fill:#FEF2F2,stroke:#DC2626
+    style Fail3 fill:#FEF2F2,stroke:#DC2626
+    style Fail4 fill:#FEF2F2,stroke:#DC2626
+    style Fail5 fill:#FEF2F2,stroke:#DC2626
+    style Fail6 fill:#FEF2F2,stroke:#DC2626
+    style Fail7 fill:#FEF2F2,stroke:#DC2626
+    style Fail8 fill:#FEF2F2,stroke:#DC2626
+    style Ready fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style Warmup fill:#EFF6FF,stroke:#2563EB</div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-40-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-40-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-40-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-40-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-40-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-40-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-40-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-40-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-40-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-40-10">10</a></span>
+<span class="normal"><a href="#__codelineno-40-11">11</a></span>
+<span class="normal"><a href="#__codelineno-40-12">12</a></span>
+<span class="normal"><a href="#__codelineno-40-13">13</a></span>
+<span class="normal"><a href="#__codelineno-40-14">14</a></span>
+<span class="normal"><a href="#__codelineno-40-15">15</a></span>
+<span class="normal"><a href="#__codelineno-40-16">16</a></span>
+<span class="normal"><a href="#__codelineno-40-17">17</a></span>
+<span class="normal"><a href="#__codelineno-40-18">18</a></span>
+<span class="normal"><a href="#__codelineno-40-19">19</a></span>
+<span class="normal"><a href="#__codelineno-40-20">20</a></span>
+<span class="normal"><a href="#__codelineno-40-21">21</a></span>
+<span class="normal"><a href="#__codelineno-40-22">22</a></span>
+<span class="normal"><a href="#__codelineno-40-23">23</a></span>
+<span class="normal"><a href="#__codelineno-40-24">24</a></span>
+<span class="normal"><a href="#__codelineno-40-25">25</a></span>
+<span class="normal"><a href="#__codelineno-40-26">26</a></span>
+<span class="normal"><a href="#__codelineno-40-27">27</a></span>
+<span class="normal"><a href="#__codelineno-40-28">28</a></span>
+<span class="normal"><a href="#__codelineno-40-29">29</a></span>
+<span class="normal"><a href="#__codelineno-40-30">30</a></span>
+<span class="normal"><a href="#__codelineno-40-31">31</a></span>
+<span class="normal"><a href="#__codelineno-40-32">32</a></span>
+<span class="normal"><a href="#__codelineno-40-33">33</a></span>
+<span class="normal"><a href="#__codelineno-40-34">34</a></span>
+<span class="normal"><a href="#__codelineno-40-35">35</a></span>
+<span class="normal"><a href="#__codelineno-40-36">36</a></span>
+<span class="normal"><a href="#__codelineno-40-37">37</a></span>
+<span class="normal"><a href="#__codelineno-40-38">38</a></span>
+<span class="normal"><a href="#__codelineno-40-39">39</a></span>
+<span class="normal"><a href="#__codelineno-40-40">40</a></span>
+<span class="normal"><a href="#__codelineno-40-41">41</a></span>
+<span class="normal"><a href="#__codelineno-40-42">42</a></span>
+<span class="normal"><a href="#__codelineno-40-43">43</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1"></a><span class="c1"># qa_core/config/preflight.py — 启动时校验的完整流程</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2"></a><span class="c1">#</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3"></a><span class="c1"># 下方 ── Flowchart Step N ── 标注与上方的 mermaid 流程图步骤对应。</span>
+<a id="__codelineno-40-4" name="__codelineno-40-4"></a><span class="c1"># 流程图 Step 8「场景配置完整性」在代码中展开为多个子校验（配置目录、</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5"></a><span class="c1"># active 场景 ID、文档目录、FAQ 文件），这些子校验在实际执行顺序中</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6"></a><span class="c1"># 位于模型检查之后、基础设施检查之前。</span>
+<a id="__codelineno-40-7" name="__codelineno-40-7"></a>
+<a id="__codelineno-40-8" name="__codelineno-40-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_runtime_environment</span><span class="p">():</span>
+<a id="__codelineno-40-9" name="__codelineno-40-9"></a>    <span class="c1"># ── Flowchart Step 1 ──</span>
+<a id="__codelineno-40-10" name="__codelineno-40-10"></a>    <span class="c1"># 检查 API Key 是否配置（非占位符）</span>
+<a id="__codelineno-40-11" name="__codelineno-40-11"></a>    <span class="k">if</span> <span class="n">_is_placeholder</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">llm_api_key</span><span class="p">):</span>
+<a id="__codelineno-40-12" name="__codelineno-40-12"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;DASHSCOPE_API_KEY 未配置&quot;</span><span class="p">)</span>
+<a id="__codelineno-40-13" name="__codelineno-40-13"></a>
+<a id="__codelineno-40-14" name="__codelineno-40-14"></a>    <span class="c1"># ── Flowchart Step 2 ──</span>
+<a id="__codelineno-40-15" name="__codelineno-40-15"></a>    <span class="c1"># 检查 Admin Token 是否配置</span>
+<a id="__codelineno-40-16" name="__codelineno-40-16"></a>    <span class="k">if</span> <span class="n">_is_placeholder</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span><span class="p">):</span>
+<a id="__codelineno-40-17" name="__codelineno-40-17"></a>        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;ADMIN_API_TOKEN 未配置&quot;</span><span class="p">)</span>
+<a id="__codelineno-40-18" name="__codelineno-40-18"></a>
+<a id="__codelineno-40-19" name="__codelineno-40-19"></a>    <span class="c1"># ── Flowchart Step 3 ──</span>
+<a id="__codelineno-40-20" name="__codelineno-40-20"></a>    <span class="c1"># 检查本地 Embedding / Reranker 模型目录是否存在</span>
+<a id="__codelineno-40-21" name="__codelineno-40-21"></a>    <span class="n">_require_path</span><span class="p">(</span><span class="s2">&quot;Embedding 模型目录&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">embedding_model_path</span><span class="p">)</span>
+<a id="__codelineno-40-22" name="__codelineno-40-22"></a>    <span class="n">_require_path</span><span class="p">(</span><span class="s2">&quot;Reranker 模型目录&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">reranker_model_path</span><span class="p">)</span>
+<a id="__codelineno-40-23" name="__codelineno-40-23"></a>
+<a id="__codelineno-40-24" name="__codelineno-40-24"></a>    <span class="c1"># ── Flowchart Step 8 展开：场景配置完整性 ──</span>
+<a id="__codelineno-40-25" name="__codelineno-40-25"></a>    <span class="n">_require_path</span><span class="p">(</span><span class="s2">&quot;场景配置目录&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">scenario_config_dir</span><span class="p">)</span>
+<a id="__codelineno-40-26" name="__codelineno-40-26"></a>    <span class="c1"># 校验 active_scenario_id 在注册表中存在</span>
+<a id="__codelineno-40-27" name="__codelineno-40-27"></a>    <span class="c1"># 校验场景数据目录和 FAQ CSV 文件</span>
+<a id="__codelineno-40-28" name="__codelineno-40-28"></a>
+<a id="__codelineno-40-29" name="__codelineno-40-29"></a>    <span class="c1"># ── Flowchart Step 4 ──</span>
+<a id="__codelineno-40-30" name="__codelineno-40-30"></a>    <span class="c1"># 检查 Milvus TCP 可达性</span>
+<a id="__codelineno-40-31" name="__codelineno-40-31"></a>    <span class="n">_require_milvus_uri</span><span class="p">()</span>
+<a id="__codelineno-40-32" name="__codelineno-40-32"></a>
+<a id="__codelineno-40-33" name="__codelineno-40-33"></a>    <span class="c1"># ── Flowchart Step 5 ──</span>
+<a id="__codelineno-40-34" name="__codelineno-40-34"></a>    <span class="c1"># 检查 MySQL TCP 可达性</span>
+<a id="__codelineno-40-35" name="__codelineno-40-35"></a>    <span class="n">_require_tcp</span><span class="p">(</span><span class="s2">&quot;MySQL&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">mysql_host</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">mysql_port</span><span class="p">)</span>
+<a id="__codelineno-40-36" name="__codelineno-40-36"></a>
+<a id="__codelineno-40-37" name="__codelineno-40-37"></a>    <span class="c1"># ── Flowchart Step 6 ──</span>
+<a id="__codelineno-40-38" name="__codelineno-40-38"></a>    <span class="c1"># 验证 LLM 真实连通性</span>
+<a id="__codelineno-40-39" name="__codelineno-40-39"></a>    <span class="n">validate_llm_connectivity</span><span class="p">()</span>
+<a id="__codelineno-40-40" name="__codelineno-40-40"></a>
+<a id="__codelineno-40-41" name="__codelineno-40-41"></a>    <span class="c1"># ── Flowchart Step 7 ──</span>
+<a id="__codelineno-40-42" name="__codelineno-40-42"></a>    <span class="c1"># 确认存在 active 知识库版本</span>
+<a id="__codelineno-40-43" name="__codelineno-40-43"></a>    <span class="n">active_version</span> <span class="o">=</span> <span class="n">get_kb_version_store</span><span class="p">(</span><span class="n">scenario</span><span class="o">.</span><span class="n">scenario_id</span><span class="p">)</span><span class="o">.</span><span class="n">resolve_active_version</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计意图</strong>：如果允许部分组件缺失时"降级启动"，就会出现"页面能打开但提问时才报错"的情况。这会让排查路径变得很绕：看起来像前端或网络问题，最后才发现是模型文件没下载。</p>
+<hr />
+<h2 id="_5">本讲实践闭环<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本讲类型</td>
+<td>系统集成</td>
+</tr>
+<tr>
+<td>实践产物</td>
+<td>Docker Compose、<code>.env.compose</code>、基础页面和 API 启动流程</td>
+</tr>
+<tr>
+<td>是否进入最终项目</td>
+<td>是，作为后续所有模块运行底座</td>
+</tr>
+<tr>
+<td>验收方式</td>
+<td><code>docker compose --env-file .env.compose ps</code>、访问页面、执行 API 冒烟测试</td>
+</tr>
+<tr>
+<td>后续落点</td>
+<td>第 12/13/19 讲继续完善 Web 服务、启动校验和生产部署</td>
+</tr>
+</tbody>
+</table>
+<p>通过标准：服务容器处于 running/healthy，页面可访问，API 冒烟请求能返回正常响应。</p>
+<h3 id="0-1">本讲从 0 到 1 实现闭环<a class="headerlink" href="#0-1" title="Permanent link">&para;</a></h3>
+<p>本讲不展开业务算法，重点是把项目运行骨架搭起来。这里先完成“能启动、能访问、能看日志”，不要在第 1 讲就实现完整 RAG。</p>
+<ol>
+<li>先准备 <code>docker-compose.yml</code>，定义 api、mysql、milvus、etcd、minio。</li>
+<li>再准备 <code>.env.compose</code>，配置 LLM、Milvus、MySQL、active 场景。</li>
+<li>然后写最小 <code>app.py</code>，提供 <code>/health</code> 或首页访问。</li>
+<li>最后挂载静态页面，确认前端能请求 API。</li>
+</ol>
+<p>实现完成后，相关运行底座结构应该是下面这张图：</p>
+<div class="mermaid">flowchart LR
+    Compose["docker-compose.yml<br/>api / mysql / milvus / etcd / minio"] --> API["app.py<br/>FastAPI 应用入口"]
+    Env[".env.compose<br/>LLM / Milvus / MySQL / active 场景"] --> API
+    API --> Static["static/<br/>前端页面"]
+    API --> Health["/health<br/>健康检查"]
+    API --> Routers["qa_core/api/*<br/>后续章节逐步补齐路由"]
+    Compose --> MySQL["MySQL<br/>会话/版本/反馈"]
+    Compose --> Milvus["Milvus<br/>向量检索"]</div>
+<p>来源：真实配置文件，见 <code>docker-compose.yml</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-41-1">1</a></span>
+<span class="normal"><a href="#__codelineno-41-2">2</a></span>
+<span class="normal"><a href="#__codelineno-41-3">3</a></span>
+<span class="normal"><a href="#__codelineno-41-4">4</a></span>
+<span class="normal"><a href="#__codelineno-41-5">5</a></span>
+<span class="normal"><a href="#__codelineno-41-6">6</a></span>
+<span class="normal"><a href="#__codelineno-41-7">7</a></span>
+<span class="normal"><a href="#__codelineno-41-8">8</a></span>
+<span class="normal"><a href="#__codelineno-41-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2"></a><span class="w">  </span><span class="nt">api</span><span class="p">:</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;${API_PORT:-8000}:8000&quot;</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6"></a><span class="w">  </span><span class="nt">mysql</span><span class="p">:</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mysql:8.4</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8"></a><span class="w">  </span><span class="nt">milvus</span><span class="p">:</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9"></a><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">milvusdb/milvus:v2.5.15</span>
+</code></pre></div></td></tr></table></div>
+<p>来源：真实配置文件，见 <code>.env.compose.example</code> 和本地 <code>.env.compose</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-42-1">1</a></span>
+<span class="normal"><a href="#__codelineno-42-2">2</a></span>
+<span class="normal"><a href="#__codelineno-42-3">3</a></span>
+<span class="normal"><a href="#__codelineno-42-4">4</a></span>
+<span class="normal"><a href="#__codelineno-42-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1"></a>ACTIVE_SCENARIO_ID=enterprise_knowledge
+<a id="__codelineno-42-2" name="__codelineno-42-2"></a>API_PORT=8000
+<a id="__codelineno-42-3" name="__codelineno-42-3"></a>MILVUS_URI=http://milvus:19530
+<a id="__codelineno-42-4" name="__codelineno-42-4"></a>MYSQL_HOST=mysql
+<a id="__codelineno-42-5" name="__codelineno-42-5"></a>MYSQL_PORT=3306
+</code></pre></div></td></tr></table></div>
+<p>来源：真实代码调用点，见 <code>app.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-43-1">1</a></span>
+<span class="normal"><a href="#__codelineno-43-2">2</a></span>
+<span class="normal"><a href="#__codelineno-43-3">3</a></span>
+<span class="normal"><a href="#__codelineno-43-4">4</a></span>
+<span class="normal"><a href="#__codelineno-43-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;KnowForge RAG Platform&quot;</span><span class="p">)</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2"></a>
+<a id="__codelineno-43-3" name="__codelineno-43-3"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/health&quot;</span><span class="p">)</span>
+<a id="__codelineno-43-4" name="__codelineno-43-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">health</span><span class="p">():</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<p>来源：命令行验收，对应 Docker Compose 启动流程。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-44-1">1</a></span>
+<span class="normal"><a href="#__codelineno-44-2">2</a></span>
+<span class="normal"><a href="#__codelineno-44-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1"></a><span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">deploy_docker</span><span class="p">.</span><span class="n">ps1</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2"></a><span class="n">docker</span> <span class="n">compose</span> <span class="p">-</span><span class="n">-env</span><span class="o">-file</span> <span class="p">.</span><span class="n">env</span><span class="p">.</span><span class="n">compose</span> <span class="nb">ps</span>
+<a id="__codelineno-44-3" name="__codelineno-44-3"></a><span class="nb">Invoke-RestMethod</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8000</span><span class="p">/</span><span class="n">health</span>
+</code></pre></div></td></tr></table></div>
+<p>闭环验证重点：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>验证方式</th>
+<th>期望结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器启动</td>
+<td><code>docker compose --env-file .env.compose ps</code></td>
+<td>api、mysql、milvus 等服务处于 running/healthy</td>
+</tr>
+<tr>
+<td>配置读取</td>
+<td>查看 API 日志</td>
+<td><code>.env.compose</code> 中的 active 场景、Milvus、MySQL 配置被加载</td>
+</tr>
+<tr>
+<td>健康检查</td>
+<td><code>Invoke-RestMethod http://127.0.0.1:8000/health</code></td>
+<td>返回正常状态</td>
+</tr>
+<tr>
+<td>页面访问</td>
+<td>浏览器打开站点</td>
+<td>前端页面可加载</td>
+</tr>
+<tr>
+<td>日志定位</td>
+<td>故意缺少关键配置</td>
+<td>启动日志能提示问题方向</td>
+</tr>
+</tbody>
+</table>
+<p>建议先只做“能启动、能访问、能看日志”，不要在第 1 讲就实现完整 RAG。</p>
+<h2 id="_6">重点掌握<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>RAG 核心概念（检索+生成、开卷考试类比、解决幻觉/私有知识问题）</td>
+<td>本项目的根本出发点，所有后续内容建立在此之上</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>离线链路（文档加载→切分→向量化→存储）和在线链路（意图识别→检索→重排→生成）的职责划分</td>
+<td>理解两条链路的边界是理解整个项目架构的钥匙</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>全景架构图的五层分层（用户入口→路由→核心引擎→外部依赖→入库）</td>
+<td>每一层各司其职，面试高频考点</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>部署架构：宿主机（FastAPI）、Docker（Milvus/MySQL）、本地模型（BGE-M3/Reranker）、云服务（DashScope）分别部署的原因</td>
+<td>理解每类组件的部署选型依据</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>向量检索的基本概念（语义相似度 vs 关键词匹配）</td>
+<td>为第 2 讲深入做铺垫</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>20 步问答链路走读（从用户输入到 end 事件的完整路径）</td>
+<td>串联全部模块的整体认知</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>三条特殊路径（问候/越界快速通道、FAQ 直出通道、追问改写通道）</td>
+<td>理解 RAG 的分支逻辑</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>项目启动的 7 个步骤和前置校验</td>
+<td>实操需要，但非概念重点</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>8 大业务场景和核心模块一览</td>
+<td>了解项目覆盖范围即可</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">本讲小结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li>RAG = 检索 + 生成，让 LLM 能够基于外部知识库回答，解决幻觉和私有知识问题</li>
+<li>向量检索通过语义相似度（而非关键词匹配）找到相关文档</li>
+<li>本项目采用 FastAPI + LangChain + Milvus + BGE-M3 + DashScope 的技术栈</li>
+<li>启动前需要完整的环境配置，项目不做技术降级</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./02-rag-fundamentals.html">RAG 核心概念深入</a> — 向量检索原理、Embedding 模型、混合检索策略</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/course-outline.html"><i class="fas fa-arrow-left"></i> 课程大纲</a>
+        <a class="pager-link next" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  if (window.mermaid) {
+    mermaid.run({querySelector:".mermaid"});
+  }
+})();
+</script>
+</body>
+</html>

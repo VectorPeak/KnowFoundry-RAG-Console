@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第12讲：FastAPI 与异步 Web 框架 — KnowForge RAG Platform 讲义</title>
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({startOnLoad:false,theme:"default"}); }</script>
+<script>
+window.MathJax = {
+  loader: { paths: { mathjax: "/static/js/vendor/mathjax" } },
+  options: { enableAssistiveMml: false }
+};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/business-flow.html">📊 业务流程图</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/course-outline.html">课程大纲</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link active" href="/docs/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-f-embedding-models.html">F Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-g-chunking-strategy.html">G 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-h-tool-foundations.html">H 项目工具类开发详解</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="12fastapi-web">第12讲：FastAPI 与异步 Web 框架<a class="headerlink" href="#12fastapi-web" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./11-prompt-engineering.html">Prompt 工程与 Profile 系统</a>
+<strong>下一讲</strong>：<a href="./13-app-entry-preflight.html">应用入口与环境前置校验</a></p>
+<blockquote>
+<h2 id="_1">本讲定位<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>P0 主链路（第 3-11 讲）你已经学完了 LangChain 和完整的 RAG 管线。接下来两讲（本讲 + 第 13 讲）进入 Web 服务基础设施——理解整个项目运行在什么"骨架"上。</p>
+<p>本讲先讲 FastAPI 框架本身（async/await、路由、WebSocket），第 13 讲再讲基于 FastAPI 的应用入口和启动校验。学完这两讲，你对第 9-10 讲（QAService、Pipeline）中用到的 <code>async def</code>、<code>yield</code>、WebSocket 事件推送将有透彻理解。</p>
+</blockquote>
+<h2 id="_2">本讲目标<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解同步 vs 异步编程在 Web 服务中的区别</li>
+<li>掌握 FastAPI 的核心概念：路由、中间件、依赖注入</li>
+<li>理解 WebSocket 协议及其在流式输出中的应用</li>
+<li>读懂本项目的 API 层代码</li>
+</ul>
+<hr />
+<h2 id="vs">第一部分：前置知识 — 同步 vs 异步<a class="headerlink" href="#vs" title="Permanent link">&para;</a></h2>
+<h3 id="11-web">1.1 传统同步 Web 服务的瓶颈<a class="headerlink" href="#11-web" title="Permanent link">&para;</a></h3>
+<p>假设一个 Web 服务收到一个请求，需要做三件事：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>请求 → 查数据库(100ms) → 调外部API(200ms) → 查Milvus(150ms) → 返回
+</code></pre></div></td></tr></table></div>
+<p>在传统的同步模型（如 Flask 默认模式）中：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>时间线（3个请求先后到达）：
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>Req1: [===查DB===][===调API===][===查Milvus===]         (450ms)
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>Req2:                                            [===查DB===][===调API===][===查Milvus===] (450ms)
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>Req3:                                                                                     [===等...===]
+</code></pre></div></td></tr></table></div>
+<p>每个请求必须等前一个请求完全处理完才开始。当有 100 个并发请求时，第 100 个用户要等 45 秒。</p>
+<p>这是因为同步模型用<strong>线程</strong>处理并发，每个请求占用一个线程。当线程在等数据库返回时，它什么也不做，只是"阻塞"在那里。</p>
+<h3 id="12-async">1.2 异步（Async）模型<a class="headerlink" href="#12-async" title="Permanent link">&para;</a></h3>
+<p>异步模型的核心思想：当一个操作在等待时（如等待数据库返回），切换到处理另一个请求。</p>
+<div class="mermaid">gantt
+    title 同步 vs 异步请求处理对比
+    dateFormat X
+    axisFormat %s
+
+    section 同步模式 3线程
+    Req1-等待DB :r1a, 0, 100
+    Req1-等待API:r1b, 100, 200
+    Req1-等待Milvus:r1c, 200, 300
+    Req2-等待DB :r2a, 300, 400
+    Req2-等待API:r2b, 400, 500
+    Req2-等待Milvus:r2c, 500, 600
+    Req3-等待DB :r3a, 600, 700
+    Req3-等待API:r3b, 700, 800
+    Req3-等待Milvus:r3c, 800, 900
+
+    section 异步模式 事件循环
+    Req1-DB :e1a, 0, 40
+    Req2-DB :e2a, 40, 80
+    Req3-DB :e3a, 80, 120
+    Req1-API:e1b, 120, 160
+    Req2-API:e2b, 160, 200
+    Req3-API:e3b, 200, 240
+    Req1-Milvus:e1c, 240, 280
+    Req2-Milvus:e2c, 280, 320
+    Req3-Milvus:e3c, 320, 360</div>
+<div class="mermaid">sequenceDiagram
+    participant U1 as 用户1
+    participant U2 as 用户2
+    participant S as 异步服务器
+
+    U1->>S: 请求1 需要等DB
+    Note over S: await db.query 让出CPU
+    U2->>S: 请求2 需要等API
+    Note over S: await api.call 让出CPU
+    S-->>U1: 请求1 DB返回 继续处理
+    Note over S: CPU从未空闲
+    S-->>U2: 请求2 API返回 继续处理
+    S-->>U1: 请求1 完成
+    S-->>U2: 请求2 完成</div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
+<span class="normal"><a href="#__codelineno-2-2">2</a></span>
+<span class="normal"><a href="#__codelineno-2-3">3</a></span>
+<span class="normal"><a href="#__codelineno-2-4">4</a></span>
+<span class="normal"><a href="#__codelineno-2-5">5</a></span>
+<span class="normal"><a href="#__codelineno-2-6">6</a></span>
+<span class="normal"><a href="#__codelineno-2-7">7</a></span>
+<span class="normal"><a href="#__codelineno-2-8">8</a></span>
+<span class="normal"><a href="#__codelineno-2-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1"># 同步写法</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users WHERE id = ?&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>  <span class="c1"># 阻塞在这里</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>    <span class="k">return</span> <span class="n">result</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="c1"># 异步写法</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM users WHERE id = ?&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>  <span class="c1"># await = 可以切换</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div></td></tr></table></div>
+<p><code>await</code> 关键字的意思是："这个操作需要等待，我先让出 CPU 去处理其他请求，等结果回来了再继续执行"。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
+<span class="normal"><a href="#__codelineno-3-2">2</a></span>
+<span class="normal"><a href="#__codelineno-3-3">3</a></span>
+<span class="normal"><a href="#__codelineno-3-4">4</a></span>
+<span class="normal"><a href="#__codelineno-3-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a>时间线（3个请求在异步模型中）：
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>Req1: [查DB][     ][调API][     ][查Milv][     ]
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>Req2:      [查DB][     ][调API][     ][查Milv]
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>Req3:           [查DB][     ][调API][     ][查Milv]
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>                    ↑ CPU 在等待间隙处理其他请求
+</code></pre></div></td></tr></table></div>
+<p>所有请求的总完成时间大幅缩短。因为服务器在等待 I/O 的时候不会闲着。</p>
+<h3 id="13-asyncawait">1.3 async/await 核心语法<a class="headerlink" href="#13-asyncawait" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="c1"># async def 定义一个协程函数</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">fetch_data</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>    <span class="c1"># await 等待一个可等待对象（协程、Task、Future）</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">http_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="c1"># 在 async 函数内部才能用 await</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fetch_data</span><span class="p">(</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="c1"># 运行方式</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>关键区别</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>同步</th>
+<th>异步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>def func()</code></td>
+<td><code>async def func()</code></td>
+</tr>
+<tr>
+<td><code>requests.get(url)</code></td>
+<td><code>await httpx.AsyncClient().get(url)</code></td>
+</tr>
+<tr>
+<td><code>time.sleep(1)</code></td>
+<td><code>await asyncio.sleep(1)</code></td>
+</tr>
+<tr>
+<td>多线程处理并发</td>
+<td>单线程事件循环处理并发</td>
+</tr>
+</tbody>
+</table>
+<h3 id="14-rag">1.4 为什么 RAG 系统需要异步<a class="headerlink" href="#14-rag" title="Permanent link">&para;</a></h3>
+<p>RAG 系统是典型的 <strong>I/O 密集型</strong> 应用：</p>
+<ul>
+<li>查 Milvus（网络 I/O）</li>
+<li>调 LLM API（网络 I/O）</li>
+<li>读 MySQL 历史（网络 I/O）</li>
+<li>读 Embedding 模型文件（磁盘 I/O）</li>
+<li>计算 Embedding（CPU 密集型，用 <code>asyncio.to_thread</code> 放到线程池）</li>
+</ul>
+<p>这些操作中，大部分时间都在等待外部系统响应。异步模型可以让服务器在等待期间处理其他用户的请求。</p>
+<hr />
+<h2 id="fastapi">第二部分：FastAPI 基础<a class="headerlink" href="#fastapi" title="Permanent link">&para;</a></h2>
+<h3 id="21-fastapi">2.1 FastAPI 是什么<a class="headerlink" href="#21-fastapi" title="Permanent link">&para;</a></h3>
+<p>FastAPI 是一个现代 Python Web 框架，专为构建 API 设计。它的核心特点：</p>
+<ol>
+<li><strong>原生异步支持</strong>：直接使用 <code>async/await</code>，不依赖第三方层</li>
+<li><strong>自动生成 OpenAPI 文档</strong>：访问 <code>/docs</code> 即可看到 Swagger UI</li>
+<li><strong>基于 Pydantic 的数据校验</strong>：请求和响应自动校验类型</li>
+<li><strong>WebSocket 支持</strong>：内置双向通信协议</li>
+</ol>
+<h3 id="22-fastapi">2.2 最小 FastAPI 应用<a class="headerlink" href="#22-fastapi" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;我的 API&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/hello&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">():</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;item_id&quot;</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">q</span><span class="p">}</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="c1"># 运行：uvicorn main:app --reload</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="23-router">2.3 路由（Router）<a class="headerlink" href="#23-router" title="Permanent link">&para;</a></h3>
+<p>当 API 变多时，把所有端点写在 <code>app.py</code> 会导致文件很长。FastAPI 提供了 <code>APIRouter</code> 来做模块化拆分：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span>
+<span class="normal"><a href="#__codelineno-6-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="c1"># qa_core/api/chat.py</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">APIRouter</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">()</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>    <span class="o">...</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/history/</span><span class="si">{session_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_history</span><span class="p">(</span><span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a>    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span>
+<span class="normal"><a href="#__codelineno-7-4">4</a></span>
+<span class="normal"><a href="#__codelineno-7-5">5</a></span>
+<span class="normal"><a href="#__codelineno-7-6">6</a></span>
+<span class="normal"><a href="#__codelineno-7-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># app.py — 注册路由</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">qa_core.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">chat</span><span class="p">,</span> <span class="n">admin</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">kb_versions</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">pages</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">chat</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">kb_versions</span><span class="o">.</span><span class="n">router</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="24-pydantic">2.4 Pydantic 数据校验<a class="headerlink" href="#24-pydantic" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>前置知识</strong>：如果你不熟悉 Pydantic，请先阅读 <a href="./appendix/appendix-a-pydantic.html">附录A：Pydantic 数据校验</a></p>
+</blockquote>
+<p>FastAPI 使用 Pydantic 模型做请求/响应的自动校验。当前项目里，在线问答只走 WebSocket payload；HTTP 请求模型只保留给检索诊断接口：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-8-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-8-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-8-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-8-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-8-10">10</a></span>
+<span class="normal"><a href="#__codelineno-8-11">11</a></span>
+<span class="normal"><a href="#__codelineno-8-12">12</a></span>
+<span class="normal"><a href="#__codelineno-8-13">13</a></span>
+<span class="normal"><a href="#__codelineno-8-14">14</a></span>
+<span class="normal"><a href="#__codelineno-8-15">15</a></span>
+<span class="normal"><a href="#__codelineno-8-16">16</a></span>
+<span class="normal"><a href="#__codelineno-8-17">17</a></span>
+<span class="normal"><a href="#__codelineno-8-18">18</a></span>
+<span class="normal"><a href="#__codelineno-8-19">19</a></span>
+<span class="normal"><a href="#__codelineno-8-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">RetrievalDebugRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;POST /api/retrieval/debug 的请求体。&quot;&quot;&quot;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a>    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>    <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a>    <span class="n">scenario_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a>    <span class="n">source_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a>    <span class="n">tenant_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11"></a>    <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12"></a>    <span class="n">visibility</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13"></a>    <span class="n">user_role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14"></a>    <span class="n">user_roles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15"></a>    <span class="n">kb_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16"></a>
+<a id="__codelineno-8-17" name="__codelineno-8-17"></a><span class="c1"># FastAPI 会自动：</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18"></a><span class="c1"># 1. 检查 query 最短为 1 个字符</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19"></a><span class="c1"># 2. 把 JSON 中的字段映射到对象属性</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20"></a><span class="c1"># 3. 如果缺少必填字段或类型不对，返回 422 错误（附带清晰的错误信息）</span>
+</code></pre></div></td></tr></table></div>
+<p>设计口径：不要再为在线问答保留单独的 HTTP 请求模型。浏览器提问直接连 <code>WebSocket /api/stream</code>，检索诊断才使用 <code>RetrievalDebugRequest</code>。</p>
+<h3 id="25-cors">2.5 CORS 中间件<a class="headerlink" href="#25-cors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span>
+<span class="normal"><a href="#__codelineno-9-2">2</a></span>
+<span class="normal"><a href="#__codelineno-9-3">3</a></span>
+<span class="normal"><a href="#__codelineno-9-4">4</a></span>
+<span class="normal"><a href="#__codelineno-9-5">5</a></span>
+<span class="normal"><a href="#__codelineno-9-6">6</a></span>
+<span class="normal"><a href="#__codelineno-9-7">7</a></span>
+<span class="normal"><a href="#__codelineno-9-8">8</a></span>
+<span class="normal"><a href="#__codelineno-9-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.middleware.cors</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORSMiddleware</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>    <span class="n">CORSMiddleware</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>    <span class="n">allow_origins</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">cors_allow_origins</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>    <span class="n">allow_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>    <span class="n">allow_methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">,</span> <span class="s2">&quot;OPTIONS&quot;</span><span class="p">],</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a>    <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>CORS（跨域资源共享）</strong> 是浏览器的安全机制。默认情况下，<code>http://localhost:3000</code> 上的前端页面不能请求 <code>http://localhost:8000</code> 的 API。CORS 中间件告诉浏览器哪些来源被允许跨域访问。</p>
+<h3 id="26">2.6 启动事件与依赖注入<a class="headerlink" href="#26" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-10-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-10-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-10-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-10-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-10-10">10</a></span>
+<span class="normal"><a href="#__codelineno-10-11">11</a></span>
+<span class="normal"><a href="#__codelineno-10-12">12</a></span>
+<span class="normal"><a href="#__codelineno-10-13">13</a></span>
+<span class="normal"><a href="#__codelineno-10-14">14</a></span>
+<span class="normal"><a href="#__codelineno-10-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="c1"># 启动事件：服务启动时执行一次</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="nd">@app</span><span class="o">.</span><span class="n">on_event</span><span class="p">(</span><span class="s2">&quot;startup&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">warmup_runtime</span><span class="p">():</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>    <span class="n">validate_runtime_environment</span><span class="p">()</span>  <span class="c1"># 校验环境</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>    <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">warmup_retrieval_stack</span><span class="p">)</span>  <span class="c1"># 预热模型</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a><span class="c1"># 依赖注入：在路由函数执行前注入共享资源</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">require_admin_token</span><span class="p">(</span><span class="n">x_admin_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Header</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="o">...</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12"></a>
+<a id="__codelineno-10-13" name="__codelineno-10-13"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/admin/langsmith&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_langsmith_status</span><span class="p">(</span><span class="n">_</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">require_admin_token</span><span class="p">)):</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15"></a>    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<p><strong><code>asyncio.to_thread</code></strong> 的作用：把 CPU 密集或阻塞操作放到线程池中执行，避免阻塞事件循环。BGE-M3 模型加载和 Milvus 连接预热都是阻塞操作，但它们只在启动时执行一次，所以放到线程池中是最合适的做法。</p>
+<hr />
+<h2 id="websocket">第三部分：WebSocket 协议<a class="headerlink" href="#websocket" title="Permanent link">&para;</a></h2>
+<h3 id="31-websocket">3.1 为什么需要 WebSocket<a class="headerlink" href="#31-websocket" title="Permanent link">&para;</a></h3>
+<p>HTTP 协议是"请求-响应"模式：客户端发一个请求，服务端返回一个响应，通信就结束了。</p>
+<p>RAG 系统的答案生成有个特点：<strong>LLM 是一个 token 一个 token 生成的</strong>。如果等完整答案生成完再返回，用户可能等 5-10 秒才能看到任何内容。</p>
+<p>WebSocket 是<strong>全双工通信协议</strong>：建立连接后，服务端可以持续向客户端推送消息，不需要客户端反复请求。</p>
+<h3 id="32-http-vs-websocket">3.2 HTTP vs WebSocket 对比<a class="headerlink" href="#32-http-vs-websocket" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-11-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-11-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-11-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-11-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-11-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-11-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-11-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-11-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-11-10">10</a></span>
+<span class="normal"><a href="#__codelineno-11-11">11</a></span>
+<span class="normal"><a href="#__codelineno-11-12">12</a></span>
+<span class="normal"><a href="#__codelineno-11-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a>HTTP:
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a>  客户端 ──请求──→ 服务端
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>  客户端 ←──响应── 服务端
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a>  （连接关闭，下次需要重新建立）
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6"></a>WebSocket:
+<a id="__codelineno-11-7" name="__codelineno-11-7"></a>  客户端 ──握手──→ 服务端
+<a id="__codelineno-11-8" name="__codelineno-11-8"></a>  客户端 ←──确认── 服务端
+<a id="__codelineno-11-9" name="__codelineno-11-9"></a>  客户端 ←──消息1─ 服务端  （逐 token 推送）
+<a id="__codelineno-11-10" name="__codelineno-11-10"></a>  客户端 ←──消息2─ 服务端
+<a id="__codelineno-11-11" name="__codelineno-11-11"></a>  客户端 ←──消息3─ 服务端
+<a id="__codelineno-11-12" name="__codelineno-11-12"></a>  ...
+<a id="__codelineno-11-13" name="__codelineno-11-13"></a>  客户端 ←──关闭── 服务端
+</code></pre></div></td></tr></table></div>
+<h3 id="33-websocket">3.3 本项目中的 WebSocket 实现<a class="headerlink" href="#33-websocket" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-12-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-12-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-12-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-12-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-12-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-12-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-12-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-12-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-12-10">10</a></span>
+<span class="normal"><a href="#__codelineno-12-11">11</a></span>
+<span class="normal"><a href="#__codelineno-12-12">12</a></span>
+<span class="normal"><a href="#__codelineno-12-13">13</a></span>
+<span class="normal"><a href="#__codelineno-12-14">14</a></span>
+<span class="normal"><a href="#__codelineno-12-15">15</a></span>
+<span class="normal"><a href="#__codelineno-12-16">16</a></span>
+<span class="normal"><a href="#__codelineno-12-17">17</a></span>
+<span class="normal"><a href="#__codelineno-12-18">18</a></span>
+<span class="normal"><a href="#__codelineno-12-19">19</a></span>
+<span class="normal"><a href="#__codelineno-12-20">20</a></span>
+<span class="normal"><a href="#__codelineno-12-21">21</a></span>
+<span class="normal"><a href="#__codelineno-12-22">22</a></span>
+<span class="normal"><a href="#__codelineno-12-23">23</a></span>
+<span class="normal"><a href="#__codelineno-12-24">24</a></span>
+<span class="normal"><a href="#__codelineno-12-25">25</a></span>
+<span class="normal"><a href="#__codelineno-12-26">26</a></span>
+<span class="normal"><a href="#__codelineno-12-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="c1"># qa_core/api/chat.py — 简化的 WebSocket 流式问答</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a>    <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>  <span class="c1"># 接受连接</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8"></a>        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">receive_text</span><span class="p">()</span>  <span class="c1"># 接收原始 JSON 字符串</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9"></a>        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>  <span class="c1"># 手动解析 JSON</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10"></a>        <span class="n">service</span> <span class="o">=</span> <span class="n">get_qa_service</span><span class="p">()</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11"></a>
+<a id="__codelineno-12-12" name="__codelineno-12-12"></a>        <span class="c1"># stream_query 返回一个同步 Generator</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13"></a>        <span class="c1"># asyncio.to_thread 把它放到线程池中执行</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14"></a>        <span class="c1"># 每次 yield 生成一个事件，我们通过 WebSocket 发送</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15"></a>        <span class="n">generator</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16"></a>            <span class="k">lambda</span><span class="p">:</span> <span class="n">service</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17"></a>                <span class="n">query</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">],</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18"></a>                <span class="n">session_id</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;session_id&quot;</span><span class="p">),</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19"></a>                <span class="o">...</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20"></a>            <span class="p">)</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21"></a>        <span class="p">)</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22"></a>
+<a id="__codelineno-12-23" name="__codelineno-12-23"></a>        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">:</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>  <span class="c1"># 推送事件给前端</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25"></a>
+<a id="__codelineno-12-26" name="__codelineno-12-26"></a>    <span class="k">except</span> <span class="n">WebSocketDisconnect</span><span class="p">:</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27"></a>        <span class="k">pass</span>  <span class="c1"># 用户关闭页面，正常处理</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="34">3.4 流式事件协议<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p>本项目定义了一套事件协议，主流程通过 Generator 产出不同事件：</p>
+<p><div class="mermaid">sequenceDiagram
+    participant U as 浏览器
+    participant WS as WebSocket流
+    participant S as QAService
+    participant M as Milvus
+    participant L as LLM
+
+    U->>WS: 发送 query + session_id
+    WS->>S: stream_query
+
+    S-->>WS: type: start
+    WS-->>U: 创建答案区域
+
+    S-->>WS: type: status 识别意图
+    WS-->>U: 更新进度提示
+
+    S-->>WS: type: status 检索FAQ
+    S->>M: FAQ Hybrid Search
+
+    S-->>WS: type: status 生成回答
+    S->>L: stream prompt
+
+    loop LLM 逐个 token 生成
+        L-->>S: token chunk
+        S-->>WS: type: token 内容
+        WS-->>U: 追加字符
+    end
+
+    S-->>WS: type: end 含sources等
+    WS-->>U: 显示来源引用</div>
+{"type": "start", "session_id": "..."}
+    # ↓ 告知前端：请求已接收，准备展示答案区域</p>
+<p>{"type": "status", "message": "正在识别问题意图..."}
+    # ↓ 告知前端：当前进行到哪一步了</p>
+<p>{"type": "token", "content": "入职"}
+{"type": "token", "content": "流程"}
+{"type": "token", "content": "包括"}
+    # ↓ 逐字推送，前端实时渲染</p>
+<p>{"type": "end", "sources": [...], "intent": {...}, "retrieval": {...}}
+    # ↓ 告知前端：回答完毕，附带来源引用和诊断信息
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-13-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-13-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-13-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-13-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-13-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-13-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-13-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-13-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-13-10">10</a></span>
+<span class="normal"><a href="#__codelineno-13-11">11</a></span>
+<span class="normal"><a href="#__codelineno-13-12">12</a></span>
+<span class="normal"><a href="#__codelineno-13-13">13</a></span>
+<span class="normal"><a href="#__codelineno-13-14">14</a></span>
+<span class="normal"><a href="#__codelineno-13-15">15</a></span>
+<span class="normal"><a href="#__codelineno-13-16">16</a></span>
+<span class="normal"><a href="#__codelineno-13-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>**设计要点**：
+<a id="__codelineno-13-2" name="__codelineno-13-2"></a>- `status` 事件让用户知道系统在做什么，不是卡住了
+<a id="__codelineno-13-3" name="__codelineno-13-3"></a>- `token` 事件让答案逐步出现，体验类似 ChatGPT
+<a id="__codelineno-13-4" name="__codelineno-13-4"></a>- `end` 事件携带诊断信息，方便前端展示&quot;参考来源 X 条&quot;、命中路径、耗时等
+<a id="__codelineno-13-5" name="__codelineno-13-5"></a>
+<a id="__codelineno-13-6" name="__codelineno-13-6"></a>### 3.5 为什么用同步 Generator 而非异步 Generator
+<a id="__codelineno-13-7" name="__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8"></a>```python
+<a id="__codelineno-13-9" name="__codelineno-13-9"></a># 本项目使用同步 Generator
+<a id="__codelineno-13-10" name="__codelineno-13-10"></a>def stream_query(...) -&gt; Generator[dict, None, None]:
+<a id="__codelineno-13-11" name="__codelineno-13-11"></a>    yield {&quot;type&quot;: &quot;status&quot;, ...}
+<a id="__codelineno-13-12" name="__codelineno-13-12"></a>    # Milvus 检索（同步）
+<a id="__codelineno-13-13" name="__codelineno-13-13"></a>    # LLM 流式调用（同步）
+<a id="__codelineno-13-14" name="__codelineno-13-14"></a>    yield {&quot;type&quot;: &quot;token&quot;, ...}
+<a id="__codelineno-13-15" name="__codelineno-13-15"></a>
+<a id="__codelineno-13-16" name="__codelineno-13-16"></a># FastAPI 层用 asyncio.to_thread 包裹
+<a id="__codelineno-13-17" name="__codelineno-13-17"></a>generator = await asyncio.to_thread(lambda: service.stream_query(...))
+</code></pre></div></td></tr></table></div></p>
+<p>原因：
+1. LangChain 的 Milvus 检索和 ChatOpenAI 流式调用的底层是同步的
+2. <code>asyncio.to_thread</code> 将整个同步流程放到线程池，不阻塞事件循环
+3. 保持业务代码简洁，不需要在每一层都写 async/await</p>
+<hr />
+<h2 id="api">第四部分：本项目 API 层详解<a class="headerlink" href="#api" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 路由拆分架构<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-14-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-14-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-14-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-14-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-14-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-14-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-14-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-14-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-14-10">10</a></span>
+<span class="normal"><a href="#__codelineno-14-11">11</a></span>
+<span class="normal"><a href="#__codelineno-14-12">12</a></span>
+<span class="normal"><a href="#__codelineno-14-13">13</a></span>
+<span class="normal"><a href="#__codelineno-14-14">14</a></span>
+<span class="normal"><a href="#__codelineno-14-15">15</a></span>
+<span class="normal"><a href="#__codelineno-14-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a>app.py  ← 极薄入口：创建 FastAPI、CORS、静态资源、注册路由
+<a id="__codelineno-14-2" name="__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3"></a>qa_core/api/
+<a id="__codelineno-14-4" name="__codelineno-14-4"></a>├── pages.py       ← GET /, GET /admin, GET /health, POST /api/create_session
+<a id="__codelineno-14-5" name="__codelineno-14-5"></a>├── chat.py        ← WS /api/stream, GET /api/history/{id},
+<a id="__codelineno-14-6" name="__codelineno-14-6"></a>│                     DELETE /api/history/{id}, POST /api/feedback,
+<a id="__codelineno-14-7" name="__codelineno-14-7"></a>│                     POST /api/retrieval/debug, GET /api/sources,
+<a id="__codelineno-14-8" name="__codelineno-14-8"></a>│                     GET /api/scenarios
+<a id="__codelineno-14-9" name="__codelineno-14-9"></a>├── admin.py       ← GET /api/admin/status, GET /api/admin/langsmith,
+<a id="__codelineno-14-10" name="__codelineno-14-10"></a>│                     GET /api/admin/ingestion_reports,
+<a id="__codelineno-14-11" name="__codelineno-14-11"></a>│                     GET /api/admin/kb_version_compare,
+<a id="__codelineno-14-12" name="__codelineno-14-12"></a>│                     GET /api/admin/gate_reports, GET /api/admin/performance_reports,
+<a id="__codelineno-14-13" name="__codelineno-14-13"></a>│                     GET /api/admin/enterprise_governance
+<a id="__codelineno-14-14" name="__codelineno-14-14"></a>└── kb_versions.py ← GET /api/kb_versions,
+<a id="__codelineno-14-15" name="__codelineno-14-15"></a>                      POST /api/kb_versions/{kb_version}/activate,
+<a id="__codelineno-14-16" name="__codelineno-14-16"></a>                      POST /api/kb_versions/{kb_version}/archive
+</code></pre></div></td></tr></table></div>
+<h3 id="42-websocket-apistream">4.2 在线问答唯一入口：WebSocket /api/stream<a class="headerlink" href="#42-websocket-apistream" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-15-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-15-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-15-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-15-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-15-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-15-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-15-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-15-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-15-10">10</a></span>
+<span class="normal"><a href="#__codelineno-15-11">11</a></span>
+<span class="normal"><a href="#__codelineno-15-12">12</a></span>
+<span class="normal"><a href="#__codelineno-15-13">13</a></span>
+<span class="normal"><a href="#__codelineno-15-14">14</a></span>
+<span class="normal"><a href="#__codelineno-15-15">15</a></span>
+<span class="normal"><a href="#__codelineno-15-16">16</a></span>
+<span class="normal"><a href="#__codelineno-15-17">17</a></span>
+<span class="normal"><a href="#__codelineno-15-18">18</a></span>
+<span class="normal"><a href="#__codelineno-15-19">19</a></span>
+<span class="normal"><a href="#__codelineno-15-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3"></a>    <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5"></a>        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">receive_text</span><span class="p">()</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_rate_limit</span><span class="p">(</span><span class="n">client_key</span><span class="p">(</span><span class="n">websocket</span><span class="p">)):</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;请求过于频繁，请稍后再试。&quot;</span><span class="p">})</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8"></a>            <span class="k">continue</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9"></a>
+<a id="__codelineno-15-10" name="__codelineno-15-10"></a>        <span class="n">request_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11"></a>        <span class="n">context</span> <span class="o">=</span> <span class="n">QueryServiceContext</span><span class="o">.</span><span class="n">from_ws_payload</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12"></a>        <span class="n">stream</span> <span class="o">=</span> <span class="n">get_qa_service</span><span class="p">()</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span><span class="o">*</span><span class="n">context</span><span class="o">.</span><span class="n">service_args</span><span class="p">())</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13"></a>
+<a id="__codelineno-15-14" name="__codelineno-15-14"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15"></a>            <span class="n">has_event</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">_next_stream_event</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_event</span><span class="p">:</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17"></a>                <span class="k">break</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+<a id="__codelineno-15-19" name="__codelineno-15-19"></a>            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;end&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">}:</span>
+<a id="__codelineno-15-20" name="__codelineno-15-20"></a>                <span class="k">break</span>
+</code></pre></div></td></tr></table></div>
+<p>前端逻辑：
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span>
+<span class="normal"><a href="#__codelineno-16-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ws</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">WebSocket</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">protocol</span><span class="si">}</span><span class="sb">//</span><span class="si">${</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">host</span><span class="si">}</span><span class="sb">/api/stream`</span><span class="p">);</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a><span class="nx">ws</span><span class="p">.</span><span class="nx">onopen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">query</span><span class="p">,</span><span class="w"> </span><span class="nx">session_id</span><span class="p">,</span><span class="w"> </span><span class="nx">scenario_id</span><span class="p">,</span><span class="w"> </span><span class="nx">source_filter</span><span class="w"> </span><span class="p">}));</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3"></a><span class="nx">ws</span><span class="p">.</span><span class="nx">onmessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">message</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">renderStreamEvent</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">data</span><span class="p">));</span>
+</code></pre></div></td></tr></table></div></p>
+<p><strong>设计意图</strong>：
+- 在线问答只走一套连接、限流、事件协议和历史写入逻辑
+- 问候、越界、转人工等直答在 Pipeline 意图识别阶段通过 WebSocket 事件返回
+- FAQ 命中、文档检索、LLM 生成也沿用同一条事件链路，避免 HTTP 与 WebSocket 两套实现产生不一致</p>
+<h3 id="43">4.3 管理接口认证<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-17-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-17-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-17-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-17-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-17-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-17-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-17-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-17-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-17-10">10</a></span>
+<span class="normal"><a href="#__codelineno-17-11">11</a></span>
+<span class="normal"><a href="#__codelineno-17-12">12</a></span>
+<span class="normal"><a href="#__codelineno-17-13">13</a></span>
+<span class="normal"><a href="#__codelineno-17-14">14</a></span>
+<span class="normal"><a href="#__codelineno-17-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a><span class="c1"># qa_core/api/dependencies.py</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Header</span><span class="p">,</span> <span class="n">HTTPException</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">require_admin_token</span><span class="p">(</span><span class="n">x_admin_token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Header</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;校验管理接口令牌。&quot;&quot;&quot;</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6"></a>    <span class="n">expected</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">expected</span><span class="p">:</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;ADMIN_API_TOKEN 未配置&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9"></a>    <span class="k">if</span> <span class="n">x_admin_token</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;管理接口令牌无效&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11"></a>
+<a id="__codelineno-17-12" name="__codelineno-17-12"></a><span class="c1"># 使用</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/admin/langsmith&quot;</span><span class="p">)</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_langsmith_status</span><span class="p">(</span><span class="n">_</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">require_admin_token</span><span class="p">)):</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15"></a>    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<p>前端状态页面提供令牌输入框，后端从 HTTP Header <code>X-Admin-Token</code> 中读取。命令行脚本默认从运行时配置读取令牌：本机调试来自 <code>.env</code>，Docker Compose 模式来自容器环境变量，避免把真实令牌写入终端历史。</p>
+<h3 id="44">4.4 限流保护<a class="headerlink" href="#44" title="Permanent link">&para;</a></h3>
+<p>下面的滑动窗口示意图直观展示 <code>check_rate_limit</code> 的工作过程（limit=3，窗口=60 秒）：</p>
+<div class="mermaid">gantt
+    title 滑动窗口限流示例（limit=3，窗口=60秒）
+    dateFormat  HH:mm:ss
+    axisFormat  %M:%S
+
+    section 窗口位置
+    窗口① (t=0~60)  :crit, 00:00:00, 00:01:00
+    窗口② (t=10~70)  :crit, 00:00:10, 00:01:00
+
+    section 请求到达
+    A @5s  接受  :milestone, 00:00:05, 0
+    B @12s 接受  :milestone, 00:00:12, 0
+    C @35s 接受  :milestone, 00:00:35, 0
+    D @50s 拒绝  :milestone, 00:00:50, 0
+    E @70s 接受  :milestone, 00:01:10, 0
+    F @80s 接受  :milestone, 00:01:20, 0</div>
+<p>横向为时间轴，窗口①和窗口②展示滑动前后的两个位置——窗口②比①向右滑动 10 秒。图中 A~F 依次到达，D 到达时 deque 中已有 3 个时间戳（已达上限），因此被拒绝；t=70 时旧请求 A 过期弹出，释放空间后 E 得以加入。</p>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>请求</th>
+<th>操作</th>
+<th>deque 状态（左→右）</th>
+<th>窗口计数</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t=5</td>
+<td>A</td>
+<td>追加</td>
+<td>[5]</td>
+<td>1</td>
+<td>接受</td>
+</tr>
+<tr>
+<td>t=12</td>
+<td>B</td>
+<td>追加</td>
+<td>[5, 12]</td>
+<td>2</td>
+<td>接受</td>
+</tr>
+<tr>
+<td>t=35</td>
+<td>C</td>
+<td>追加</td>
+<td>[5, 12, 35]</td>
+<td>3</td>
+<td>接受</td>
+</tr>
+<tr>
+<td>t=50</td>
+<td>D</td>
+<td>不追加（已达上限 3）</td>
+<td>[5, 12, 35]</td>
+<td>3</td>
+<td>拒绝</td>
+</tr>
+<tr>
+<td>t=70</td>
+<td>E</td>
+<td>弹出 5 → 追加 70</td>
+<td>[12, 35, 70]</td>
+<td>3</td>
+<td>接受</td>
+</tr>
+<tr>
+<td>t=80</td>
+<td>F</td>
+<td>弹出 12 → 追加 80</td>
+<td>[35, 70, 80]</td>
+<td>3</td>
+<td>接受</td>
+</tr>
+</tbody>
+</table>
+<p>关键：<code>while bucket and now - bucket[0] &gt;= 60</code> 循环从 deque <strong>左端</strong>弹出超过 60 秒的旧时间戳，新请求追加到<strong>右端</strong>。达到上限时请求被拒绝，其时间戳 <strong>不会</strong> 加入 deque，避免恶意请求撑爆窗口。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-18-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-18-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-18-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-18-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-18-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-18-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-18-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-18-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-18-10">10</a></span>
+<span class="normal"><a href="#__codelineno-18-11">11</a></span>
+<span class="normal"><a href="#__codelineno-18-12">12</a></span>
+<span class="normal"><a href="#__codelineno-18-13">13</a></span>
+<span class="normal"><a href="#__codelineno-18-14">14</a></span>
+<span class="normal"><a href="#__codelineno-18-15">15</a></span>
+<span class="normal"><a href="#__codelineno-18-16">16</a></span>
+<span class="normal"><a href="#__codelineno-18-17">17</a></span>
+<span class="normal"><a href="#__codelineno-18-18">18</a></span>
+<span class="normal"><a href="#__codelineno-18-19">19</a></span>
+<span class="normal"><a href="#__codelineno-18-20">20</a></span>
+<span class="normal"><a href="#__codelineno-18-21">21</a></span>
+<span class="normal"><a href="#__codelineno-18-22">22</a></span>
+<span class="normal"><a href="#__codelineno-18-23">23</a></span>
+<span class="normal"><a href="#__codelineno-18-24">24</a></span>
+<span class="normal"><a href="#__codelineno-18-25">25</a></span>
+<span class="normal"><a href="#__codelineno-18-26">26</a></span>
+<span class="normal"><a href="#__codelineno-18-27">27</a></span>
+<span class="normal"><a href="#__codelineno-18-28">28</a></span>
+<span class="normal"><a href="#__codelineno-18-29">29</a></span>
+<span class="normal"><a href="#__codelineno-18-30">30</a></span>
+<span class="normal"><a href="#__codelineno-18-31">31</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a><span class="c1"># qa_core/api/dependencies.py</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">deque</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5"></a><span class="n">RATE_BUCKETS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">deque</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">deque</span><span class="p">)</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">client_key</span><span class="p">(</span><span class="n">scope</span><span class="p">:</span> <span class="n">Request</span> <span class="o">|</span> <span class="n">WebSocket</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;从 HTTP/WebSocket 连接中提取限流 key。&quot;&quot;&quot;</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9"></a>    <span class="n">client</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="s2">&quot;client&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10"></a>    <span class="k">if</span> <span class="n">client</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="s2">&quot;host&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11"></a>        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12"></a>    <span class="k">return</span> <span class="s2">&quot;local&quot;</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13"></a>
+<a id="__codelineno-18-14" name="__codelineno-18-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">check_rate_limit</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;执行进程内滑动窗口限流。&quot;&quot;&quot;</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16"></a>    <span class="n">limit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">api_rate_limit_per_minute</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17"></a>    <span class="k">if</span> <span class="n">limit</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-18-18" name="__codelineno-18-18"></a>        <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-18-19" name="__codelineno-18-19"></a>    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<a id="__codelineno-18-20" name="__codelineno-18-20"></a>    <span class="n">bucket</span> <span class="o">=</span> <span class="n">RATE_BUCKETS</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<a id="__codelineno-18-21" name="__codelineno-18-21"></a>    <span class="k">while</span> <span class="n">bucket</span> <span class="ow">and</span> <span class="n">now</span> <span class="o">-</span> <span class="n">bucket</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">60</span><span class="p">:</span>
+<a id="__codelineno-18-22" name="__codelineno-18-22"></a>        <span class="n">bucket</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+<a id="__codelineno-18-23" name="__codelineno-18-23"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">limit</span><span class="p">:</span>
+<a id="__codelineno-18-24" name="__codelineno-18-24"></a>        <span class="k">return</span> <span class="kc">False</span>
+<a id="__codelineno-18-25" name="__codelineno-18-25"></a>    <span class="n">bucket</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">now</span><span class="p">)</span>
+<a id="__codelineno-18-26" name="__codelineno-18-26"></a>    <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-18-27" name="__codelineno-18-27"></a>
+<a id="__codelineno-18-28" name="__codelineno-18-28"></a><span class="k">def</span><span class="w"> </span><span class="nf">enforce_http_rate_limit</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-18-29" name="__codelineno-18-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;HTTP 请求限流依赖，超限时返回 429。&quot;&quot;&quot;</span>
+<a id="__codelineno-18-30" name="__codelineno-18-30"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">check_rate_limit</span><span class="p">(</span><span class="n">client_key</span><span class="p">(</span><span class="n">request</span><span class="p">)):</span>
+<a id="__codelineno-18-31" name="__codelineno-18-31"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">429</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;请求过于频繁，请稍后再试。&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_3">本讲实践闭环<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本讲类型</td>
+<td>系统集成</td>
+</tr>
+<tr>
+<td>实践产物</td>
+<td>FastAPI 路由、WebSocket、静态页面挂载和异步桥接</td>
+</tr>
+<tr>
+<td>是否进入最终项目</td>
+<td>是</td>
+</tr>
+<tr>
+<td>验收方式</td>
+<td><code>/health</code>、聊天接口、WebSocket 和前端页面均可访问</td>
+</tr>
+<tr>
+<td>后续落点</td>
+<td>第 13 讲加入启动前置校验，第 19 讲用于生产部署</td>
+</tr>
+</tbody>
+</table>
+<p>通过标准：API 层只负责协议转换和连接管理，核心 RAG 逻辑仍在 service/pipeline 层。</p>
+<h3 id="0-1">本讲从 0 到 1 实现闭环<a class="headerlink" href="#0-1" title="Permanent link">&para;</a></h3>
+<p>这一讲把项目从“Python 模块能调用”变成“浏览器和接口能访问”。实现时按四层推进：</p>
+<div class="mermaid">flowchart TD
+    Browser["浏览器页面"] --> WS["WS /api/stream<br/>在线问答唯一入口"]
+    Browser --> History["HTTP 历史/反馈/场景接口"]
+    DebugPage["诊断脚本/状态页"] --> Debug["POST /api/retrieval/debug<br/>检索诊断"]
+    WS --> Service["QAService.stream_query()"]
+    Debug --> DebugService["QAService.debug_retrieval()"]
+    Service --> Thread["asyncio.to_thread<br/>推进阻塞型 Generator"]
+    Thread --> Events["逐个发送 Pipeline 事件"]
+    DebugService --> Json["返回意图/计划/命中 JSON"]</div>
+<ol>
+<li>在 <code>app.py</code> 创建 FastAPI 应用，只做路由注册、中间件、静态资源和生命周期。</li>
+<li>在 <code>qa_core/api/chat.py</code> 定义 WebSocket stream 接口，承载所有在线问答。</li>
+<li>在同一个路由模块里保留历史、反馈和检索诊断等真实 HTTP 接口。</li>
+<li>对阻塞型 RAG generator 使用线程桥接，避免卡住异步事件循环。</li>
+</ol>
+<p>实现完成后，相关代码结构应该是下面这张图：</p>
+<div class="mermaid">flowchart LR
+    App["app.py<br/>创建 FastAPI<br/>中间件/静态资源/路由"] --> Chat["qa_core/api/chat.py<br/>WebSocket stream<br/>history / feedback / debug"]
+    App --> Admin["qa_core/api/admin.py<br/>状态/报告/管理接口"]
+    App --> Pages["qa_core/api/pages.py<br/>页面路由"]
+    Chat --> Service["qa_core/application/service.py<br/>QAService"]
+    Static["static/<br/>浏览器页面"] --> Chat
+    Test["tests/test_api_protection.py<br/>令牌/限流/异常"] -. 验证 .-> Chat</div>
+<p>来源：真实代码调用点，见 <code>app.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1">1</a></span>
+<span class="normal"><a href="#__codelineno-19-2">2</a></span>
+<span class="normal"><a href="#__codelineno-19-3">3</a></span>
+<span class="normal"><a href="#__codelineno-19-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;KnowForge RAG Platform&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2"></a><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">CORSMiddleware</span><span class="p">,</span> <span class="n">allow_origins</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">cors_origins</span><span class="p">)</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3"></a><span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">chat_router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/api&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4"></a><span class="n">app</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">StaticFiles</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;static&quot;</span><span class="p">,</span> <span class="n">html</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;static&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>WebSocket 接口的职责很薄：保持连接、接收请求、逐个发送 service 事件。它不拼 Prompt、不检索、不重排。</p>
+<p>来源：真实代码逻辑压缩版，对应 <code>qa_core/api/chat.py::websocket_endpoint()</code> 和 <code>_send_stream_events()</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-20-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-20-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-20-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-20-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-20-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-20-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-20-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-20-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-20-10">10</a></span>
+<span class="normal"><a href="#__codelineno-20-11">11</a></span>
+<span class="normal"><a href="#__codelineno-20-12">12</a></span>
+<span class="normal"><a href="#__codelineno-20-13">13</a></span>
+<span class="normal"><a href="#__codelineno-20-14">14</a></span>
+<span class="normal"><a href="#__codelineno-20-15">15</a></span>
+<span class="normal"><a href="#__codelineno-20-16">16</a></span>
+<span class="normal"><a href="#__codelineno-20-17">17</a></span>
+<span class="normal"><a href="#__codelineno-20-18">18</a></span>
+<span class="normal"><a href="#__codelineno-20-19">19</a></span>
+<span class="normal"><a href="#__codelineno-20-20">20</a></span>
+<span class="normal"><a href="#__codelineno-20-21">21</a></span>
+<span class="normal"><a href="#__codelineno-20-22">22</a></span>
+<span class="normal"><a href="#__codelineno-20-23">23</a></span>
+<span class="normal"><a href="#__codelineno-20-24">24</a></span>
+<span class="normal"><a href="#__codelineno-20-25">25</a></span>
+<span class="normal"><a href="#__codelineno-20-26">26</a></span>
+<span class="normal"><a href="#__codelineno-20-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3"></a>    <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5"></a>        <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">receive_text</span><span class="p">()</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_rate_limit</span><span class="p">(</span><span class="n">client_key</span><span class="p">(</span><span class="n">websocket</span><span class="p">)):</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;请求过于频繁，请稍后再试。&quot;</span><span class="p">})</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8"></a>            <span class="k">continue</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9"></a>
+<a id="__codelineno-20-10" name="__codelineno-20-10"></a>        <span class="n">request_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11"></a>        <span class="n">context</span> <span class="o">=</span> <span class="n">QueryServiceContext</span><span class="o">.</span><span class="n">from_ws_payload</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">query</span><span class="p">:</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;查询内容不能为空&quot;</span><span class="p">})</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14"></a>            <span class="k">continue</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15"></a>
+<a id="__codelineno-20-16" name="__codelineno-20-16"></a>        <span class="n">stream</span> <span class="o">=</span> <span class="n">get_qa_service</span><span class="p">()</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span><span class="o">*</span><span class="n">context</span><span class="o">.</span><span class="n">service_args</span><span class="p">())</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18"></a>            <span class="n">has_event</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">_next_stream_event</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
+<a id="__codelineno-20-19" name="__codelineno-20-19"></a>            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_event</span> <span class="ow">or</span> <span class="n">event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-20-20" name="__codelineno-20-20"></a>                <span class="k">break</span>
+<a id="__codelineno-20-21" name="__codelineno-20-21"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+<a id="__codelineno-20-22" name="__codelineno-20-22"></a>            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-20-23" name="__codelineno-20-23"></a>            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span>
+<a id="__codelineno-20-24" name="__codelineno-20-24"></a>                <span class="n">_schedule_summary_refresh</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;session_id&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">context</span><span class="o">.</span><span class="n">session_id</span><span class="p">))</span>
+<a id="__codelineno-20-25" name="__codelineno-20-25"></a>                <span class="k">break</span>
+<a id="__codelineno-20-26" name="__codelineno-20-26"></a>            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>
+<a id="__codelineno-20-27" name="__codelineno-20-27"></a>                <span class="k">break</span>
+</code></pre></div></td></tr></table></div>
+<p>涉及限流、管理令牌、CORS 这类保护逻辑时，要写成独立函数或依赖，避免散落在每个接口里。</p>
+<p>来源：真实代码调用点，见 <code>qa_core/api/chat.py</code> 和 <code>tests/test_api_protection.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_api_protection</span><span class="p">.</span><span class="n">py</span> <span class="n">-q</span>
+</code></pre></div></td></tr></table></div>
+<p>闭环验证重点：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>验证方式</th>
+<th>期望结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>健康检查</td>
+<td>请求 <code>/health</code></td>
+<td>返回服务健康状态</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>连接 <code>/api/stream</code></td>
+<td>能收到流式事件</td>
+</tr>
+<tr>
+<td>检索诊断</td>
+<td>请求 <code>/api/retrieval/debug</code></td>
+<td>返回意图、计划、FAQ/Doc 命中</td>
+</tr>
+<tr>
+<td>静态页面</td>
+<td>浏览器访问首页</td>
+<td>页面可加载并能发起请求</td>
+</tr>
+<tr>
+<td>API 保护</td>
+<td>跑保护测试</td>
+<td>管理令牌和限流生效</td>
+</tr>
+</tbody>
+</table>
+<p>验收重点：异步框架负责并发连接，阻塞型 RAG 工作通过线程桥接；API 层不承担业务算法。</p>
+<h2 id="_4">重点掌握<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>同步 vs 异步模型：异步在 I/O 等待时让出 CPU 处理其他请求</td>
+<td>RAG 系统（I/O 密集型）选择 FastAPI 的根本原因</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>async/await 核心语法和与同步代码的区别</td>
+<td>阅读和理解本项目所有 API 层代码的前置条件</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>WebSocket 协议：全双工通信，服务端主动推送，逐 token 流式输出</td>
+<td>RAG 流式问答体验的底层技术</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>本项目 WebSocket 事件协议：start / status / token / end / error 五种事件</td>
+<td>前后端协作的核心契约，理解 QAService Generator 的前提</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>FastAPI 路由拆分：APIRouter 实现模块化（pages/chat/admin/kb_versions）</td>
+<td>理解本项目 API 层的组织方式</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>在线问答唯一入口：浏览器直接连接 WebSocket <code>/api/stream</code></td>
+<td>避免多套在线入口造成状态、限流和回答口径不一致</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>滑动窗口限流（check_rate_limit 的 deque 实现）</td>
+<td>生产环境必备的保护机制</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>CORS 中间件配置</td>
+<td>开发调试需要</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>Pydantic 请求校验、依赖注入</td>
+<td>FastAPI 基础功能，回顾即可</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">本讲小结<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>异步（async/await）</strong> 让服务器在等待 I/O 时处理其他请求，适合 RAG 这种 I/O 密集型场景</li>
+<li><strong>FastAPI</strong> 提供原生异步支持、自动 Pydantic 校验、WebSocket 和模块化路由</li>
+<li><strong>WebSocket</strong> 支持服务端主动推送，让 LLM 的流式输出能逐 token 展示</li>
+<li>本项目 API 层按职责拆分为 pages、chat、admin、kb_versions 四个路由模块</li>
+<li>在线问答统一由 WebSocket（<code>/api/stream</code>）承载；HTTP 只保留健康检查、历史、反馈、检索诊断和管理接口</li>
+<li><code>asyncio.to_thread</code> 将同步业务逻辑放到线程池，保持事件循环不受阻塞</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./13-app-entry-preflight.html">应用入口与环境前置校验</a> — app.py 详解、启动校验链、检索栈预热</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/11-prompt-engineering.html"><i class="fas fa-arrow-left"></i> 11 Prompt 工程与 Profile 系统</a>
+        <a class="pager-link next" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  if (window.mermaid) {
+    mermaid.run({querySelector:".mermaid"});
+  }
+})();
+</script>
+</body>
+</html>

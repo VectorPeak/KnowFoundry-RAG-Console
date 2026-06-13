@@ -100,9 +100,9 @@ def _headers(token: str) -> dict[str, str]:
 def resolve_admin_token(raw_token: str | None) -> str:
     """解析本次验收使用的管理令牌。
 
-    管理接口已经要求强令牌保护，但验收脚本不应该让学生每次手动复制令牌：
+    管理接口已经要求强令牌保护，但验收脚本不应该要求每次手动复制令牌：
     - 命令行显式传入时优先使用，方便临时验收远端环境；
-    - 未传入时读取项目 `.env` 的 `ADMIN_API_TOKEN`，保持本地一键验收体验；
+    - 未传入时读取当前运行配置的 `ADMIN_API_TOKEN`，保持本地和容器内一键验收体验；
     - 返回报告只展示验收结果，不展示令牌本身，避免敏感信息进入日志。
     """
     return (raw_token or get_settings().admin_api_token or "").strip()
@@ -113,7 +113,7 @@ def main() -> None:
     configure_utf8_stdio()
     parser = argparse.ArgumentParser(description="Run real acceptance smoke checks against the FastAPI service.")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
-    parser.add_argument("--admin-token", default="", help="为空时自动读取 .env 中的 ADMIN_API_TOKEN。")
+    parser.add_argument("--admin-token", default="", help="为空时自动读取当前运行配置中的 ADMIN_API_TOKEN。")
     parser.add_argument("--query", default="新人入职流程怎么走")
     parser.add_argument("--scenario", default="enterprise_knowledge", help="Scenario id used by the WebSocket smoke query.")
     parser.add_argument("--max-events", type=int, default=1000, help="最多接收的 WebSocket 事件数量。")

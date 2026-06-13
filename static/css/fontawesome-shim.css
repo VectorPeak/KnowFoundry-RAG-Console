@@ -1,0 +1,42 @@
+.fas,
+.fa-solid {
+  display: inline-block;
+  width: 1em;
+  min-width: 1em;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  speak: never;
+}
+
+.fas::before,
+.fa-solid::before {
+  content: "";
+}
+
+.fa-arrow-left::before { content: "<"; }
+.fa-arrow-right::before { content: ">"; }
+.fa-arrow-up::before { content: "^"; }
+.fa-bars::before { content: "#"; }
+.fa-layer-group::before { content: "K"; }
+.fa-comment-dots::before { content: "..."; }
+.fa-chart-line::before { content: "~"; }
+.fa-plus::before { content: "+"; }
+.fa-sliders-h::before { content: "="; }
+.fa-trash::before { content: "x"; }
+.fa-circle::before { content: "o"; }
+.fa-code-branch::before { content: "Y"; }
+.fa-paper-plane::before { content: ">"; }
+.fa-compass::before { content: "*"; }
+.fa-bolt::before { content: "!"; }
+.fa-history::before { content: "@"; }
+.fa-chart-pie::before { content: "%"; }
+.fa-comments::before { content: "..."; }
+.fa-rotate-right::before { content: "R"; }
+.fa-diagram-project::before { content: "<>"; }
+.fa-shield-halved::before { content: "S"; }
+.fa-database::before { content: "D"; }
+.fa-file-circle-check::before { content: "F"; }
+.fa-building-shield::before { content: "B"; }

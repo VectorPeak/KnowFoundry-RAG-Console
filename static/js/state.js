@@ -1,4 +1,4 @@
-const API_BASE_URL = '';
+const API_BASE_URL = '/projects/knowforge-rag-platform-vp';
 
 const state = {
   sessionId: null,

@@ -1,4 +1,4 @@
-"""KnowForge RAG Platform 运行时配置，仅通过进程环境变量和 .env 文件加载。"""
+"""KnowForge RAG Platform 运行时配置，通过进程环境变量和本机 .env 加载。"""
 
 from __future__ import annotations
 
@@ -116,7 +116,7 @@ class Settings(BaseSettings):
     @field_validator("cors_allow_origins", mode="before")
     @classmethod
     def parse_list(cls, value):
-        """解析 .env 中 JSON 数组或逗号分隔的列表配置。"""
+        """解析环境变量中的 JSON 数组或逗号分隔列表配置。"""
         if isinstance(value, str):
             try:
                 parsed = json.loads(value)

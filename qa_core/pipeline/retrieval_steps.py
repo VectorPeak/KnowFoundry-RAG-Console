@@ -1,7 +1,7 @@
 """RAG 主流程中的检索执行步骤。
 
 `steps.py` 负责意图、改写、Prompt 等准备工作；本文件只负责把准备好的
-`RetrievalPreparation` 落到 FAQ 和文档检索上。这样学生阅读主链路时可以清楚区分：
+`RetrievalPreparation` 落到 FAQ 和文档检索上。这样阅读主链路时可以清楚区分：
 先决定“怎么查”，再执行“真正去哪里查”。
 """
 
@@ -100,4 +100,3 @@ def search_doc(context: RAGQueryContext, prepared: RetrievalPreparation) -> Retr
     context.retrieval_info["doc_elapsed_ms"] = round(doc_result.elapsed_ms, 2)
     context.retrieval_info["doc_top_score"] = doc_result.top_score
     return doc_result
-

@@ -23,8 +23,10 @@ from qa_core.indexing.faq_ingestion import ingest_faq_csv
 from qa_core.indexing.service import ingest_directory
 from qa_core.quality.ingestion import build_ingestion_quality_report, save_ingestion_quality_report
 from qa_core.governance.kb_versions import get_kb_version_store
+from qa_core.retrieval.milvus_compat import ensure_milvus_database, langchain_connection_args
 from qa_core.scenarios.registry import resolve_scenario
 from scripts.check_ingestion_quality_gate import IngestionQualityThresholds, evaluate_report_against_gate
+from pymilvus import MilvusClient
 
 
 def main() -> None:
@@ -46,6 +48,14 @@ def main() -> None:
     parser.add_argument("--force", action="store_true", help="Rebuild files even when fingerprint is unchanged.")
     parser.add_argument("--skip-faq", action="store_true", help="Skip FAQ ingest.")
     parser.add_argument("--skip-docs", action="store_true", help="Skip document ingest.")
+    parser.add_argument(
+        "--reset-collections",
+        action="store_true",
+        help=(
+            "Drop the selected scenario FAQ and document Milvus collections before ingest. "
+            "Use this when schema changed, especially when migrating to BM25 BuiltInFunction hybrid search."
+        ),
+    )
     parser.add_argument("--skip-quality-report", action="store_true", help="Skip ingestion quality report generation.")
     parser.add_argument("--quality-gate", action="store_true", help="Run strict ingestion quality gate before activation.")
     parser.add_argument("--activate", action="store_true", help="Activate this version after successful ingest.")
@@ -69,6 +79,14 @@ def main() -> None:
         parser.error("--quality-gate requires quality report generation; remove --skip-quality-report.")
 
     scenario = resolve_scenario(args.scenario)
+    if args.reset_collections:
+        ensure_milvus_database()
+        client = MilvusClient(**langchain_connection_args("reset_collections"))
+        for collection_name in {scenario.faq_collection, scenario.doc_collection}:
+            if client.has_collection(collection_name):
+                client.drop_collection(collection_name)
+                print(f"Dropped Milvus collection for schema reset: {collection_name}")
+
     version_store = get_kb_version_store(scenario.scenario_id)
     if args.new_version or not args.kb_version:
         version = version_store.ensure_version(

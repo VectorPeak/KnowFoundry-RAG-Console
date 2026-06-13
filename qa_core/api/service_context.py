@@ -1,6 +1,6 @@
 """API 层传给 QAService 的公共调用上下文。
 
-HTTP preview、WebSocket stream、retrieval debug 都需要同一组字段：场景、租户、数据集、
+WebSocket stream 和 retrieval debug 都需要同一组字段：场景、租户、数据集、
 可见性、角色和知识库版本。集中到这个小对象后，路由层只负责解析请求，业务规则仍在
 QAService 和 pipeline 中。
 """
@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
-from qa_core.schemas import QueryRequest
+from qa_core.schemas import RetrievalDebugRequest
 
 
 @dataclass(frozen=True)
@@ -30,8 +30,13 @@ class QueryServiceContext:
     user_roles: list[str] | None
 
     @classmethod
-    def from_request(cls, request: QueryRequest, *, session_id: str | None = None) -> "QueryServiceContext":
-        """从 HTTP 请求模型构造 QAService 调用上下文。"""
+    def from_debug_request(
+        cls,
+        request: RetrievalDebugRequest,
+        *,
+        session_id: str | None = None,
+    ) -> "QueryServiceContext":
+        """从 HTTP 检索诊断请求模型构造 QAService 调用上下文。"""
         return cls(
             query=request.query.strip(),
             source_filter=request.source_filter,

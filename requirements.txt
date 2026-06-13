@@ -7,11 +7,12 @@ langchain-community==0.4.1
 langchain-openai==1.1.12
 langsmith==0.7.25
 langchain-huggingface==1.2.2
-langchain-milvus==0.3.3
+langchain-milvus==0.2.2
 langchain-text-splitters==1.1.1
 jieba==0.42.1
-pymilvus[model]==2.6.8
+pymilvus[model]==2.5.18
 pymilvus-model==0.3.0
+ujson==5.12.1
 sentence-transformers==4.1.0
 sentencepiece==0.2.0
 torch==2.7.1+cpu

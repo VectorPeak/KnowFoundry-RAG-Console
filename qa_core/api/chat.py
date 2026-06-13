@@ -4,7 +4,6 @@
 路由结构：
   GET    /api/history/{session_id}       — 获取会话历史
   DELETE /api/history/{session_id}       — 清理会话历史
-  POST   /api/query                      — 预检直答（同步、限流）
   WS     /api/stream                     — 流式问答（WebSocket、限流）
   POST   /api/retrieval/debug            — 检索诊断（同步、限流）
   POST   /api/feedback                   — 用户反馈（同步、限流）
@@ -15,7 +14,6 @@
 from __future__ import annotations
 import asyncio
 import json
-import time
 from collections.abc import Iterator
 from typing import Any
 from fastapi import APIRouter, Depends, WebSocket
@@ -29,7 +27,7 @@ from qa_core.config.settings import get_settings
 from qa_core.memory.feedback import get_feedback_store
 from qa_core.memory.history import get_history_store
 from qa_core.scenarios.registry import get_scenario_registry, resolve_scenario
-from qa_core.schemas import FeedbackRequest, QueryRequest, QueryResponse, RetrievalDebugResponse
+from qa_core.schemas import FeedbackRequest, RetrievalDebugRequest, RetrievalDebugResponse
 router = APIRouter()
 # 加载应用全局设置（限流、历史摘要开关等 API 层配置）
 settings = get_settings()
@@ -172,64 +170,6 @@ async def clear_history(session_id: str):
     return {"status": "success", "message": "历史记录已清除"}
 
 
-@router.post("/api/query", response_model=QueryResponse)
-async def query(request: QueryRequest, _: None = Depends(enforce_http_rate_limit)):
-    """HTTP 同步预检端点。问候/离题等直接返回答案，复杂业务知识问题返回
-    is_streaming=True 告知前端改用 WebSocket 获取流式响应。
-
-    执行流程：
-    1. Depends(enforce_http_rate_limit)   — 限流中间件，超限返回 429
-    2. QueryServiceContext.from_request()  — 构造请求上下文
-    3. 空查询校验 → 返回 HTTP 400
-    4. get_qa_service().preview_query()    — 调用应用层预检
-    5. ValueError 由全局异常处理器转为 HTTP 400
-    6. 其他异常由全局异常处理器记录并返回 HTTP 500
-    7. preview 非空 → 直接组装 QueryResponse（同步回答）
-    8. preview 为空 → 返回 is_streaming=True 引导前端走 WebSocket
-
-    参数：
-        request: QueryRequest（JSON body），包含 query、session_id、scenario_id 等字段。
-        _: 由 Depends 注入，仅用于触发限流检查。
-
-    返回：
-        QueryResponse: 包含 answer、is_streaming、session_id、hit_type、sources 等。
-    """
-    started = time.perf_counter()
-    # 从 HTTP 请求构造 QAService 调用上下文
-    context = QueryServiceContext.from_request(request)
-    if not context.query:
-        raise_bad_request("查询内容不能为空")
-    # 原因： HTTP 同步预检优先处理简单问题（问候/越界），避免每次查询都建立 WebSocket 连接浪费资源
-    # 调用应用服务层的轻量预检。这里不再包 try/except：
-    # 参数错误和未预期异常由 app.py 注册的全局 HTTP 异常处理器统一转换。
-    preview = get_qa_service().preview_query(*context.service_args())
-
-    if preview is not None:
-        # 直答路径：问候/越界/客服等，同步返回完整答案
-        return QueryResponse(
-            answer=preview.answer,
-            is_streaming=False,
-            session_id=context.session_id,
-            scenario_id=request.scenario_id,
-            processing_time=time.perf_counter() - started,
-            hit_type=preview.hit_type,
-            sources=preview.sources,
-            rewritten_query=preview.rewritten_query,
-            intent=preview.intent,
-            retrieval=preview.retrieval,
-        )
-
-    # 复杂问题路径：告知前端 is_streaming=True，需建立 WebSocket 获取流式回答
-    return QueryResponse(
-        answer="请使用 WebSocket 接口获取流式响应",
-        is_streaming=True,
-        session_id=context.session_id,
-        scenario_id=request.scenario_id,
-        processing_time=time.perf_counter() - started,
-        hit_type="stream_required",
-        sources=[],
-    )
-
 @router.websocket("/api/stream")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket 流式问答端点。接收浏览器查询请求，逐事件推送 RAG 流式回答。
@@ -251,7 +191,7 @@ async def websocket_endpoint(websocket: WebSocket):
     参数：
         websocket: FastAPI WebSocket 连接对象，路径参数自动注入。
     """
-    # 原因： 两层设计——HTTP POST /api/query 优先处理简单问题（问候/越界/客服等），无需建立 WebSocket 即可返回；只有复杂业务知识才走 WebSocket 流式链路，降低全量请求的 WebSocket 建连开销
+    # 原因：在线问答统一走 WebSocket，避免多套在线入口造成重复意图分类、重复限流和链路口径不一致。
     await websocket.accept()
     try:
         while True:
@@ -283,26 +223,26 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @router.post("/api/retrieval/debug", response_model=RetrievalDebugResponse)
-async def debug_retrieval(request: QueryRequest, _: None = Depends(enforce_http_rate_limit)):
+async def debug_retrieval(request: RetrievalDebugRequest, _: None = Depends(enforce_http_rate_limit)):
     """检索诊断端点。返回意图分类、改写结果、FAQ/文档命中列表等调试信息，
     但不调用最终回答 LLM，用于开发者评估检索质量。
 
     执行流程：
     1. Depends(enforce_http_rate_limit) − 限流中间件
-    2. QueryServiceContext.from_request() − 构造请求上下文
+    2. QueryServiceContext.from_debug_request() − 构造请求上下文
     3. asyncio.to_thread(get_qa_service().debug_retrieval, ...)
        − 在线程池中执行同步检索半链路
     4. ValueError 由全局异常处理器转为 HTTP 400
     5. 其他异常由全局异常处理器记录并返回 HTTP 500
 
     参数：
-        request: QueryRequest（JSON body），复用预检请求结构。
+        request: RetrievalDebugRequest（JSON body），只服务检索诊断接口。
         _: 由 Depends 注入，仅用于触发限流检查。
 
     返回：
         RetrievalDebugResponse: 包含意图分类、改写后查询、FAQ 和文档检索命中列表等。
     """
-    context = QueryServiceContext.from_request(request)
+    context = QueryServiceContext.from_debug_request(request)
     if not context.query:
         raise_bad_request("查询内容不能为空")
     # 原因： debug_retrieval 是同步阻塞调用（含 Milvus 检索），放入线程池避免阻塞事件循环

@@ -17,6 +17,7 @@ from typing import Literal
 
 from langchain_core.documents import Document
 from langchain_milvus import Milvus
+from pymilvus import DataType, FunctionType
 from pymilvus.exceptions import MilvusException
 
 from qa_core.governance.data_scope import DataScope
@@ -27,7 +28,6 @@ from qa_core.retrieval.milvus_compat import (
     ensure_milvus_database,
     ensure_orm_alias_connection,
     langchain_connection_args,
-    patch_milvus_client_connection,
 )
 from qa_core.retrieval.filters import build_source_expr
 from qa_core.retrieval.models import get_embeddings, get_reranker
@@ -37,6 +37,15 @@ from qa_core.config.settings import get_settings
 
 
 logger = get_logger(__name__)
+
+
+def _truthy(value) -> bool:
+    """兼容 PyMilvus schema 中 bool / str 两种布尔表达。"""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes"}
+    return bool(value)
 
 
 class MilvusHybridStore:
@@ -64,14 +73,14 @@ class MilvusHybridStore:
 
     @property
     def store(self):
-        """为当前集合懒加载 LangChain Milvus 存储对象，每次连接前先打兼容补丁。（★★ 理解）
+        """为当前集合懒加载 LangChain Milvus 存储对象。（★★ 理解）
 
-        首次访问时创建并缓存 LangChain Milvus wrapper。创建前会打 PyMilvus 兼容补丁，
-        确保数据库存在，并为每个 collection 使用独立连接别名。
+        首次访问时创建并缓存 LangChain Milvus wrapper。创建前会确保数据库存在，
+        并为每个 collection 使用独立连接别名。
 
         执行流程：
-          1. 应用 PyMilvus 连接参数兼容补丁。
-          2. 未缓存时确认数据库存在，构造连接参数并连接 Milvus。
+          1. 未缓存时确认数据库存在，构造连接参数并连接 Milvus。
+          2. 显式注册 PyMilvus ORM alias，避免底层 Collection API 找不到连接。
           3. 创建 Milvus wrapper，配置 BGE embedding、Milvus BM25、向量字段、文本字段和主键。
           4. 缓存并返回 Milvus wrapper。
 
@@ -79,13 +88,11 @@ class MilvusHybridStore:
             当前集合对应的 LangChain Milvus wrapper.
         """
         if self._store is None:
-            # 修复 langchain-milvus 的 PyMilvus 连接参数兼容性问题，仅在首次建连时执行。
-            patch_milvus_client_connection()
             # 确保 Milvus 数据库存在（当前项目使用默认数据库）
             ensure_milvus_database()
             alias = collection_alias(self.collection_name)
             connection_args = langchain_connection_args(alias)
-            # 业务检索走 langchain-milvus；这里仅预注册底层 ORM alias，兼容 hybrid search。
+            # 业务检索走 langchain-milvus；这里预注册底层 ORM alias，避免旧 ORM API 找不到连接。
             ensure_orm_alias_connection(alias)
             self._store = Milvus(
                 # 获取已缓存的 BGE 向量模型，用于稠密向量检索
@@ -102,7 +109,73 @@ class MilvusHybridStore:
                 consistency_level="Session",
                 drop_old=False,
             )
+            self.validate_hybrid_schema()
         return self._store
+
+    def validate_hybrid_schema(self) -> None:
+        """校验 collection 是否符合当前 Dense + BM25 Sparse Hybrid schema。
+
+        `langchain-milvus` 对 sparse 字段发起的是原始 query 文本，必须依赖
+        Milvus collection schema 中的 BM25 Function 把文本转换成 sparse vector。
+        如果线上复用了旧 collection（只有 sparse 字段、没有 BM25 Function，或 text
+        字段没有 analyzer），Milvus 会收到空 sparse search request，最终报
+        `nq [0] is invalid`。这种情况不是检索时可降级的小错误，而是集合结构与当前
+        系统设计不匹配，必须重建 collection。
+        """
+        collection = self.store.col
+        if collection is None:
+            return
+
+        schema = collection.schema
+        fields = {field.name: field for field in schema.fields}
+        problems: list[str] = []
+
+        if "text" not in fields:
+            problems.append("缺少 text 字段")
+        else:
+            text_field = fields["text"]
+            if text_field.dtype != DataType.VARCHAR:
+                problems.append(f"text 字段类型应为 VARCHAR，实际为 {text_field.dtype}")
+            if not _truthy(text_field.params.get("enable_analyzer")):
+                problems.append("text 字段未启用 analyzer，BM25 无法分析中文 query")
+
+        if "dense" not in fields:
+            problems.append("缺少 dense 向量字段")
+        elif fields["dense"].dtype != DataType.FLOAT_VECTOR:
+            problems.append(f"dense 字段类型应为 FLOAT_VECTOR，实际为 {fields['dense'].dtype}")
+
+        if "sparse" not in fields:
+            problems.append("缺少 sparse 向量字段")
+        else:
+            sparse_field = fields["sparse"]
+            if sparse_field.dtype != DataType.SPARSE_FLOAT_VECTOR:
+                problems.append(f"sparse 字段类型应为 SPARSE_FLOAT_VECTOR，实际为 {sparse_field.dtype}")
+            is_function_output = _truthy(getattr(sparse_field, "is_function_output", False)) or _truthy(
+                sparse_field.params.get("is_function_output")
+            )
+            if not is_function_output:
+                problems.append("sparse 字段不是 BM25 Function 输出字段")
+
+        functions = list(getattr(schema, "functions", []) or [])
+        has_bm25 = any(
+            getattr(func, "type", None) == FunctionType.BM25
+            and list(getattr(func, "input_field_names", []) or []) == ["text"]
+            and list(getattr(func, "output_field_names", []) or []) == ["sparse"]
+            for func in functions
+        )
+        if not has_bm25:
+            problems.append("缺少 text -> sparse 的 BM25 Function")
+
+        if problems:
+            details = "；".join(problems)
+            raise RuntimeError(
+                f"Milvus collection `{self.collection_name}` 不符合当前 Hybrid Search schema：{details}。"
+                "这通常是复用了旧 collection 或旧版本入库脚本创建的集合。请删除该场景 FAQ/Doc "
+                "collection 后重新构建知识库版本，例如："
+                "`docker compose run --rm api python scripts/rebuild_kb_version.py "
+                "--scenario <scenario_id> --new-version --force --reset-collections "
+                "--quality-gate --activate`。"
+            )
 
     def add_documents(self, documents: list[Document], ids: list[str] | None = None) -> list[str]:
         """把文档写入 Milvus 集合，服务端自动生成稠密+稀疏向量。
@@ -237,7 +310,7 @@ class MilvusHybridStore:
         )
 
     def _similarity_search_with_score(self, query: str, *, k: int, expr: str, kwargs: dict) -> list[tuple[Document, float]]:
-        """执行 Milvus 检索；混合检索遇到空向量请求时回退到 dense-only。"""
+        """执行 Milvus 混合检索；集合 schema 异常时明确提示重建。"""
         try:
             return self.store.similarity_search_with_score(query, k=k, expr=expr, **kwargs)
         except MilvusException as exc:
@@ -247,21 +320,12 @@ class MilvusHybridStore:
             )
             if not is_empty_query_vector_error:
                 raise
-            logger.warning(
-                "Milvus hybrid search returned an empty query-vector request; "
-                "falling back to dense search. collection=%s query=%r",
-                self.collection_name,
-                query,
-            )
-            embedding = get_embeddings().embed_query(query)
-            if not embedding:
-                return []
-            return self.store.similarity_search_with_score_by_vector(
-                embedding,
-                k=k,
-                expr=expr,
-                anns_field="dense",
-            )
+            raise RuntimeError(
+                f"Milvus Hybrid Search 收到空 query-vector 请求（nq=0），collection={self.collection_name!r}。"
+                "根因通常是 collection schema 没有正确的 BM25 Function，导致 sparse 字段不能把 query "
+                "文本转换成稀疏向量。请使用 --reset-collections 删除旧集合并重新入库，不能用 dense-only "
+                "降级替代 Hybrid Search。"
+            ) from exc
 
     def search_many(
         self,

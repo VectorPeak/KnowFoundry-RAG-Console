@@ -52,7 +52,7 @@ services:
       retries: 20
 
   milvus:
-    image: milvusdb/milvus:v2.6.8
+    image: milvusdb/milvus:v2.5.15
     container_name: knowforge-milvus
     restart: unless-stopped
     command: ["milvus", "run", "standalone"]
@@ -64,7 +64,6 @@ services:
       MINIO_ACCESS_KEY_ID: minioadmin
       MINIO_SECRET_ACCESS_KEY: minioadmin
       MINIO_REGION: us-east-1
-      MQ_TYPE: woodpecker
     volumes:
       - milvus_data:/var/lib/milvus
     ports:
@@ -87,7 +86,7 @@ services:
     container_name: knowforge-api
     restart: unless-stopped
     env_file:
-      - .env
+      - ${ENV_FILE:-.env}
     environment:
       MYSQL_HOST: mysql
       MYSQL_PORT: "3306"
@@ -101,6 +100,7 @@ services:
       - ./scenarios:/app/scenarios
       - ./reports:/app/reports
       - ./logs:/app/logs
+      - ./site:/app/site:ro
       - ./static:/app/static:ro
       - ./.index_manifest:/app/.index_manifest
     depends_on:

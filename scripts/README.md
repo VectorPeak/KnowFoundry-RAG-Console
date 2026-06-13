@@ -4,18 +4,31 @@
 
 ## 根目录主脚本
 
-这些是学生需要重点掌握的脚本。
+这些是需要重点掌握的脚本。
 
 | 场景 | 脚本 |
 |---|---|
 | 环境与项目约束 | `check_langchain_stack.py`、`check_project_guardrails.py`、`check_docs_consistency.py` |
-| 文档和 FAQ 入库 | `rebuild_kb_version.py`、`manage_kb_versions.py`、`cleanup_missing_docs.py` |
+| 文档和 FAQ 入库 | `rebuild_kb_version.py`、`rebuild_scenarios.py`、`manage_kb_versions.py`、`cleanup_missing_docs.py` |
 | 入库质量 | `check_ingestion_quality_gate.py` |
 | 主链路评测 | `evaluate_core_chain.py`、`evaluate_followup_chain.py`、`check_evaluation_gate.py`、`check_followup_gate.py` |
 | 性能检查 | `collect_performance_baseline.py`、`check_performance_gate.py` |
 | 接口验收 | `acceptance_smoke.py`、`api_e2e_smoke.py` |
 | Bad Case 沉淀 | LangSmith Annotation/Dataset |
 | 公共模块 | `common.py`、`eval_common.py`、`gate_utils.py` |
+
+## Docker 测试部署
+
+本机验收推荐使用全 Docker 模式，避免宿主机和容器两套网络视角混用：
+
+```powershell
+if (!(Test-Path .env.compose)) { Copy-Item .env.compose.example .env.compose }
+notepad .env.compose
+.\scripts\deploy_docker.ps1
+```
+
+`deploy_docker.ps1` 会按顺序启动 MySQL/Milvus、构建 API 镜像、初始化 active 场景知识库，
+最后启动 API。新环境不能先启动 API 再入库，因为 API 的 preflight 会检查 active KB 版本。
 
 ## 子目录专项脚本
 
@@ -33,10 +46,26 @@
 ```powershell
 python scripts/check_project_guardrails.py
 python scripts/rebuild_kb_version.py --scenario enterprise_knowledge --new-version --force --quality-gate --activate
+python scripts/rebuild_scenarios.py --reset-collections  # 新环境或 schema 变化：重置 collection 并初始化 8 个场景
+python scripts/rebuild_scenarios.py                      # 已有知识库：保留 collection，只刷新 8 个场景的新版本
 python scripts/evaluate_core_chain.py --dataset eval_sets/multi_scenario_smoke.json --limit 20
 python scripts/check_evaluation_gate.py --dataset eval_sets/multi_scenario_smoke.json --limit 20
 python scripts/api_e2e_smoke.py --base-url http://127.0.0.1:8000
 python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000
+```
+
+Docker Compose 模式下，先保证 `.env.compose` 已经从 `.env.compose.example` 生成并填写真实配置。新环境首次初始化 8 个场景：
+
+```powershell
+docker compose --env-file .env.compose up -d mysql etcd minio milvus
+docker compose --env-file .env.compose build api
+docker compose --env-file .env.compose run --rm api python scripts/rebuild_scenarios.py --reset-collections
+```
+
+如果之前已经存在知识库，只是资料内容变化，重建时不要删除 collection：
+
+```powershell
+docker compose --env-file .env.compose run --rm api python scripts/rebuild_scenarios.py
 ```
 
 专项命令示例：

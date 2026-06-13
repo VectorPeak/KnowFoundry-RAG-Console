@@ -17,10 +17,10 @@ from qa_core.pipeline.runtime import (
 )
 from qa_core.pipeline.steps import (
     build_insufficient_context_answer,
+    decide_route,
     prepare_answer,
     prepare_retrieval,
     stream_llm_answer,
-    try_fast_faq_direct_answer,
 )
 from qa_core.pipeline.retrieval_steps import get_faq_direct_answer, search_doc, search_faq
 logger = get_logger(__name__)
@@ -39,15 +39,15 @@ def stream_query(
     user_role: str | None = None,
     user_roles: list[str] | None = None,
 ) -> Generator[dict[str, Any], None, None]:
-    """一次完整问答请求的编排主入口，协调七阶段管线并持续产出 WebSocket 事件流。★★★ 核心
+    """一次完整问答请求的编排主入口，协调 Stage 0-7 管线并持续产出 WebSocket 事件流。★★★ 核心
 
     执行流程：
     Stage 0: 创建运行时上下文（场景/数据域/会话/trace/知识库版本）
-    Stage 1: FAQ 精确匹配快速直出（跳过后续所有 RAG 步骤）
-    Stage 2: 意图识别 + 改写 + 检索计划 + 查询变体
-    Stage 3: 非 RAG 类回答（问候/越界/转人工），直接返回
-    Stage 4: FAQ 检索，判断是否直出
-    Stage 5: 文档检索 + 上下文构建
+    Stage 1: 低成本查询路由（直答/边界、FAQ 精确命中、继续检索）
+    Stage 2: 检索准备（历史、意图、source、按需改写、检索计划、查询变体、Prompt Profile）
+    Stage 3: FAQ 检索，判断是否直出
+    Stage 4: 文档检索
+    Stage 5: 上下文构建
     Stage 6: LLM 流式生成
     Stage 7: 写历史记录、写 trace、发送结束事件
 
@@ -87,32 +87,27 @@ def stream_query(
     yield build_query_start_event(context)
 
     try:
-        # ── Stage 1: FAQ exact-match fast path ──
-        # 向前端发送"正在快速匹配标准 FAQ"状态事件
-        yield build_status_event("正在快速匹配标准 FAQ...", context.session_id)
-        # 在意图识别前尝试 FAQ 精确直出：标准问题完全一致时才直接返回
-        fast_answer = try_fast_faq_direct_answer(context)
-        # FAQ 精确匹配直出命中，跳过后续所有 RAG 步骤直接返回
-        if fast_answer:
-            yield from _finish_with_single_answer(context, history, query, fast_answer)
+        # ── Stage 1: Low-cost route decision ──
+        # 统一处理确定性直答、边界拦截和 FAQ 精确命中；未命中才进入检索准备。
+        yield build_status_event("正在进行查询路由...", context.session_id)
+        route = decide_route(context)
+        if route.answer:
+            yield from _finish_with_single_answer(context, history, query, route.answer)
             return
 
         # ── Stage 2: Intent recognition + retrieval parameter preparation ──
         # 向前端发送"正在识别问题意图"状态事件
         yield build_status_event("正在识别问题意图...", context.session_id)
-        # 完成意图识别、追问改写、检索计划和查询变体生成，返回检索参数包
+        # 生成下游检索参数包：历史、意图、source、按需改写、检索计划、查询变体和 Prompt Profile。
         prepared = prepare_retrieval(context)
-
-        # ── Stage 3: Handle non-RAG answers (greeting, off-topic, manual service) ──
-        # 非 RAG 意图（问候/越界等）已有完整答案，无需检索直接返回
+        # 兜底保护：调试/未来扩展若在 prepare_retrieval 中产出直答，主链路仍直接收口。
         if prepared.intent.direct_answer:
-            # 保留首次触发的意图类型（因 fast path 可能已设置 hit_type）
             if context.hit_type == "unknown":
                 context.hit_type = prepared.intent.intent.lower()
             yield from _finish_with_single_answer(context, history, query, prepared.intent.direct_answer)
             return
 
-        # ── Stage 4-6: FAQ retrieval → doc retrieval → context building → LLM streaming ──
+        # ── Stage 3-6: FAQ retrieval → doc retrieval → context building → LLM streaming ──
         # 执行检索+生成并产生状态/token/结束事件，返回 None 表示已内部收尾
         helper_result = yield from _search_and_generate(context, prepared, query, history)
         # _search_and_generate 内已 yield 收尾事件，无需继续走引用补强
@@ -167,7 +162,7 @@ def _search_and_generate(context, prepared, query, history) -> Generator:
         Generator yielding token/status/end 事件；
         function return value 为 None（已收尾）或 AnswerPreparation（需上游继续引用补强）
     """
-    # ── Stage 4: FAQ retrieval with direct-answer bypass ──
+    # ── Stage 3: FAQ retrieval with direct-answer bypass ──
     # 向前端发送"正在检索 FAQ 知识库"状态事件
     yield build_status_event("正在检索业务 FAQ 知识库...", context.session_id)
     # 按检索计划查询 FAQ 集合
@@ -181,11 +176,12 @@ def _search_and_generate(context, prepared, query, history) -> Generator:
         yield from _finish_with_single_answer(context, history, query, direct_answer)
         return None
 
-    # ── Stage 5: Document retrieval + answer context preparation ──
+    # ── Stage 4: Document retrieval ──
     # 向前端发送"正在匹配业务资料"状态事件
     yield build_status_event("正在匹配相关业务资料...", context.session_id)
     # 按检索计划查询文档集合
     doc_result = search_doc(context, prepared)
+    # ── Stage 5: Answer context preparation ──
     # 将检索结果整理成最终 Prompt、引用来源和命中类型
     answer_prepared = prepare_answer(context, prepared, faq_result, doc_result)
     context.sources = answer_prepared.sources
@@ -266,11 +262,11 @@ def debug_retrieval(
     user_role: str | None = None,
     user_roles: list[str] | None = None,
 ) -> dict[str, Any]:
-    """检索半链路调试入口：只做意图识别+改写+FAQ/文档检索，不调用 LLM，用于诊断召回质量和耗时。★★★ 核心
+    """检索半链路调试入口：只做检索准备+FAQ/文档检索，不调用 LLM，用于诊断召回质量和耗时。★★★ 核心
 
     执行流程：
     1. 创建运行时上下文（场景/数据域/会话/trace/知识库版本）
-    2. 意图识别 + 追问改写 + 检索计划 + 查询变体
+    2. 检索准备：历史、意图、source、按需改写、检索计划、查询变体和 Prompt Profile
     3. FAQ 检索 + 文档检索（检索计划禁用某一路时返回空结果）
     4. 汇总阶段耗时和检索诊断信息
 

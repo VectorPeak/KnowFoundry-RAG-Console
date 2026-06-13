@@ -8,12 +8,12 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from qa_core.intent.classifier import IntentResult, classify_intent, infer_source
+from qa_core.intent.classifier import IntentResult, classify_direct_intent, classify_intent, infer_source
 from qa_core.llm.client import get_chat_model
 from qa_core.memory.history import format_messages
 from qa_core.pipeline.context import (
@@ -60,6 +60,23 @@ class AnswerPreparation:
     user_prompt: str
 
 
+RouteName = Literal["direct_answer", "faq_exact", "retrieval"]
+
+
+@dataclass
+class RouteDecision:
+    """在线问答的低成本路由结果，统一承载直答、FAQ 精确命中和继续检索三类分支。
+
+    intent 描述“用户想干什么”，route 描述“系统下一步怎么处理”。FAQ 精确命中是
+    route=faq_exact，同时 intent=FAQ_QUERY；它不是新的用户意图。
+    """
+
+    route: RouteName
+    answer: str | None = None
+    intent: IntentResult | None = None
+    reason: str = ""
+
+
 def should_try_faq_fast_path(query: str, scenario) -> bool:
     """判断问题是否短小完整且像标准问答，值得先尝试 FAQ 精确直出。
 
@@ -103,29 +120,22 @@ def _exact_faq_answer(query: str, faq_result: RetrievalResult) -> tuple[str | No
     return None, faq_result
 
 
-def try_fast_faq_direct_answer(context: RAGQueryContext) -> str | None:
-    """意图识别前置快速路径：短问题精确匹配标准 FAQ 时直接返回，跳过后续所有 RAG 步骤。★★★ 核心
+def try_fast_faq_direct_answer(context: RAGQueryContext) -> tuple[str | None, IntentResult]:
+    """查询路由内部的 FAQ 精确路径：精确命中标准 FAQ 时直接返回。★★★ 核心
 
     执行流程：
-    1. 检查问题是否符合 fast path 前置条件（短/无换行/标准问答句式）
-    2. 校验前端 source_filter 合法性
-    3. 构建轻量检索计划（仅 FAQ，不查文档，不 rerank）
-    4. 执行 FAQ 混合检索（仅单变体）
-    5. 从候选中寻找精确匹配的标准问题答案
-    6. 命中的直接设置 hit_type 并返回答案；未命中的缓存结果供主链路复用
+    1. 调用方已在 decide_route() 中完成 source 校验、确定性直答和 fast path 前置条件判断
+    2. 构建轻量检索计划（仅 FAQ，不查文档，不 rerank）
+    3. 执行 FAQ 混合检索（仅单变体）
+    4. 从候选中寻找精确匹配的标准问题答案
+    5. 命中的直接设置 hit_type 并返回答案；未命中的缓存结果供主链路复用
 
     参数：
         context: RAGQueryContext 请求级状态
 
     返回：
-        str | None: 精确匹配的答案文本；未命中时返回 None
+        tuple[str | None, IntentResult]: 精确匹配答案及其 FAQ_QUERY 意图；未命中时答案为 None
     """
-    if not should_try_faq_fast_path(context.query, context.scenario):
-        return None
-
-    # 校验前端 source_filter 是否在场景白名单内，拒绝非法业务分类
-    context.run_stage("fast_validate_source", lambda: context.validate_source(context.source_filter, context.scenario))
-
     # 根据问题关键词推断可能的业务分类过滤项
     suggested_source = infer_source(context.query, context.scenario)
     intent = IntentResult(
@@ -186,22 +196,90 @@ def try_fast_faq_direct_answer(context: RAGQueryContext) -> str | None:
     # 从 FAQ 候选中找与用户问题标准问题完全一致的答案，只允许精确匹配直出
     answer, faq_result = _exact_faq_answer(context.query, faq_result)
     if not answer:
-        # 无精确命中时，用边界规则判断是否跨场景/跨 source 提问
-        boundary_answer = detect_and_apply_boundary_answer(context)
-        if boundary_answer:
-            return boundary_answer
         # 缓存 fast path 的 FAQ 召回结果，主链路同参数时复用避免重复检索
         context.fast_faq_result = faq_result
         context.fast_faq_source_filter = effective_source_filter
-        return None
+        return None, intent
     context.hit_type = "faq_direct"
     context.sources = faq_result.source_payloads()
     context.retrieval_info["fast_path_hit"] = True
-    return answer
+    return answer, intent
+
+
+def decide_route(context: RAGQueryContext) -> RouteDecision:
+    """统一的低成本查询路由：直答/边界、FAQ 精确命中、或继续完整检索准备。★★★ 核心
+
+    这个阶段只做确定性、低成本决策：
+    1. source_filter 校验；
+    2. 问候、越界、短句转人工、场景/source 边界直接返回；
+    3. 短标准问答尝试 FAQ 精确命中，命中则以 FAQ_QUERY 意图直出；
+    4. 都不命中时返回 retrieval，由后续 prepare_retrieval() 做检索准备。
+
+    返回：
+        RouteDecision: route=direct_answer / faq_exact / retrieval
+    """
+    context.run_stage("validate_source", lambda: context.validate_source(context.source_filter, context.scenario))
+
+    direct_intent = context.run_stage(
+        "route_direct_intent",
+        lambda: classify_direct_intent(context.query, context.scenario),
+    )
+    if direct_intent and direct_intent.direct_answer:
+        _apply_direct_route(context, direct_intent, route="direct_answer", reason=direct_intent.reason)
+        return RouteDecision(
+            route="direct_answer",
+            answer=direct_intent.direct_answer,
+            intent=direct_intent,
+            reason=direct_intent.reason,
+        )
+
+    boundary_answer = detect_and_apply_boundary_answer(context)
+    if boundary_answer:
+        intent = IntentResult(
+            intent="OUT_OF_SCOPE",
+            direct_answer=boundary_answer,
+            confidence=0.98,
+            reason=context.retrieval_info.get("boundary_reason") or "scenario_boundary",
+            requires_rewrite=False,
+            suggested_source=None,
+        )
+        _apply_direct_route(context, intent, route="direct_answer", reason=intent.reason)
+        return RouteDecision(route="direct_answer", answer=boundary_answer, intent=intent, reason=intent.reason)
+
+    if should_try_faq_fast_path(context.query, context.scenario):
+        answer, intent = try_fast_faq_direct_answer(context)
+        if answer:
+            context.hit_type = "faq_direct"
+            context.retrieval_info["route"] = "faq_exact"
+            context.retrieval_info["route_reason"] = "faq_exact_match"
+            return RouteDecision(route="faq_exact", answer=answer, intent=intent, reason="faq_exact_match")
+
+    context.retrieval_info["route"] = "retrieval"
+    context.retrieval_info["route_reason"] = "no_deterministic_route"
+    return RouteDecision(route="retrieval", reason="no_deterministic_route")
+
+
+def _apply_direct_route(context: RAGQueryContext, intent: IntentResult, *, route: RouteName, reason: str) -> None:
+    """把直接路由结果写入上下文，供 end 事件和 trace 使用。"""
+    context.intent_payload = intent.as_dict()
+    if context.hit_type == "unknown":
+        context.hit_type = intent.intent.lower()
+    context.retrieval_info.update(
+        {
+            "route": route,
+            "route_reason": reason,
+            "direct_answer_guard": reason,
+            "scenario_id": context.scenario.scenario_id,
+            "scenario_name": context.scenario.display_name,
+            "data_scope": context.data_scope.as_dict(),
+            "source_filter": context.source_filter,
+            "kb_version": context.active_kb_version,
+        }
+    )
 
 
 def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
-    """意图识别+检索参数准备：识别意图、改写追问、构建检索策略，为下游检索生成完整参数包。★★★ 核心
+    """检索参数准备：加载历史、识别意图、按需改写追问、构建检索策略，为下游检索生成完整参数包。★★★ 核心
 
     执行流程：
     1. 校验前端 source_filter 合法性
@@ -209,7 +287,7 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
     3. 加载历史摘要 + 最近消息作为对话上下文
     4. 规则优先 + LLM 补充的意图识别
     5. 确定 source 过滤项（前端 > 意图推断 > 不过滤）
-    6. 追问改写（将依赖上下文的问法转为独立检索问题）
+    6. 必要时追问改写（将依赖上下文的问法转为独立检索问题）
     7. 构建检索策略（top_k、阈值、是否重排等）
     8. 生成同义检索表达列表（查询变体）
     9. 选择最终回答提示词模板档位
@@ -221,10 +299,10 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
     返回：
         RetrievalPreparation: 包含检索所需全部参数的数据包
     """
-    # 校验前端 source_filter 是否在场景白名单内，拒绝非法业务分类
+    # 检索诊断接口会直接进入本函数；在线主链路也可重复执行该校验，保持幂等。
     context.run_stage("validate_source", lambda: context.validate_source(context.source_filter, context.scenario))
 
-    # 识别场景或 source 边界问题，若跨域则返回引导提示
+    # 检索诊断半链路也需要看到边界判断结果；在线主链路通常已在 decide_route 中提前处理。
     boundary_answer = detect_and_apply_boundary_answer(context)
     if boundary_answer:
         intent = IntentResult(
@@ -236,7 +314,6 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
             suggested_source=None,
         )
         context.intent_payload = intent.as_dict()
-        # 根据意图和问题类别选择最终回答提示词模板档位
         prompt_profile = build_answer_prompt_profile(intent.intent, context.scenario, context.query)
         context.retrieval_info["prompt_profile"] = prompt_profile.as_dict()
         return RetrievalPreparation(
@@ -252,7 +329,7 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
     # 从 MySQL 加载"历史摘要 + 最近消息"作为压缩后的对话上下文
     history_messages = context.run_stage("load_history", lambda: context.history.get_context_messages(context.session_id))
 
-    # 规则优先 + LLM 补充的意图识别（问候、追问、FAQ 查询等）
+    # 规则优先 + LLM 补充的检索类意图识别（追问、FAQ 查询、知识查询等）
     intent = context.run_stage("classify_intent", lambda: classify_intent(context.query, history_messages, context.scenario))
     context.intent_payload = intent.as_dict()
 
@@ -262,7 +339,7 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
         lambda: resolve_effective_source_filter(context.source_filter, intent.suggested_source, context.scenario),
     )
 
-    # 将依赖上下文的追问改写成独立检索问题
+    # 仅在 intent.requires_rewrite=True 时，将依赖上下文的追问改写成独立检索问题。
     context.rewritten_query = context.run_stage(
         "rewrite_query",
         lambda: rewrite_query_if_needed(context.query, history_messages, intent.requires_rewrite),
@@ -283,8 +360,15 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
         lambda: build_answer_prompt_profile(intent.intent, context.scenario, context.rewritten_query),
     )
 
+    route_snapshot = {
+        key: context.retrieval_info[key]
+        for key in ("route", "route_reason")
+        if key in context.retrieval_info
+    }
+
     # 构造检索诊断信息快照，供后续 trace 和错误排查使用
     context.retrieval_info = {
+        **route_snapshot,
         "plan": plan.as_dict(),
         "query_variants": query_variants,
         "scenario_id": context.scenario.scenario_id,

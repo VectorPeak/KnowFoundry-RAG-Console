@@ -187,12 +187,11 @@ def check_secret_hygiene() -> list[GuardrailIssue]:
     """检查本地密钥和运行产物不会被默认提交。
 
     该检查不读取真实 `.env` 内容，只确认 `.gitignore` 会忽略敏感文件，并确认
-    `.env.example` 只保留占位符。这样既能保护本地 Key，又不会把密钥打印到终端。
+    环境模板只保留占位符。这样既能保护本地 Key，又不会把密钥打印到终端。
     """
     issues: list[GuardrailIssue] = []
     gitignore = PROJECT_ROOT / ".gitignore"
     env_examples = [
-        PROJECT_ROOT / ".env.example",
         PROJECT_ROOT / ".env.local.example",
         PROJECT_ROOT / ".env.compose.example",
     ]

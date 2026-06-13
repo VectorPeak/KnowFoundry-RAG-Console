@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第18讲：测试与接口验收 — KnowForge RAG Platform 讲义</title>
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({startOnLoad:false,theme:"default"}); }</script>
+<script>
+window.MathJax = {
+  loader: { paths: { mathjax: "/static/js/vendor/mathjax" } },
+  options: { enableAssistiveMml: false }
+};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/business-flow.html">📊 业务流程图</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/course-outline.html">课程大纲</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-f-embedding-models.html">F Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-g-chunking-strategy.html">G 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-h-tool-foundations.html">H 项目工具类开发详解</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="18">第18讲：测试与接口验收<a class="headerlink" href="#18" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./17-quality-evaluation.html">RAG 回归验收与入库质量</a><br />
+<strong>下一讲</strong>：<a href="./19-observability-tracing.html">LangSmith 观测、Trace 与生产化部署</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解 RAG 系统测试的分层策略</li>
+<li>掌握纯逻辑测试、API 保护测试、入库质量检查测试的设计模式</li>
+<li>理解为什么 RAG 测试要"绕过 HTTP，直接调用核心函数"</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">本讲边界</p>
+<p>第 18 讲回答“上线前如何证明代码和接口没有被改坏”。它关注 pytest、接口验收和回归保护。第 17 讲已经讲质量指标怎么定义，第 19 讲会讲上线后如何通过 Trace、监控、压测和容量评估持续观察系统。</p>
+</div>
+<hr />
+<h2 id="rag">第一部分：前置知识 — RAG 测试的特殊挑战<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h2>
+<h3 id="11-e2e">1.1 为什么不能只用 E2E 测试<a class="headerlink" href="#11-e2e" title="Permanent link">&para;</a></h3>
+<p>传统 Web 应用的端到端测试：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>启动服务 → 发 HTTP 请求 → 检查 HTTP 响应 → 断言 JSON 字段
+</code></pre></div></td></tr></table></div>
+<p>RAG 系统的 E2E 测试面临几个问题：</p>
+<ol>
+<li><strong>外部依赖重</strong>：需要 Milvus、MySQL、LLM API、本地模型全部在线</li>
+<li><strong>答案不确定性</strong>：同一个问题 LLM 可能每次都生成不同的措辞</li>
+<li><strong>慢</strong>：一次 RAG 问答需要 2-5 秒，跑 100 条需要很长时间</li>
+<li><strong>成本</strong>：每次测试都消耗 LLM API token</li>
+</ol>
+<p><strong>解决方案</strong>：纯逻辑测试 + 分层测试。</p>
+<h3 id="12">1.2 测试金字塔<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    subgraph Top["少量 · 慢 · 真实"]
+        E2E["🔴 E2E 验收测试<br/>真实 HTTP/WebSocket<br/>完整环境"]
+    end
+
+    subgraph Middle["适量 · 中等 · 半真实"]
+        Gate["🟡 验收逻辑测试<br/>模拟报告数据<br/>验证判定逻辑"]
+        API["🟡 API 保护测试<br/>直接调用依赖函数<br/>不启动服务器"]
+    end
+
+    subgraph Bottom["大量 · 快 · 纯逻辑"]
+        Unit["🟢 纯逻辑单元测试<br/>意图识别/检索过滤/<br/>上下文构建/Prompt选择<br/>无外部依赖"]
+    end
+
+    Bottom --> Middle --> Top
+
+    style Bottom fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style Middle fill:#FFFBEB,stroke:#D97706,stroke-width:2px
+    style Top fill:#FEF2F2,stroke:#DC2626,stroke-width:2px</div>
+<p>本项目的测试主要集中在底部和中部：纯逻辑测试 + 验收逻辑测试。E2E 验收测试通过 <code>scripts/acceptance_smoke.py</code> 和 <code>scripts/api_e2e_smoke.py</code> 在完整环境中手动运行。</p>
+<hr />
+<h2 id="_2">第二部分：纯逻辑单元测试<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 测试文件组织<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span>
+<span class="normal"><a href="#__codelineno-1-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>tests/
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>├── test_intent_and_scenarios.py    # 意图识别、问题类别、场景注册
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>├── test_retrieval_and_prompt.py    # 检索过滤、上下文构建、Prompt 选择
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>├── test_api_protection.py          # 管理令牌、限流
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>└── test_quality_gates.py           # 入库质量、RAG 回归验收、Bad Case
+</code></pre></div></td></tr></table></div>
+<h3 id="22">2.2 意图识别测试（纯逻辑）<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span>
+<span class="normal"><a href="#__codelineno-2-15">15</a></span>
+<span class="normal"><a href="#__codelineno-2-16">16</a></span>
+<span class="normal"><a href="#__codelineno-2-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1"># tests/test_intent_and_scenarios.py</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">IntentClassifierTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;验证意图识别输出正确的意图类型，不需要真实 LLM。&quot;&quot;&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_business_knowledge_question_uses_knowledge_intent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>        <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">classify_intent</span><span class="p">(</span><span class="s2">&quot;新人入职流程怎么走&quot;</span><span class="p">,</span> <span class="p">[],</span> <span class="n">scenario</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">intent</span><span class="p">,</span> <span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">suggested_source</span><span class="p">,</span> <span class="s2">&quot;hr&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_short_direct_faq_shape_prefers_faq_intent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a>        <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">classify_intent</span><span class="p">(</span><span class="s2">&quot;员工报销需要准备哪些材料？&quot;</span><span class="p">,</span> <span class="p">[],</span> <span class="n">scenario</span><span class="p">)</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">intent</span><span class="p">,</span> <span class="s2">&quot;FAQ_QUERY&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">reason</span><span class="p">,</span> <span class="s2">&quot;source_question_shape_rule&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17"></a>        <span class="c1"># 规则命中 → 不调用 LLM → reason 是确定性字符串</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>关键模式</strong>：这些测试验证的是<strong>规则路径</strong>，不经过 LLM。测试空历史（<code>[]</code>）触发规则判定，可以验证规则逻辑的正确性。</p>
+<h3 id="23-source">2.3 source 推断测试（跨场景）<a class="headerlink" href="#23-source" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span>
+<span class="normal"><a href="#__codelineno-3-15">15</a></span>
+<span class="normal"><a href="#__codelineno-3-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ScenarioRegistryTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_enterprise_source_patterns_are_used_for_source_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>        <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;新人入职流程怎么走&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;hr&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;VPN 连不上怎么处理&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;it&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_cross_border_source_patterns_are_used</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>        <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;cross_border_risk&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;交易对手命中制裁名单怎么办&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;sanction&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;信用证不符点如何处理&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;payment&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_engineering_project_patterns_are_used</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a>        <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;engineering_project_qa&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;图纸变更后旧版本还能作为施工依据吗&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;drawing&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_source</span><span class="p">(</span><span class="s2">&quot;隐蔽工程验收需要哪些资料&quot;</span><span class="p">,</span> <span class="n">scenario</span><span class="p">),</span> <span class="s2">&quot;quality&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>关键模式</strong>：使用 <code>resolve(scenario_id)</code> 加载真实场景 TOML 配置，验证 source_patterns 的匹配逻辑。这是对"配置即代码"的测试。</p>
+<h3 id="24">2.4 场景边界检测测试<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
+<span class="normal"><a href="#__codelineno-4-2">2</a></span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span>
+<span class="normal"><a href="#__codelineno-4-4">4</a></span>
+<span class="normal"><a href="#__codelineno-4-5">5</a></span>
+<span class="normal"><a href="#__codelineno-4-6">6</a></span>
+<span class="normal"><a href="#__codelineno-4-7">7</a></span>
+<span class="normal"><a href="#__codelineno-4-8">8</a></span>
+<span class="normal"><a href="#__codelineno-4-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_scenario_boundary_detects_question_from_other_business_scene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>    <span class="n">scenario</span> <span class="o">=</span> <span class="n">get_scenario_registry</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>    <span class="c1"># 问一个工程安全问题，但当前场景是企业知识</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="n">decision</span> <span class="o">=</span> <span class="n">detect_scenario_boundary</span><span class="p">(</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>        <span class="s2">&quot;安全技术交底只有口头说明可以吗？&quot;</span><span class="p">,</span> <span class="n">scenario</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a>    <span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">decision</span><span class="o">.</span><span class="n">crossed</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">decision</span><span class="o">.</span><span class="n">matched_scenario_id</span><span class="p">,</span> <span class="s2">&quot;engineering_project_qa&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">decision</span><span class="o">.</span><span class="n">matched_source</span><span class="p">,</span> <span class="s2">&quot;safety&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="25">2.5 检索过滤测试（纯逻辑）<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span>
+<span class="normal"><a href="#__codelineno-5-17">17</a></span>
+<span class="normal"><a href="#__codelineno-5-18">18</a></span>
+<span class="normal"><a href="#__codelineno-5-19">19</a></span>
+<span class="normal"><a href="#__codelineno-5-20">20</a></span>
+<span class="normal"><a href="#__codelineno-5-21">21</a></span>
+<span class="normal"><a href="#__codelineno-5-22">22</a></span>
+<span class="normal"><a href="#__codelineno-5-23">23</a></span>
+<span class="normal"><a href="#__codelineno-5-24">24</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="c1"># tests/test_retrieval_and_prompt.py</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">RetrievalFilterTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;验证 source、版本、数据域会进入 Milvus 表达式。&quot;&quot;&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_build_source_expr_with_scope_and_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a>        <span class="n">scope</span> <span class="o">=</span> <span class="n">resolve_data_scope</span><span class="p">(</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>            <span class="n">tenant_id</span><span class="o">=</span><span class="s2">&quot;tenant_a&quot;</span><span class="p">,</span> <span class="n">dataset_id</span><span class="o">=</span><span class="s2">&quot;dataset_1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a>            <span class="n">visibility</span><span class="o">=</span><span class="s2">&quot;internal&quot;</span><span class="p">,</span> <span class="n">user_role</span><span class="o">=</span><span class="s2">&quot;admin&quot;</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a>        <span class="p">)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>        <span class="n">expr</span> <span class="o">=</span> <span class="n">build_source_expr</span><span class="p">(</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>            <span class="s2">&quot;billing&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a>            <span class="n">kb_version</span><span class="o">=</span><span class="s2">&quot;kb_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a>            <span class="n">valid_sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;billing&quot;</span><span class="p">,</span> <span class="s2">&quot;support&quot;</span><span class="p">],</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a>            <span class="n">data_scope</span><span class="o">=</span><span class="n">scope</span><span class="p">,</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a>        <span class="p">)</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;source == &quot;billing&quot;&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;kb_version == &quot;kb_v1&quot;&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;tenant_id == &quot;tenant_a&quot;&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;array_contains(allowed_roles, &quot;admin&quot;)&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_build_source_expr_rejects_invalid_source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a>        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24"></a>            <span class="n">build_source_expr</span><span class="p">(</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">valid_sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;billing&quot;</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>关键模式</strong>：不连接 Milvus，只验证表达式字符串的正确性。这比启动 Milvus 再验证快 100 倍。</p>
+<h3 id="26">2.6 上下文构建测试<a class="headerlink" href="#26" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span>
+<span class="normal"><a href="#__codelineno-6-11">11</a></span>
+<span class="normal"><a href="#__codelineno-6-12">12</a></span>
+<span class="normal"><a href="#__codelineno-6-13">13</a></span>
+<span class="normal"><a href="#__codelineno-6-14">14</a></span>
+<span class="normal"><a href="#__codelineno-6-15">15</a></span>
+<span class="normal"><a href="#__codelineno-6-16">16</a></span>
+<span class="normal"><a href="#__codelineno-6-17">17</a></span>
+<span class="normal"><a href="#__codelineno-6-18">18</a></span>
+<span class="normal"><a href="#__codelineno-6-19">19</a></span>
+<span class="normal"><a href="#__codelineno-6-20">20</a></span>
+<span class="normal"><a href="#__codelineno-6-21">21</a></span>
+<span class="normal"><a href="#__codelineno-6-22">22</a></span>
+<span class="normal"><a href="#__codelineno-6-23">23</a></span>
+<span class="normal"><a href="#__codelineno-6-24">24</a></span>
+<span class="normal"><a href="#__codelineno-6-25">25</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ContextBuilderTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_direct_faq_answer_requires_exact_match_or_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>        <span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a>            <span class="n">page_content</span><span class="o">=</span><span class="s2">&quot;是否支持开发票&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;standard_question&quot;</span><span class="p">:</span> <span class="s2">&quot;是否支持开发票&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>                       <span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;支持，具体以系统规则为准。&quot;</span><span class="p">},</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a>        <span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a>        <span class="c1"># 精确匹配 → 分数不重要，直接返回</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a>            <span class="n">direct_faq_answer</span><span class="p">(</span><span class="s2">&quot;是否支持开发票&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">score</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">),</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12"></a>            <span class="s2">&quot;支持，具体以系统规则为准。&quot;</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13"></a>        <span class="p">)</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14"></a>        <span class="c1"># 相似但不精确 → 分数必须超过阈值</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16"></a>            <span class="n">direct_faq_answer</span><span class="p">(</span><span class="s2">&quot;可以开票吗&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">score</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">),</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17"></a>            <span class="s2">&quot;支持，具体以系统规则为准。&quot;</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18"></a>        <span class="p">)</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20"></a>            <span class="n">direct_faq_answer</span><span class="p">(</span><span class="s2">&quot;可以开票吗&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">score</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21"></a>        <span class="p">)</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22"></a>
+<a id="__codelineno-6-23" name="__codelineno-6-23"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_select_context_docs_deduplicates_parent_and_applies_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;验证父子块去重和字符预算。&quot;&quot;&quot;</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25"></a>        <span class="c1"># ... 见源码 tests/test_retrieval_and_prompt.py</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="27-prompt-profile">2.7 Prompt Profile 选择测试<a class="headerlink" href="#27-prompt-profile" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span>
+<span class="normal"><a href="#__codelineno-7-11">11</a></span>
+<span class="normal"><a href="#__codelineno-7-12">12</a></span>
+<span class="normal"><a href="#__codelineno-7-13">13</a></span>
+<span class="normal"><a href="#__codelineno-7-14">14</a></span>
+<span class="normal"><a href="#__codelineno-7-15">15</a></span>
+<span class="normal"><a href="#__codelineno-7-16">16</a></span>
+<span class="normal"><a href="#__codelineno-7-17">17</a></span>
+<span class="normal"><a href="#__codelineno-7-18">18</a></span>
+<span class="normal"><a href="#__codelineno-7-19">19</a></span>
+<span class="normal"><a href="#__codelineno-7-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">PromptProfileTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_pricing_question_uses_pricing_guard_before_intent_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;费用类问题必须使用 pricing_guard, 即使意图是 FAQ_QUERY。&quot;&quot;&quot;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5"></a>        <span class="n">profile</span> <span class="o">=</span> <span class="n">build_answer_prompt_profile</span><span class="p">(</span><span class="s2">&quot;FAQ_QUERY&quot;</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="s2">&quot;发票和退款规则是什么&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;pricing_guard&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&quot;已确认&quot;</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">system_template</span><span class="p">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_business_compliance_questions_use_compliance_guard</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;合规类问题使用 compliance_guard, 不按普通知识问答处理。&quot;&quot;&quot;</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11"></a>        <span class="n">queries</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12"></a>            <span class="s2">&quot;受限空间作业前需要哪些安全确认？&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13"></a>            <span class="s2">&quot;检验批资料和现场实物不一致怎么办？&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14"></a>            <span class="s2">&quot;安全技术交底只有口头说明可以吗？&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15"></a>        <span class="p">]</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16"></a>        <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">queries</span><span class="p">:</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17"></a>            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">subTest</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">):</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">infer_question_category</span><span class="p">(</span><span class="n">query</span><span class="p">),</span> <span class="s2">&quot;compliance&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19"></a>                <span class="n">profile</span> <span class="o">=</span> <span class="n">build_answer_prompt_profile</span><span class="p">(</span><span class="s2">&quot;KNOWLEDGE_QUERY&quot;</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20"></a>                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;compliance_guard&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="api">第三部分：API 保护测试<a class="headerlink" href="#api" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 管理令牌验证<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-8-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-8-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-8-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-8-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-8-10">10</a></span>
+<span class="normal"><a href="#__codelineno-8-11">11</a></span>
+<span class="normal"><a href="#__codelineno-8-12">12</a></span>
+<span class="normal"><a href="#__codelineno-8-13">13</a></span>
+<span class="normal"><a href="#__codelineno-8-14">14</a></span>
+<span class="normal"><a href="#__codelineno-8-15">15</a></span>
+<span class="normal"><a href="#__codelineno-8-16">16</a></span>
+<span class="normal"><a href="#__codelineno-8-17">17</a></span>
+<span class="normal"><a href="#__codelineno-8-18">18</a></span>
+<span class="normal"><a href="#__codelineno-8-19">19</a></span>
+<span class="normal"><a href="#__codelineno-8-20">20</a></span>
+<span class="normal"><a href="#__codelineno-8-21">21</a></span>
+<span class="normal"><a href="#__codelineno-8-22">22</a></span>
+<span class="normal"><a href="#__codelineno-8-23">23</a></span>
+<span class="normal"><a href="#__codelineno-8-24">24</a></span>
+<span class="normal"><a href="#__codelineno-8-25">25</a></span>
+<span class="normal"><a href="#__codelineno-8-26">26</a></span>
+<span class="normal"><a href="#__codelineno-8-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="c1"># tests/test_api_protection.py</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">ApiProtectionTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_admin_token_requires_configured_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;令牌为空时直接返回 500。&quot;&quot;&quot;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>        <span class="n">original</span> <span class="o">=</span> <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a>        <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># 临时修改配置</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a>            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">HTTPException</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11"></a>                <span class="n">api_deps</span><span class="o">.</span><span class="n">require_admin_token</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13"></a>        <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14"></a>            <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span> <span class="o">=</span> <span class="n">original</span>  <span class="c1"># 恢复配置</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15"></a>
+<a id="__codelineno-8-16" name="__codelineno-8-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_admin_token_rejects_wrong_token_when_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;错误令牌返回 401。&quot;&quot;&quot;</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18"></a>        <span class="n">original</span> <span class="o">=</span> <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19"></a>        <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span> <span class="o">=</span> <span class="s2">&quot;secret&quot;</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21"></a>            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">HTTPException</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22"></a>                <span class="n">api_deps</span><span class="o">.</span><span class="n">require_admin_token</span><span class="p">(</span><span class="s2">&quot;bad&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">exception</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">401</span><span class="p">)</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24"></a>            <span class="c1"># 正确令牌不抛异常</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsNone</span><span class="p">(</span><span class="n">api_deps</span><span class="o">.</span><span class="n">require_admin_token</span><span class="p">(</span><span class="s2">&quot;secret&quot;</span><span class="p">))</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26"></a>        <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27"></a>            <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">admin_api_token</span> <span class="o">=</span> <span class="n">original</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>关键模式</strong>：
+- 不启动 FastAPI 服务器，直接调用依赖函数
+- 临时修改 <code>settings</code> 对象来模拟不同配置
+- <code>try/finally</code> 确保测试后恢复原始配置</p>
+<h3 id="32">3.2 限流测试<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-9-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-9-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-9-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-9-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-9-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-9-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-9-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-9-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-9-10">10</a></span>
+<span class="normal"><a href="#__codelineno-9-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_rate_limit_can_block_after_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a>    <span class="n">original_limit</span> <span class="o">=</span> <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">api_rate_limit_per_minute</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>    <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">api_rate_limit_per_minute</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># 每分钟只允许 2 次</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>    <span class="n">api_deps</span><span class="o">.</span><span class="n">RATE_BUCKETS</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">api_deps</span><span class="o">.</span><span class="n">check_rate_limit</span><span class="p">(</span><span class="s2">&quot;unit-test&quot;</span><span class="p">))</span>   <span class="c1"># 第 1 次：允许</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">api_deps</span><span class="o">.</span><span class="n">check_rate_limit</span><span class="p">(</span><span class="s2">&quot;unit-test&quot;</span><span class="p">))</span>   <span class="c1"># 第 2 次：允许</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">api_deps</span><span class="o">.</span><span class="n">check_rate_limit</span><span class="p">(</span><span class="s2">&quot;unit-test&quot;</span><span class="p">))</span>  <span class="c1"># 第 3 次：拒绝</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a>    <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10"></a>        <span class="n">api_deps</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">api_rate_limit_per_minute</span> <span class="o">=</span> <span class="n">original_limit</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11"></a>        <span class="n">api_deps</span><span class="o">.</span><span class="n">RATE_BUCKETS</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_3">第四部分：验收逻辑测试<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 入库质量检查测试<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-10-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-10-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-10-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-10-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-10-10">10</a></span>
+<span class="normal"><a href="#__codelineno-10-11">11</a></span>
+<span class="normal"><a href="#__codelineno-10-12">12</a></span>
+<span class="normal"><a href="#__codelineno-10-13">13</a></span>
+<span class="normal"><a href="#__codelineno-10-14">14</a></span>
+<span class="normal"><a href="#__codelineno-10-15">15</a></span>
+<span class="normal"><a href="#__codelineno-10-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QualityGateTests</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_ingestion_gate_rejects_faq_document_conflicts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;FAQ/正文冲突时验收必须拒绝。&quot;&quot;&quot;</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>        <span class="n">report</span> <span class="o">=</span> <span class="n">_clean_ingestion_report</span><span class="p">()</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>        <span class="n">report</span><span class="p">[</span><span class="s2">&quot;faq_document_conflicts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;conflict_count&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">evaluate_ingestion_gate</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">IngestionQualityThresholds</span><span class="p">())</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;ok&quot;</span><span class="p">])</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;failures&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;metric&quot;</span><span class="p">],</span> <span class="s2">&quot;faq_document_conflicts&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_ingestion_gate_passes_clean_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;干净的报告必须通过。&quot;&quot;&quot;</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">evaluate_ingestion_gate</span><span class="p">(</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14"></a>            <span class="n">_clean_ingestion_report</span><span class="p">(),</span> <span class="n">IngestionQualityThresholds</span><span class="p">()</span>
+<a id="__codelineno-10-15" name="__codelineno-10-15"></a>        <span class="p">)</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;ok&quot;</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="42-rag">4.2 RAG 回归验收 — 分组回归检测<a class="headerlink" href="#42-rag" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-11-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-11-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-11-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-11-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-11-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-11-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-11-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-11-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-11-10">10</a></span>
+<span class="normal"><a href="#__codelineno-11-11">11</a></span>
+<span class="normal"><a href="#__codelineno-11-12">12</a></span>
+<span class="normal"><a href="#__codelineno-11-13">13</a></span>
+<span class="normal"><a href="#__codelineno-11-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_evaluation_gate_rejects_scenario_group_regression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;全局 Recall 正常但某个场景退化 → 验收必须拒绝。&quot;&quot;&quot;</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>    <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a>        <span class="s2">&quot;recall_at_k&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># 全局正常</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a>        <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6"></a>            <span class="p">{</span><span class="s2">&quot;scenario_id&quot;</span><span class="p">:</span> <span class="s2">&quot;enterprise_knowledge&quot;</span><span class="p">,</span> <span class="s2">&quot;recall_hit&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7"></a>            <span class="p">{</span><span class="s2">&quot;scenario_id&quot;</span><span class="p">:</span> <span class="s2">&quot;insurance_claims&quot;</span><span class="p">,</span> <span class="s2">&quot;recall_hit&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>  <span class="c1"># 这个场景退化</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8"></a>        <span class="p">],</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9"></a>    <span class="p">}</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">evaluate_eval_gate</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">EvaluationGateThresholds</span><span class="p">())</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;ok&quot;</span><span class="p">])</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12"></a>    <span class="c1"># 失败指标中包含按场景分组的退化信息</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s2">&quot;scenario.insurance_claims.recall_at_k&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14"></a>                  <span class="p">{</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;metric&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;failures&quot;</span><span class="p">]})</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="43-bad-case">4.3 Bad Case 分类测试<a class="headerlink" href="#43-bad-case" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-12-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-12-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-12-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-12-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-12-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-12-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-12-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-12-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-12-10">10</a></span>
+<span class="normal"><a href="#__codelineno-12-11">11</a></span>
+<span class="normal"><a href="#__codelineno-12-12">12</a></span>
+<span class="normal"><a href="#__codelineno-12-13">13</a></span>
+<span class="normal"><a href="#__codelineno-12-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_bad_case_classifier_marks_environment_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Milvus 连接失败 → 环境噪声，不进入业务复核。&quot;&quot;&quot;</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">classify_bad_case</span><span class="p">(</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>        <span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;low_source_count&quot;</span><span class="p">],</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a>        <span class="n">error</span><span class="o">=</span><span class="s2">&quot;MilvusException: Fail connecting to server on localhost:19530&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a>    <span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;bad_case_category&quot;</span><span class="p">],</span> <span class="s2">&quot;environment_error&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;is_environment_noise&quot;</span><span class="p">])</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_bad_case_classifier_marks_retrieval_quality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;低分低来源 → 检索质量问题。&quot;&quot;&quot;</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">classify_bad_case</span><span class="p">([</span><span class="s2">&quot;low_source_count&quot;</span><span class="p">,</span> <span class="s2">&quot;low_top_score&quot;</span><span class="p">])</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;bad_case_category&quot;</span><span class="p">],</span> <span class="s2">&quot;retrieval_quality&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;is_environment_noise&quot;</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_4">第五部分：运行测试<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 运行全部单元测试<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests<span class="w"> </span>-q
+</code></pre></div></td></tr></table></div>
+<p>预期输出：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a>104 passed, 10 warnings, 10 subtests passed
+</code></pre></div></td></tr></table></div>
+<p>当前测试集包含 104 个 pytest 用例，另有 10 个 subtests。大部分用例是纯逻辑和验收逻辑测试，不依赖 Milvus、MySQL 或 LLM；完整耗时以本机环境为准。</p>
+<h3 id="52">5.2 运行特定测试文件<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1">1</a></span>
+<span class="normal"><a href="#__codelineno-15-2">2</a></span>
+<span class="normal"><a href="#__codelineno-15-3">3</a></span>
+<span class="normal"><a href="#__codelineno-15-4">4</a></span>
+<span class="normal"><a href="#__codelineno-15-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="c1"># 只测试意图识别和场景</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_intent_and_scenarios.py<span class="w"> </span>-q
+<a id="__codelineno-15-3" name="__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4"></a><span class="c1"># 只测试检索和 Prompt</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_retrieval_and_prompt.py<span class="w"> </span>-q
+</code></pre></div></td></tr></table></div>
+<h3 id="53-ci">5.3 在 CI/回归检查中使用<a class="headerlink" href="#53-ci" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span>
+<span class="normal"><a href="#__codelineno-16-3">3</a></span>
+<span class="normal"><a href="#__codelineno-16-4">4</a></span>
+<span class="normal"><a href="#__codelineno-16-5">5</a></span>
+<span class="normal"><a href="#__codelineno-16-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="c1"># 项目守护检查（包含测试）</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a>python<span class="w"> </span>scripts/check_project_guardrails.py
+<a id="__codelineno-16-3" name="__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4"></a><span class="c1"># 接口和页面验收</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5"></a>python<span class="w"> </span>scripts/api_e2e_smoke.py<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+<a id="__codelineno-16-6" name="__codelineno-16-6"></a>python<span class="w"> </span>scripts/acceptance_smoke.py<span class="w"> </span>--base-url<span class="w"> </span>http://127.0.0.1:8000
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_5">本讲实践闭环<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本讲类型</td>
+<td>工程治理</td>
+</tr>
+<tr>
+<td>实践产物</td>
+<td>pytest 分层测试、接口验收、guardrails 守护检查</td>
+</tr>
+<tr>
+<td>是否进入最终项目</td>
+<td>是</td>
+</tr>
+<tr>
+<td>验收方式</td>
+<td>运行单元测试、接口验收和项目守护检查</td>
+</tr>
+<tr>
+<td>后续落点</td>
+<td>第 19 讲作为上线前检查和回归保障</td>
+</tr>
+</tbody>
+</table>
+<p>通过标准：核心逻辑可在不依赖外部服务的情况下快速回归，接口和质量门禁能阻断明显退化。</p>
+<h3 id="0-1">本讲从 0 到 1 实现闭环<a class="headerlink" href="#0-1" title="Permanent link">&para;</a></h3>
+<p>这一讲不是追求“测试越多越好”，而是建立低成本、可重复的回归网。实现顺序如下：</p>
+<div class="mermaid">flowchart TD
+    Unit["纯逻辑单元测试<br/>意图/过滤/Prompt"] --> Guard["项目守护检查<br/>check_project_guardrails"]
+    API["接口保护测试<br/>令牌/限流/异常"] --> Guard
+    Quality["质量门禁测试<br/>评测阈值/分组退化"] --> Guard
+    Smoke["少量冒烟测试<br/>HTTP / WebSocket"] --> Release{"是否可发布？"}
+    Guard --> Release
+    Release -->|"是"| Pass["进入部署或演示"]
+    Release -->|"否"| Fix["回到对应模块修复"]</div>
+<ol>
+<li>先写纯逻辑测试，覆盖意图、场景配置、过滤表达式、Prompt 选择。</li>
+<li>再写接口保护测试，覆盖管理令牌、限流、异常响应。</li>
+<li>然后写验收脚本，把质量门禁、文档一致性、核心测试串起来。</li>
+<li>最后保留少量 HTTP/WebSocket 冒烟测试，证明接口真的能通。</li>
+</ol>
+<p>实现完成后，相关代码结构应该是下面这张图：</p>
+<div class="mermaid">flowchart LR
+    subgraph Tests["tests"]
+        Intent["test_intent_and_scenarios.py<br/>意图/场景"]
+        Retrieval["test_retrieval_and_prompt.py<br/>检索/Prompt"]
+        API["test_api_protection.py<br/>接口保护"]
+        Quality["test_quality_gates.py<br/>质量门禁"]
+    end
+
+    subgraph Scripts["scripts"]
+        Guard["check_project_guardrails.py<br/>项目守护检查"]
+        Docs["check_docs_consistency.py<br/>文档一致性"]
+        Smoke["acceptance_smoke.py<br/>接口冒烟"]
+    end
+
+    Intent --> Guard
+    Retrieval --> Guard
+    API --> Guard
+    Quality --> Guard
+    Docs --> Guard
+    Smoke --> Guard</div>
+<p>来源：真实代码调用点，见 <code>tests/test_intent_and_scenarios.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1">1</a></span>
+<span class="normal"><a href="#__codelineno-17-2">2</a></span>
+<span class="normal"><a href="#__codelineno-17-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_rule_intent_without_llm</span><span class="p">():</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">classify_intent</span><span class="p">(</span><span class="s2">&quot;你好&quot;</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="p">[])</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a>    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">intent</span> <span class="o">==</span> <span class="n">IntentType</span><span class="o">.</span><span class="n">GREETING</span>
+</code></pre></div></td></tr></table></div>
+<p>检索过滤、Prompt 选择这类规则不需要连接 Milvus 或 LLM。直接检查函数输出，速度快，也不受环境波动影响。</p>
+<p>来源：真实代码调用点，见 <code>tests/test_retrieval_and_prompt.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1">1</a></span>
+<span class="normal"><a href="#__codelineno-18-2">2</a></span>
+<span class="normal"><a href="#__codelineno-18-3">3</a></span>
+<span class="normal"><a href="#__codelineno-18-4">4</a></span>
+<span class="normal"><a href="#__codelineno-18-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_filter_expr_contains_scope</span><span class="p">():</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a>    <span class="n">expr</span> <span class="o">=</span> <span class="n">build_source_expr</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">data_scope</span><span class="p">)</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3"></a>    <span class="k">assert</span> <span class="s2">&quot;scenario_id&quot;</span> <span class="ow">in</span> <span class="n">expr</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4"></a>    <span class="k">assert</span> <span class="s2">&quot;kb_version&quot;</span> <span class="ow">in</span> <span class="n">expr</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5"></a>    <span class="k">assert</span> <span class="s2">&quot;tenant_id&quot;</span> <span class="ow">in</span> <span class="n">expr</span>
+</code></pre></div></td></tr></table></div>
+<p>API 保护测试重点验证安全边界，例如没有管理令牌不能访问管理接口，超出限流要返回 429。</p>
+<p>来源：真实代码调用点，见 <code>tests/test_api_protection.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1">1</a></span>
+<span class="normal"><a href="#__codelineno-19-2">2</a></span>
+<span class="normal"><a href="#__codelineno-19-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_admin_requires_token</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/admin/status&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3"></a>    <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">401</span><span class="p">,</span> <span class="mi">403</span><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+<p>项目守护脚本用于把多个检查串成一个上线前命令。它适合本地发布前和 CI 中执行。</p>
+<p>来源：命令行验收，对应 <code>scripts/check_project_guardrails.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1">1</a></span>
+<span class="normal"><a href="#__codelineno-20-2">2</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">check_project_guardrails</span><span class="p">.</span><span class="n">py</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2"></a><span class="n">python</span> <span class="n">-m</span> <span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_intent_and_scenarios</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_retrieval_and_prompt</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_api_protection</span><span class="p">.</span><span class="n">py</span> <span class="n">-q</span>
+</code></pre></div></td></tr></table></div>
+<p>闭环验证重点：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>验证方式</th>
+<th>期望结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纯逻辑测试</td>
+<td>跑 pytest</td>
+<td>不依赖外部服务也能快速回归</td>
+</tr>
+<tr>
+<td>API 保护</td>
+<td>跑接口保护测试</td>
+<td>未授权和超限请求被拦截</td>
+</tr>
+<tr>
+<td>质量门禁</td>
+<td>跑 gate 测试</td>
+<td>指标退化会失败</td>
+</tr>
+<tr>
+<td>文档一致性</td>
+<td>跑 docs 检查</td>
+<td>场景、路径、讲义不漂移</td>
+</tr>
+<tr>
+<td>冒烟测试</td>
+<td>跑 HTTP/WS smoke</td>
+<td>关键接口可访问</td>
+</tr>
+</tbody>
+</table>
+<p>验收重点：用低成本纯逻辑测试覆盖大部分规则，少量接口/E2E 只验证关键链路；不要把所有测试都做成依赖 Milvus、MySQL、LLM 的慢测试。</p>
+<h2 id="_6">重点掌握<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>RAG 测试金字塔：大量纯逻辑单元测试（毫秒级）→ 适量验收逻辑测试 → 少量 E2E 验收</td>
+<td>理解 RAG 系统测试的分层策略</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>纯逻辑测试模式：绕过 HTTP，直接调用核心函数，不依赖 Milvus/MySQL/LLM</td>
+<td>RAG 测试的核心方法论，面试常问</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>验收逻辑测试验证分组回归检测：全局均值正常但某个场景退化时，验收必须拒绝</td>
+<td>理解分组验收的测试方法</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>意图识别测试验证规则路径（空历史 [] 触发规则判定，不经过 LLM）</td>
+<td>纯逻辑测试的具体例子</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>检索过滤测试验证表达式字符串（不连接 Milvus，只检查 expr 字符串内容）</td>
+<td>绕过外部依赖的测试技巧</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>API 保护测试：临时修改 settings + try/finally 恢复的模式</td>
+<td>模拟不同配置的测试技巧</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>Prompt Profile 选择测试：pricing 问题必须用 pricing_guard 而非意图兜底</td>
+<td>验证选择优先级的正确性</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>测试文件组织方式（4 个测试文件，104 个用例）</td>
+<td>了解测试规模</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>运行测试的命令（pytest）和 CI 集成方式（check_project_guardrails）</td>
+<td>了解如何执行测试</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">本讲小结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>测试金字塔</strong>：大量纯逻辑测试（毫秒级）→ 适量验收逻辑测试 → 少量 E2E 验收</li>
+<li><strong>纯逻辑测试绕过外部依赖</strong>：不连接 Milvus/MySQL/LLM，直接调用核心函数</li>
+<li><strong>临时修改 settings</strong> + <strong>try/finally 恢复</strong>：模拟不同配置而不影响其他测试</li>
+<li><strong>分组验收测试</strong>：确保全局均值不会掩盖局部退化</li>
+<li><strong>Bad Case 分类测试</strong>：验证环境噪声和业务问题被正确分离</li>
+</ul>
+<hr />
+<h2 id="_8">本讲能力小结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p>学完第 18 讲后，你应该能把项目的测试体系讲清楚：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>对应内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分层测试设计</td>
+<td>区分纯逻辑测试、接口保护测试、验收逻辑测试和少量 E2E 验收</td>
+</tr>
+<tr>
+<td>低成本回归</td>
+<td>用毫秒级纯逻辑测试覆盖意图、过滤、Prompt 选择等核心规则</td>
+</tr>
+<tr>
+<td>外部依赖隔离</td>
+<td>测试时不直接依赖 Milvus/MySQL/LLM，降低环境噪声</td>
+</tr>
+<tr>
+<td>验收门禁</td>
+<td>用统一验收逻辑判断质量是否退化，避免“看起来能跑”但效果变差</td>
+</tr>
+<tr>
+<td>Bad Case 沉淀</td>
+<td>把失败案例转成可复现的测试数据，持续补强系统边界</td>
+</tr>
+</tbody>
+</table>
+<p>完整课程能力总结放在第 19 讲和课程大纲中，本讲只聚焦“测试与接口验收”这一块。</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/17-quality-evaluation.html"><i class="fas fa-arrow-left"></i> 17 RAG 回归验收与入库质量</a>
+        <a class="pager-link next" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  if (window.mermaid) {
+    mermaid.run({querySelector:".mermaid"});
+  }
+})();
+</script>
+</body>
+</html>

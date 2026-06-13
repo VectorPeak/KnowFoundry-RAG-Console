@@ -1,8 +1,8 @@
 """检查文档和当前一期工程边界是否一致。
 
 这不是语法检查，而是防止 README、架构文档和验收命令在多轮优化后滞后。当前项目已经
-冻结为 8 个业务场景，一期只做 RAG；这些边界如果文档里说错，学生学习和面试表达都会
-被误导，所以保留一个轻量自检脚本。
+冻结为 8 个业务场景，一期只做 RAG；这些边界如果文档里说错，会让学习路径和交付口径
+同时跑偏，所以保留一个轻量自检脚本。
 """
 
 from __future__ import annotations
@@ -22,10 +22,11 @@ from scripts.common import configure_utf8_stdio, utc_now, write_optional_json
 FROZEN_SCENARIO_COUNT = 8
 REQUIRED_PATHS = (
     "README.md",
-    "docs/PROJECT_ARCHITECTURE.md",
-    "docs/phase1_quick_review.md",
-    "docs/coding_style_cn.md",
-    "docs/commenting_guidelines.md",
+    "docs/index.md",
+    "docs/course-outline.md",
+    "docs/01-project-overview.md",
+    "docs/19-observability-tracing.md",
+    "docs/appendix/appendix-h-tool-foundations.md",
     "scripts/enterprise_overlay/run_enterprise_overlay_activation.py",
     "eval_sets/business_depth_regression.json",
     "eval_sets/enterprise_overlay_regression.json",
@@ -36,14 +37,14 @@ README_REQUIRED_SNIPPETS = (
     "LangChain + Milvus Hybrid Search + FastAPI",
     "Bad Case 闭环",
     "一期源码不提前放 Agent 预留实现",
+    "GraphRAG",
 )
-ARCHITECTURE_REQUIRED_SNIPPETS = (
-    "qa_core",
-    "Milvus",
-    "LangChain",
-    "知识库版本",
-    "数据隔离",
-    "二期",
+COURSE_REQUIRED_SNIPPETS = (
+    "19 讲系统化课程",
+    "P3 扩展方向",
+    "GraphRAG Agent",
+    "Router/Planner",
+    "01 → 19",
 )
 
 
@@ -84,17 +85,17 @@ def check_readme() -> list[dict[str, Any]]:
     return failures
 
 
-def check_architecture_doc() -> list[dict[str, Any]]:
-    """检查架构文档是否保留一期 RAG 的关键表达。"""
+def check_course_outline() -> list[dict[str, Any]]:
+    """检查课程大纲是否保留当前 19 讲和二期边界表达。"""
     failures: list[dict[str, Any]] = []
-    architecture = text_of(PROJECT_ROOT / "docs" / "PROJECT_ARCHITECTURE.md")
-    for snippet in ARCHITECTURE_REQUIRED_SNIPPETS:
-        if snippet not in architecture:
+    outline = text_of(PROJECT_ROOT / "docs" / "course-outline.md")
+    for snippet in COURSE_REQUIRED_SNIPPETS:
+        if snippet not in outline:
             failures.append(
                 {
-                    "metric": "architecture_snippet",
-                    "path": "docs/PROJECT_ARCHITECTURE.md",
-                    "message": f"架构文档缺少关键说明：{snippet}",
+                    "metric": "course_outline_snippet",
+                    "path": "docs/course-outline.md",
+                    "message": f"课程大纲缺少关键说明：{snippet}",
                 }
             )
     return failures
@@ -102,7 +103,7 @@ def check_architecture_doc() -> list[dict[str, Any]]:
 
 def build_report() -> dict[str, Any]:
     """生成文档一致性检查报告。"""
-    failures = [*check_required_paths(), *check_readme(), *check_architecture_doc()]
+    failures = [*check_required_paths(), *check_readme(), *check_course_outline()]
     return {
         "report_type": "docs_consistency_check",
         "created_at": utc_now(),

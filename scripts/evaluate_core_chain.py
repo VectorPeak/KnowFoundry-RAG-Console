@@ -53,7 +53,7 @@ def _case_keywords(item: dict[str, Any]) -> list[str]:
     """读取当前评测样本显式维护的预期关键词。
 
     当前评测集统一使用 `expected_keywords` 描述答案必须覆盖的关键事实。这里不再从
-    `ground_truth` 或 `answer` 临时拆词，避免学生同时学习“标准答案评测”和“关键词评测”
+    `ground_truth` 或 `answer` 临时拆词，避免同时维护“标准答案评测”和“关键词评测”
     两套口径。
     """
     explicit = item.get("expected_keywords")

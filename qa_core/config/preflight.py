@@ -13,11 +13,13 @@ from qa_core.scenarios.registry import get_scenario_registry, resolve_scenario
 
 
 PLACEHOLDER_VALUES = {"", "replace-with-real-key", "replace-with-random-token", "changeme", "change-me"}
+PLACEHOLDER_MARKERS = ("请替换", "replace", "changeme", "change-me", "your-", "placeholder")
 
 def _is_placeholder(value: str | None) -> bool:
     """判断配置值是否为空或仍是示例占位符。"""
     normalized = str(value or "").strip()
-    return normalized.lower() in PLACEHOLDER_VALUES
+    lower_value = normalized.lower()
+    return lower_value in PLACEHOLDER_VALUES or any(marker in lower_value for marker in PLACEHOLDER_MARKERS)
 
 
 def _require_tcp(name: str, host: str, port: int, timeout: float = 3.0) -> None:

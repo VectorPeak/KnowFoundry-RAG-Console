@@ -43,7 +43,7 @@ app = FastAPI(
 register_api_exception_handlers(app)
 
 # 当前前端和 API 默认同源部署，但保留 CORS 配置是为了方便本地调试：
-# 例如单独启动 Vite/React 页面时，只需要在 .env 中追加允许来源即可。
+# 例如单独启动 Vite/React 页面时，只需要在当前运行配置中追加允许来源即可。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allow_origins,

@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 from qa_core.indexing.faq_ingestion import normalize_faq_source
-from qa_core.intent.classifier import classify_intent, infer_source
+from qa_core.intent.classifier import classify_direct_intent, classify_intent, infer_source
 from qa_core.intent.question_category import infer_question_category
 from qa_core.scenarios.boundary import detect_scenario_boundary, detect_source_boundary
 from qa_core.scenarios.registry import get_scenario_registry
@@ -85,6 +85,26 @@ class ScenarioRegistryTests(unittest.TestCase):
 
 class IntentClassifierTests(unittest.TestCase):
     """验证当前意图识别输出通用知识问答意图，不再输出课程咨询意图。"""
+
+    def test_direct_intent_guard_handles_protocol_questions_before_retrieval(self) -> None:
+        scenario = get_scenario_registry().resolve("enterprise_knowledge")
+
+        greeting = classify_direct_intent("你好", scenario)
+        self.assertIsNotNone(greeting)
+        self.assertEqual(greeting.intent, "GREETING")
+        self.assertTrue(greeting.direct_answer)
+
+        human_service = classify_direct_intent("转人工", scenario)
+        self.assertIsNotNone(human_service)
+        self.assertEqual(human_service.intent, "HUMAN_SERVICE")
+        self.assertTrue(human_service.direct_answer)
+
+        out_of_scope = classify_direct_intent("彩票怎么买", scenario)
+        self.assertIsNotNone(out_of_scope)
+        self.assertEqual(out_of_scope.intent, "OUT_OF_SCOPE")
+        self.assertTrue(out_of_scope.direct_answer)
+
+        self.assertIsNone(classify_direct_intent("新人入职流程怎么走", scenario))
 
     def test_business_knowledge_question_uses_knowledge_intent(self) -> None:
         scenario = get_scenario_registry().resolve("enterprise_knowledge")

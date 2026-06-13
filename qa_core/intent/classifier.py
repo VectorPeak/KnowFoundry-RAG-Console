@@ -84,6 +84,41 @@ class IntentLLMDecision(BaseModel):
     suggested_source: str | None = Field(default=None)
 
 
+def classify_direct_intent(query: str, scenario: ScenarioDefinition | None = None) -> IntentResult | None:
+    """供查询路由层复用的确定性直答规则：问候、越界、短句转人工。
+
+    这个函数不读取历史、不调用 LLM，只处理必须优先收口的协议/安全类问题；
+    普通 FAQ、知识咨询和追问仍交给检索准备阶段的 ``classify_intent()`` 判断。
+    """
+    normalized = query.strip().lower()
+    settings = get_settings()
+    suggested_source = infer_source(query, scenario)
+    assistant_name = scenario.assistant_name if scenario else "知识助手"
+    business_domain = scenario.business_domain if scenario else "业务知识库"
+    support_contact = scenario.support_contact if scenario else settings.customer_service_phone
+    greeting_answers = [
+        f"你好！我是{assistant_name}，可以帮你查询{business_domain}中的制度、流程、FAQ 和文档资料。",
+        f"我是{assistant_name}，负责解答{business_domain}相关问题。",
+    ]
+    # 规则 1 — GREETING：问候类无需检索知识库，直接返回预设友好话术
+    for pattern, answer in zip(GREETING_PATTERNS, greeting_answers):
+        if re.match(pattern, normalized, re.IGNORECASE):
+            return IntentResult(intent="GREETING", direct_answer=answer, confidence=1.0, reason="greeting_rule")
+    # 规则 2 — OUT_OF_SCOPE：越界话题必须在任何检索之前拦截
+    if OFF_TOPIC_HINTS.search(normalized):
+        return IntentResult(intent="OUT_OF_SCOPE", direct_answer=f"这个问题超出了{business_domain}的问答范围，我无法提供帮助。", confidence=0.95, reason="safety_rule")
+    # 规则 3 — HUMAN_SERVICE：转人工请求需在短句中识别，避免长文本误触发
+    if HUMAN_SERVICE_HINTS.search(normalized) and len(normalized) <= 18:
+        return IntentResult(
+            intent="HUMAN_SERVICE",
+            direct_answer=f"可以联系人工支持，联系方式：{support_contact}。",
+            confidence=0.9,
+            reason="human_service_rule",
+            suggested_source=suggested_source,
+        )
+    return None
+
+
 def classify_intent(query: str, history: list[BaseMessage], scenario: ScenarioDefinition | None = None) -> IntentResult:
     """按优先级规则识别用户问题意图，规则无法判断时再调用 LLM。（★★★ 核心）
 
@@ -105,33 +140,10 @@ def classify_intent(query: str, history: list[BaseMessage], scenario: ScenarioDe
     返回：
         标准化 IntentResult。
     """
-    normalized = query.strip().lower()
-    # 加载全局设置
-    settings = get_settings()
     suggested_source = infer_source(query, scenario)
-    assistant_name = scenario.assistant_name if scenario else "知识助手"
-    business_domain = scenario.business_domain if scenario else "业务知识库"
-    support_contact = scenario.support_contact if scenario else settings.customer_service_phone
-    greeting_answers = [
-        f"你好！我是{assistant_name}，可以帮你查询{business_domain}中的制度、流程、FAQ 和文档资料。",
-        f"我是{assistant_name}，负责解答{business_domain}相关问题。",
-    ]
-    # 规则 1 — GREETING：问候类无需检索知识库，直接返回预设友好话术
-    for pattern, answer in zip(GREETING_PATTERNS, greeting_answers):
-        if re.match(pattern, normalized, re.IGNORECASE):
-            return IntentResult(intent="GREETING", direct_answer=answer, confidence=1.0, reason="greeting_rule")
-    # 规则 2 — OUT_OF_SCOPE：越界话题（彩票/赌博/违法等）直接拒答，不检索知识库也不上报 LLM 可防止安全风险
-    if OFF_TOPIC_HINTS.search(normalized):
-        return IntentResult(intent="OUT_OF_SCOPE", direct_answer=f"这个问题超出了{business_domain}的问答范围，我无法提供帮助。", confidence=0.95, reason="safety_rule")
-    # 规则 3 — HUMAN_SERVICE：转人工请求需在短句中识别（长句包含"客服"可能是正文内容而非转人工意图）
-    if HUMAN_SERVICE_HINTS.search(normalized) and len(normalized) <= 18:
-        return IntentResult(
-            intent="HUMAN_SERVICE",
-            direct_answer=f"可以联系人工支持，联系方式：{support_contact}。",
-            confidence=0.9,
-            reason="human_service_rule",
-            suggested_source=suggested_source,
-        )
+    direct_intent = classify_direct_intent(query, scenario)
+    if direct_intent:
+        return direct_intent
     # 规则 4 — FOLLOW_UP：代词/省略型短句且在对话中，判定为追问需要重写；缺乏历史时不能走此路避免误判
     if history and (FOLLOW_UP_HINTS.search(query.strip()) or len(query.strip()) <= 8):
         return IntentResult(
@@ -179,6 +191,21 @@ def _strong_rule_domain_intent(query: str, suggested_source: str | None) -> Inte
 
     规则强度递进设计：宽泛关键词（如"费用"）→ 句式（"怎么处理"）+ 业务域 → 句式 + 业务域 + 短句，置信度依次递增。
 
+    1. confidence=0.82 / 0.83 / 0.84
+        这是“规则置信度标签”，主要用于诊断面板、日志和 Trace，不是概率，也不是 Milvus 相似度分数。它表达的是规则强弱排序：
+        0.82：只命中 FAQ 高频词，比如“费用/发票/报错”，可靠但偏宽泛
+        0.83：命中业务 source + 标准问法，比如“需要哪些/怎么办”，更可靠
+        0.84：命中业务 source + 直接 FAQ 问法，比如“是什么/可以吗”，更确定
+
+        这些值不是重点，重点是相对顺序。它们表示“这条规则比上一条稍微更可信”。
+    2. len(normalized) <= 32 / 36 / 24
+        这是“短句保护阈值”，会影响行为。目的不是精确统计，而是降低误判：
+        <=32：标准 FAQ 问法通常比较短，比如“报销需要准备哪些材料？”
+        <=36：直接 FAQ 问法稍微放宽，因为可能带具体对象，比如“系统权限回收流程是什么？”
+        <=24：知识查询如果没有明确 source，只允许短句命中，避免长文本里偶然出现“文档/流程/制度”就被误判
+
+        规则分类里的数字，一开始通常来自业务样本观察和风险取舍，不是凭空神奇数字。短句阈值用来限制规则的适用范围，置信度用来表达规则强弱。
+        上线后应该用真实问答集评测，再把这些数字调优。
     参数：
         query: 用户问题。
         suggested_source: infer_source() 推断出的业务分类，可能为空。

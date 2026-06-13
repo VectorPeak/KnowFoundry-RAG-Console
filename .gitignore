@@ -1,7 +1,6 @@
 # 本地环境和密钥
 .env
 .env.*
-!.env.example
 !.env.local.example
 !.env.compose.example
 
@@ -28,8 +27,8 @@ minio_data/
 etcd_data/
 
 # 编辑器和系统文件
-.claude/
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
+*.bak.*

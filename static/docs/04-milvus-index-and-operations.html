@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4讲：Milvus 索引机制与基本操作 — KnowForge RAG Platform 讲义</title>
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({startOnLoad:false,theme:"default"}); }</script>
+<script>
+window.MathJax = {
+  loader: { paths: { mathjax: "/static/js/vendor/mathjax" } },
+  options: { enableAssistiveMml: false }
+};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/business-flow.html">📊 业务流程图</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/course-outline.html">课程大纲</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-f-embedding-models.html">F Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-g-chunking-strategy.html">G 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-h-tool-foundations.html">H 项目工具类开发详解</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="4milvus">第4讲：Milvus 索引机制与基本操作<a class="headerlink" href="#4milvus" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./03-langchain-ecosystem.html">LangChain 生态系统</a><br />
+<strong>下一讲</strong>：<a href="./05-intent-classification.html">意图分类</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解向量索引的本质：用空间和构建时间换查询速度</li>
+<li>掌握四种主流索引类型（FLAT / IVF_FLAT / IVF_PQ/SQ8 / HNSW）的工作原理和适用场景</li>
+<li>能用 pymilvus 完成 Collection 创建、索引构建、数据插入、搜索的完整流程</li>
+<li>理解 LangChain 在底层帮我们自动完成了哪些操作</li>
+<li>了解索引构建的性能影响和选型决策</li>
+</ul>
+<blockquote>
+<p><strong>本讲定位</strong>：本讲用 pymilvus 演示 Milvus 的创建、插入、索引和搜索，先理解“可检索数据是怎么进入 Milvus 的”。这里先讲离线构建的前置概览，完整的知识库构建链路（<code>rebuild_kb_version.py</code>、FAQ/文档入库、质量门禁、版本激活）放在第 16 讲系统展开。</p>
+</blockquote>
+<hr />
+<h2 id="_2">第一部分：向量索引的本质<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 为什么需要索引<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart LR
+    subgraph NoIndex["无索引（FLAT / 暴力搜索）"]
+        Q1["查询向量"] --> S1["逐个计算与<br/>全部候选向量的距离"]
+        S1 --> R1["排序 → 返回 Top-K<br/>耗时随 N 和 D 线性增长"]
+    end
+
+    subgraph WithIndex["有索引（ANN 近似搜索）"]
+        Q2["查询向量"] --> S2["走索引捷径<br/>只访问部分候选"]
+        S2 --> R2["返回近似 Top-K<br/>延迟和召回由索引参数决定"]
+    end
+
+    NoIndex -.->|"用近似召回换查询加速"| WithIndex
+
+    style NoIndex fill:#FEF2F2,stroke:#DC2626,stroke-width:2px
+    style WithIndex fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p><strong>索引的本质</strong>：用额外的存储空间和构建时间，换取查询时的大幅加速。类比：
+- 无索引 = 在未排序的书架上逐本翻找
+- 有索引 = 先查图书馆目录卡片，按索书号直接走到对应书架</p>
+<h3 id="12">1.2 索引在什么时候构建<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<div class="mermaid">sequenceDiagram
+    participant User as 用户/脚本
+    participant Milvus as Milvus
+    participant Disk as 磁盘
+
+    User->>Milvus: 1. create_collection(schema)
+    Note over Milvus: Collection 创建完成<br/>但此时没有索引
+
+    User->>Milvus: 2. insert(data)
+    Note over Milvus: 数据进入 Growing Segment<br/>此时搜索走暴力搜索
+
+    User->>Milvus: 3. create_index(field, index_type, params)
+    Milvus->>Milvus: 后台异步构建索引
+    Note over Milvus: 构建时间取决于数据量和参数<br/>几秒到几十分钟不等
+
+    Milvus->>Disk: 索引文件写入 MinIO/S3
+
+    User->>Milvus: 4. load_collection()
+    Note over Milvus: 将索引加载到内存<br/>此后搜索走索引加速
+
+    User->>Milvus: 5. search()
+    Note over Milvus: ✅ 毫秒级响应</div>
+<p><strong>关键点</strong>：
+- 创建 Collection 时不会自动建索引——必须显式调用 <code>create_index()</code>
+- 索引构建是<strong>异步</strong>的——调用 <code>create_index()</code> 后立即返回，Milvus 在后台构建
+- 必须先 <code>load_collection()</code> 将索引加载到内存，才能使用索引加速搜索</p>
+<hr />
+<h2 id="_3">第二部分：主流索引类型图解<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>数字口径说明</strong>：本节会出现两类数字。<code>nlist</code>、<code>nprobe</code>、<code>M</code>、<code>efConstruction</code>、<code>ef</code> 这类参数范围来自 Milvus 官方文档；规模线、耗时和硬件容量只能作为教学示例或项目经验估算，不能当成官方标准。真实项目必须结合向量维度、过滤条件、QPS、硬件、collection/segment 状态和压测结果重新校准。</p>
+</blockquote>
+<h3 id="21-flat">2.1 FLAT — 暴力搜索<a class="headerlink" href="#21-flat" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>FLAT 不做任何索引优化。搜索时逐条计算距离。
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a>数据: [v1, v2, v3, v4, v5, ..., v1000000]
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a>查询: q
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a>      ↓
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a>      q 与 v1 计算距离
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a>      q 与 v2 计算距离
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a>      ...
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a>      q 与 v1000000 计算距离
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>      ↓
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a>      排序 → 取 Top-10
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a>✅ 精度 100%（找到的一定是最近邻）
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a>❌ 速度最慢 O(N×D)
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a>🎯 适用：需要 100% 精确召回的小规模数据、离线评测基准，或强过滤后候选集很小的场景
+</code></pre></div></td></tr></table></div>
+<p>注意：Milvus 官方只明确 FLAT 是 exhaustive search / brute-force search，精确但慢，不适合 massive vector data；官方没有给出“少于 1 万就用 FLAT”这种固定阈值。讲义或项目中出现的“1 万”只能解释为单机教学环境下的保守经验线，不是通用结论。</p>
+<h3 id="22-ivf_flat">2.2 IVF_FLAT — 倒排索引 + 暴力搜索<a class="headerlink" href="#22-ivf_flat" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    subgraph Build["构建阶段"]
+        AllData["全部向量"] --> KMeans["K-Means 聚类<br/>示例：nlist=128 个聚类中心"]
+        KMeans --> Clusters["128 个簇<br/>每个簇保存一批向量"]
+    end
+
+    subgraph Search["搜索阶段"]
+        Query["查询向量 q"] --> FindNear["找到最近的<br/>示例：nprobe=4 个聚类中心"]
+        FindNear --> ScanClusters["只在这 4 个簇中<br/>暴力搜索"]
+        ScanClusters --> Result["从候选簇中<br/>找到 Top-10"]
+    end
+
+    Build -.-> Search
+
+    style Build fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
+    style Search fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p><strong>核心参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>官方范围 / 调参方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nlist</code></td>
+<td>聚类中心数</td>
+<td>Milvus 文档给出的取值范围是 <code>[1, 65536]</code>，默认值 <code>128</code>，常用建议范围是 <code>[32, 4096]</code>；值越大，簇更细，构建时间也更高</td>
+</tr>
+<tr>
+<td><code>nprobe</code></td>
+<td>搜索时探测的聚类数</td>
+<td>Milvus 文档给出的取值范围是 <code>[1, nlist]</code>，默认值 <code>8</code>；值越大，召回率更高，查询延迟也更高</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
+<span class="normal"><a href="#__codelineno-1-2">2</a></span>
+<span class="normal"><a href="#__codelineno-1-3">3</a></span>
+<span class="normal"><a href="#__codelineno-1-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a>✅ 通常比 FLAT 更快
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a>✅ 内存占用比 HNSW 小
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>❌ 精度取决于 nprobe（可能漏掉边界附近的向量）
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>🎯 适用：希望在召回率、内存和查询延迟之间做平衡的场景
+</code></pre></div></td></tr></table></div>
+<h3 id="23-ivf_sq8-ivf_pq">2.3 IVF_SQ8 / IVF_PQ — 倒排索引 + 量化压缩<a class="headerlink" href="#23-ivf_sq8-ivf_pq" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span>
+<span class="normal"><a href="#__codelineno-2-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a>IVF_FLAT 的改进版：对向量做压缩，减少内存占用。
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>IVF_FLAT：
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>  每个向量以 1024 个 float32 存储 → 4096 字节/向量
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>IVF_SQ8（标量量化）：
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>  每个维度从 float32 压缩为 uint8 → 1024 字节/向量
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>  内存明显下降，但召回效果需要用评测集验证
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>IVF_PQ（乘积量化）：
+<a id="__codelineno-2-11" name="__codelineno-2-11"></a>  将 1024 维切分为多段，每段独立量化
+<a id="__codelineno-2-12" name="__codelineno-2-12"></a>  可进一步压缩向量表示
+<a id="__codelineno-2-13" name="__codelineno-2-13"></a>  压缩越强，内存越省，但召回损失越需要压测和评测确认
+<a id="__codelineno-2-14" name="__codelineno-2-14"></a>
+<a id="__codelineno-2-15" name="__codelineno-2-15"></a>🎯 适用：内存压力明显、可以接受近似误差，并且有评测集校准召回率的场景
+</code></pre></div></td></tr></table></div>
+<h3 id="24-hnsw">2.4 HNSW — 分层可导航小世界图<a class="headerlink" href="#24-hnsw" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    subgraph HNSWStructure["HNSW 结构"]
+        L2["Layer 2<br/>○────○<br/>最稀疏 · 边长 · 大步"]
+        L1["Layer 1<br/>○──○──○──○<br/>中等密度"]
+        L0["Layer 0<br/>○─○─○─○─○─○<br/>最密集 · 边短 · 精确<br/>包含所有节点"]
+
+        L2 -.->|"下降"| L1
+        L1 -.->|"下降"| L0
+    end
+
+    subgraph SearchProcess["搜索过程"]
+        S1["1. 从 Layer 2 入口出发"] --> S2["2. 贪心走到最近节点"]
+        S2 --> S3["3. 下降到 Layer 1 继续"]
+        S3 --> S4["4. 贪心走到最近节点"]
+        S4 --> S5["5. 下降到 Layer 0 精确搜索"]
+        S5 --> S6["6. 找到最终结果"]
+    end
+
+    HNSWStructure --> SearchProcess
+
+    style L2 fill:#EFF6FF,stroke:#3B82F6
+    style L1 fill:#FFFBEB,stroke:#D97706
+    style L0 fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<blockquote>
+<p>📖 <strong>深入学习</strong>：HNSW 图索引的理论原理详见 <a href="./appendix/appendix-c-hnsw-index.html">附录C：HNSW 索引参数调优</a>。</p>
+</blockquote>
+<p><strong>核心参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>调大效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>M</code></td>
+<td>每个节点最大连接数</td>
+<td>召回可能更好，但内存和构建成本上升</td>
+</tr>
+<tr>
+<td><code>efConstruction</code></td>
+<td>构建时搜索宽度</td>
+<td>索引质量可能更好，但构建更慢</td>
+</tr>
+<tr>
+<td><code>ef</code> / <code>efSearch</code></td>
+<td>查询时搜索宽度</td>
+<td>召回可能更好，但查询延迟上升</td>
+</tr>
+</tbody>
+</table>
+<p>这些参数的默认值由当前 Milvus / langchain-milvus 版本和创建方式决定，不应在讲义里当成固定标准。需要确认时，看 collection 的 index 描述。</p>
+<h3 id="25">2.5 索引选型决策树<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Start["开始选型"] --> Q1{"数据量级？"}
+
+    Q1 -->|"小规模 / 强过滤后候选少"| FLAT["FLAT<br/>100% 精确 · 全量扫描"]
+    Q1 -->|"中等规模 / 低延迟要求"| Q2{"内存是否充足？"}
+    Q1 -->|"大规模 / 内存压力明显"| Q3{"是否接受近似压缩？"}
+
+    Q2 -->|"充足"| HNSW["HNSW<br/>✅ 本项目使用<br/>精度最高 · 速度最快"]
+    Q2 -->|"紧张"| IVFFlat["IVF_FLAT<br/>内存占用小<br/>精度适中"]
+
+    Q3 -->|"接受"| IVFPQ["IVF_PQ 或 DiskANN<br/>节省内存 · 需评测召回"]
+    Q3 -->|"不接受"| HNSW2["HNSW<br/>高召回 · 内存开销较高"]
+
+    style HNSW fill:#ECFDF5,stroke:#059669,stroke-width:3px
+    style FLAT fill:#EFF6FF,stroke:#3B82F6
+    style IVFFlat fill:#FFFBEB,stroke:#D97706
+    style IVFPQ fill:#FEF2F2,stroke:#DC2626
+    style HNSW2 fill:#ECFDF5,stroke:#059669</div>
+<p><strong>分支一：小规模 / 强过滤后候选少 → FLAT</strong></p>
+<p>FLAT 不做任何近似——逐条计算与全部向量的距离后排序返回。优势是 100% 精确，适合原型验证、离线评测基准、强过滤后候选集很小的场景。本项目的单个场景 FAQ Collection 通常只有几十到几百条，在这个数量级上 FLAT 和 HNSW 的延迟差异通常不明显，但这仍然要以本机压测为准。</p>
+<p><strong>分支二：中等规模 + 内存充足 → HNSW（本项目选择）</strong></p>
+<p>HNSW 是常用的高召回低延迟 ANN 索引。它预先构建多层"高速公路图"——上层节点少跳得远，下层节点密查得准。Milvus 官方口径是：HNSW 查询延迟低、搜索准确性好，但需要更高内存来维护图结构。本项目选择 HNSW，是因为当前知识库规模不大，且更看重召回稳定性；具体内存和延迟不能照抄固定数字，应以容量估算和压测为准。</p>
+<p><strong>分支三：内存更敏感 → IVF_FLAT</strong></p>
+<p>用 K-means 聚类分桶，检索时只搜最近 N 个桶。内存比 HNSW 小（不需要存储图结构），但精度略低——查询向量落在桶边界附近时可能漏掉相邻桶中的近邻。</p>
+<p><strong>分支四：大规模 / 内存压力明显 → IVF_PQ 或 DiskANN</strong></p>
+<p>当向量规模继续扩大、内存成本成为主要瓶颈时，才考虑 IVF_PQ、DiskANN 等方案。IVF_PQ 通过量化压缩减少内存，DiskANN 将部分索引压力转移到 SSD。它们不是“规模一大就必选”，而是需要结合召回率目标、SSD 性能、过滤条件和压测结果来定。</p>
+<hr />
+<h2 id="pymilvus">第三部分：pymilvus 基本操作<a class="headerlink" href="#pymilvus" title="Permanent link">&para;</a></h2>
+<p>以下代码展示不依赖 LangChain、直接用 pymilvus 操作 Milvus 的完整流程。理解这些后，再看第 8 讲中 LangChain 的封装就能知道底层发生了什么。</p>
+<h3 id="31-milvus">3.1 连接 Milvus<a class="headerlink" href="#31-milvus" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-3-10">10</a></span>
+<span class="normal"><a href="#__codelineno-3-11">11</a></span>
+<span class="normal"><a href="#__codelineno-3-12">12</a></span>
+<span class="normal"><a href="#__codelineno-3-13">13</a></span>
+<span class="normal"><a href="#__codelineno-3-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pymilvus</span><span class="w"> </span><span class="kn">import</span> <span class="n">connections</span><span class="p">,</span> <span class="n">MilvusClient</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="c1"># 方式一：connections 模块（本项目 LangChain 使用的方式）</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="n">connections</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>    <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>    <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:19530&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7"></a>    <span class="n">db_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="c1"># 方式二：MilvusClient（新版 API，更简洁）</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11"></a><span class="n">client</span> <span class="o">=</span> <span class="n">MilvusClient</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:19530&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13"></a><span class="c1"># 查看所有 Collection</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14"></a><span class="n">collections</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_collections</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="32-collection-schema">3.2 创建 Collection 和 Schema<a class="headerlink" href="#32-collection-schema" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span>
+<span class="normal"><a href="#__codelineno-4-14">14</a></span>
+<span class="normal"><a href="#__codelineno-4-15">15</a></span>
+<span class="normal"><a href="#__codelineno-4-16">16</a></span>
+<span class="normal"><a href="#__codelineno-4-17">17</a></span>
+<span class="normal"><a href="#__codelineno-4-18">18</a></span>
+<span class="normal"><a href="#__codelineno-4-19">19</a></span>
+<span class="normal"><a href="#__codelineno-4-20">20</a></span>
+<span class="normal"><a href="#__codelineno-4-21">21</a></span>
+<span class="normal"><a href="#__codelineno-4-22">22</a></span>
+<span class="normal"><a href="#__codelineno-4-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pymilvus</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">CollectionSchema</span><span class="p">,</span> <span class="n">FieldSchema</span><span class="p">,</span> <span class="n">DataType</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="c1"># 定义字段</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="n">pk_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pk&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">,</span> <span class="n">is_primary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a><span class="n">text_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">65535</span><span class="p">)</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="n">dense_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;dense&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">FLOAT_VECTOR</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="n">sparse_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;sparse&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">SPARSE_FLOAT_VECTOR</span><span class="p">)</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="n">source_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="n">kb_version_field</span> <span class="o">=</span> <span class="n">FieldSchema</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;kb_version&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">VARCHAR</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11"></a><span class="c1"># 创建 Schema</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">CollectionSchema</span><span class="p">(</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13"></a>    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="n">pk_field</span><span class="p">,</span> <span class="n">text_field</span><span class="p">,</span> <span class="n">dense_field</span><span class="p">,</span> <span class="n">sparse_field</span><span class="p">,</span> <span class="n">source_field</span><span class="p">,</span> <span class="n">kb_version_field</span><span class="p">],</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14"></a>    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;教学用 FAQ 集合&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15"></a>    <span class="n">enable_dynamic_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16"></a><span class="p">)</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17"></a>
+<a id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="c1"># 创建 Collection</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="n">collection</span> <span class="o">=</span> <span class="n">Collection</span><span class="p">(</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;demo_collection&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21"></a>    <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">,</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22"></a>    <span class="n">consistency_level</span><span class="o">=</span><span class="s2">&quot;Session&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="33">3.3 创建索引<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="c1"># 为 Dense 向量字段创建 HNSW 索引</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="n">dense_index_params</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>    <span class="s2">&quot;index_type&quot;</span><span class="p">:</span> <span class="s2">&quot;HNSW&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>    <span class="s2">&quot;metric_type&quot;</span><span class="p">:</span> <span class="s2">&quot;COSINE&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a>    <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s2">&quot;efConstruction&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">},</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="p">}</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="n">collection</span><span class="o">.</span><span class="n">create_index</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;dense&quot;</span><span class="p">,</span> <span class="n">index_params</span><span class="o">=</span><span class="n">dense_index_params</span><span class="p">)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="c1"># 为 Sparse 向量字段创建索引</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="n">sparse_index_params</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="s2">&quot;index_type&quot;</span><span class="p">:</span> <span class="s2">&quot;SPARSE_INVERTED_INDEX&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>    <span class="s2">&quot;metric_type&quot;</span><span class="p">:</span> <span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="p">}</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="n">collection</span><span class="o">.</span><span class="n">create_index</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;sparse&quot;</span><span class="p">,</span> <span class="n">index_params</span><span class="o">=</span><span class="n">sparse_index_params</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="34">3.4 插入数据<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-6-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-6-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-6-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-6-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-6-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-6-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-6-10">10</a></span>
+<span class="normal"><a href="#__codelineno-6-11">11</a></span>
+<span class="normal"><a href="#__codelineno-6-12">12</a></span>
+<span class="normal"><a href="#__codelineno-6-13">13</a></span>
+<span class="normal"><a href="#__codelineno-6-14">14</a></span>
+<span class="normal"><a href="#__codelineno-6-15">15</a></span>
+<span class="normal"><a href="#__codelineno-6-16">16</a></span>
+<span class="normal"><a href="#__codelineno-6-17">17</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a><span class="n">entities</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>    <span class="p">[</span><span class="s2">&quot;doc_001&quot;</span><span class="p">,</span> <span class="s2">&quot;doc_002&quot;</span><span class="p">,</span> <span class="s2">&quot;doc_003&quot;</span><span class="p">],</span>  <span class="c1"># pk</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a>    <span class="p">[</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>        <span class="s2">&quot;入职流程包含以下步骤：1. 提交个人材料 2. 签订劳动合同 3. 办理社保&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>        <span class="s2">&quot;员工报销需要准备发票原件、报销申请单、部门审批签字&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a>        <span class="s2">&quot;VPN 连接失败时，请先检查网络连接，然后尝试重启 VPN 客户端&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9"></a>    <span class="p">],</span>  <span class="c1"># text</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10"></a>    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>     <span class="c1"># dense 向量（实际由 BGE-M3 生成）</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11"></a>    <span class="p">[{}</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)],</span>               <span class="c1"># sparse 向量（实际由 BM25 生成）</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12"></a>    <span class="p">[</span><span class="s2">&quot;hr&quot;</span><span class="p">,</span> <span class="s2">&quot;finance&quot;</span><span class="p">,</span> <span class="s2">&quot;it&quot;</span><span class="p">],</span>              <span class="c1"># source</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13"></a>    <span class="p">[</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="s2">&quot;v1&quot;</span><span class="p">],</span>                   <span class="c1"># kb_version</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14"></a><span class="p">]</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16"></a><span class="n">mr</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">entities</span><span class="p">)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;插入了 </span><span class="si">{</span><span class="n">mr</span><span class="o">.</span><span class="n">insert_count</span><span class="si">}</span><span class="s2"> 条数据&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="35">3.5 加载到内存并搜索<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-7-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-7-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-7-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-7-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-7-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-7-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-7-10">10</a></span>
+<span class="normal"><a href="#__codelineno-7-11">11</a></span>
+<span class="normal"><a href="#__codelineno-7-12">12</a></span>
+<span class="normal"><a href="#__codelineno-7-13">13</a></span>
+<span class="normal"><a href="#__codelineno-7-14">14</a></span>
+<span class="normal"><a href="#__codelineno-7-15">15</a></span>
+<span class="normal"><a href="#__codelineno-7-16">16</a></span>
+<span class="normal"><a href="#__codelineno-7-17">17</a></span>
+<span class="normal"><a href="#__codelineno-7-18">18</a></span>
+<span class="normal"><a href="#__codelineno-7-19">19</a></span>
+<span class="normal"><a href="#__codelineno-7-20">20</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># 必须先加载才能搜索</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a><span class="n">collection</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4"></a><span class="c1"># 执行搜索</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5"></a><span class="n">search_params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric_type&quot;</span><span class="p">:</span> <span class="s2">&quot;COSINE&quot;</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ef&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">}}</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6"></a><span class="n">query_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8"></a><span class="n">results</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9"></a>    <span class="n">data</span><span class="o">=</span><span class="n">query_vector</span><span class="p">,</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10"></a>    <span class="n">anns_field</span><span class="o">=</span><span class="s2">&quot;dense&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11"></a>    <span class="n">param</span><span class="o">=</span><span class="n">search_params</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12"></a>    <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13"></a>    <span class="n">expr</span><span class="o">=</span><span class="s1">&#39;source == &quot;hr&quot;&#39;</span><span class="p">,</span>            <span class="c1"># 标量过滤</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14"></a>    <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">],</span>  <span class="c1"># 返回字段</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15"></a><span class="p">)</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17"></a><span class="k">for</span> <span class="n">hits</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18"></a>    <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  id=</span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, distance=</span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">distance</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  text=</span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="36">3.6 删除数据<a class="headerlink" href="#36" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
+<span class="normal"><a href="#__codelineno-8-2">2</a></span>
+<span class="normal"><a href="#__codelineno-8-3">3</a></span>
+<span class="normal"><a href="#__codelineno-8-4">4</a></span>
+<span class="normal"><a href="#__codelineno-8-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="c1"># 按主键删除</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="n">collection</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;doc_001&quot;</span><span class="p">,</span> <span class="s2">&quot;doc_002&quot;</span><span class="p">])</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="c1"># 按表达式删除</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a><span class="n">collection</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;kb_version == &quot;v1&quot;&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<h3 id="37">3.7 完整流程串联<a class="headerlink" href="#37" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Connect["1. 连接 Milvus"] --> CreateCol["2. 创建 Collection"]
+    CreateCol --> CreateIdx["3. 创建索引"]
+    CreateIdx --> Load["4. 加载到内存"]
+    Load --> Insert["5. 插入数据"]
+    Insert --> Flush["5b. 持久化 flush()"]
+    Flush --> Search["6. 执行搜索"]
+    Search --> MoreData{"还有数据？"}
+    MoreData -->|"是"| Insert
+    MoreData -->|"否"| Delete["7. 清理 delete()"]
+    Delete --> Release["8. 释放内存 release()"]
+
+    style CreateIdx fill:#FFFBEB,stroke:#D97706,stroke-width:2px
+    style Search fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<hr />
+<h2 id="langchain">第四部分：LangChain 在底层做了什么<a class="headerlink" href="#langchain" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>上下文</strong>：<a href="./03-langchain-ecosystem.html">第 3 讲</a> 已经建立了 VectorStore 抽象；本讲先用 pymilvus 展示 Milvus 的底层操作，再回到本项目的 LangChain Milvus 封装。这样你能理解"为什么项目代码中没有显式的 <code>create_collection()</code> 或 <code>create_index()</code> 调用"。</p>
+</blockquote>
+<p>理解了上面的 pymilvus 基本操作后，再看下面的 <code>Milvus()</code>、<code>add_documents()</code>、<code>similarity_search_with_score()</code>，就能知道 LangChain 底层实际帮我们做了什么。第 8 讲会在完整 Hybrid Search 场景中再次使用这些封装。</p>
+<h3 id="41">4.1 初始化时的隐藏操作<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-9-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-9-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-9-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-9-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-9-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-9-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-9-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-9-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-9-10">10</a></span>
+<span class="normal"><a href="#__codelineno-9-11">11</a></span>
+<span class="normal"><a href="#__codelineno-9-12">12</a></span>
+<span class="normal"><a href="#__codelineno-9-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="c1"># 第 8 讲中的代码（qa_core/retrieval/store.py）</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">Milvus</span><span class="p">(</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>    <span class="n">embedding_function</span><span class="o">=</span><span class="n">get_embeddings</span><span class="p">(),</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a>    <span class="n">builtin_function</span><span class="o">=</span><span class="n">bm25_function</span><span class="p">(),</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a>    <span class="n">collection_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>    <span class="n">vector_field</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dense&quot;</span><span class="p">,</span> <span class="s2">&quot;sparse&quot;</span><span class="p">],</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>    <span class="n">text_field</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a>    <span class="n">primary_field</span><span class="o">=</span><span class="s2">&quot;pk&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a>    <span class="n">auto_id</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10"></a>    <span class="n">enable_dynamic_field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11"></a>    <span class="n">consistency_level</span><span class="o">=</span><span class="s2">&quot;Session&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12"></a>    <span class="n">drop_old</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>LangChain 在初始化 <code>Milvus()</code> 时自动完成</strong>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span>
+<span class="normal"><a href="#__codelineno-10-2">2</a></span>
+<span class="normal"><a href="#__codelineno-10-3">3</a></span>
+<span class="normal"><a href="#__codelineno-10-4">4</a></span>
+<span class="normal"><a href="#__codelineno-10-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a>1. 用 pymilvus 连接到 Milvus
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a>2. 检查 Collection 是否存在
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>   ├─ 不存在 → 自动创建 Collection + Schema + HNSW 索引 + SPARSE_INVERTED_INDEX + load()
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>   └─ 存在 → 直接使用现有 Collection
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>3. 如果 drop_old=True → 先 drop 再重建（⚠️ 本项目设为 False）
+</code></pre></div></td></tr></table></div>
+<p><strong>这就是为什么项目代码中没有显式的 <code>create_collection()</code> 或 <code>create_index()</code> 调用</strong>——LangChain 在首次访问时自动完成。</p>
+<h3 id="42-add_documents">4.2 add_documents() 的隐藏操作<a class="headerlink" href="#42-add_documents" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="n">store</span><span class="o">.</span><span class="n">add_documents</span><span class="p">(</span><span class="n">documents</span><span class="o">=</span><span class="n">docs</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="n">ids</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>底层实际执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
+<span class="normal"><a href="#__codelineno-12-2">2</a></span>
+<span class="normal"><a href="#__codelineno-12-3">3</a></span>
+<span class="normal"><a href="#__codelineno-12-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a>1. 对每个 doc.page_content 调用 embedding_function → 生成 Dense 向量
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a>2. Milvus 服务端 BM25BuiltInFunction 对 text 字段 → 生成 Sparse 向量
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>3. 将 Dense + Sparse + text + metadata 包装为 insert 请求
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>4. collection.insert(entities) → collection.flush()
+</code></pre></div></td></tr></table></div>
+<h3 id="43-similarity_search_with_score">4.3 similarity_search_with_score() 的隐藏操作<a class="headerlink" href="#43-similarity_search_with_score" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="n">store</span><span class="o">.</span><span class="n">similarity_search_with_score</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>底层实际执行：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-14-1">1</a></span>
+<span class="normal"><a href="#__codelineno-14-2">2</a></span>
+<span class="normal"><a href="#__codelineno-14-3">3</a></span>
+<span class="normal"><a href="#__codelineno-14-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1"></a>1. embedding_function 将 query 文本 → Dense 向量
+<a id="__codelineno-14-2" name="__codelineno-14-2"></a>2. 内置 BM25Function 将 query 文本 → Sparse 向量
+<a id="__codelineno-14-3" name="__codelineno-14-3"></a>3. collection.search() 执行标量过滤 → Dense ANN → Sparse 评分 → 加权融合
+<a id="__codelineno-14-4" name="__codelineno-14-4"></a>4. 结果包装为 [(Document, score), ...]
+</code></pre></div></td></tr></table></div>
+<h3 id="44">4.4 对比总结<a class="headerlink" href="#44" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart LR
+    subgraph Pymilvus["直接 pymilvus"]
+        P1["显式创建 Schema"]
+        P2["显式 create_index()"]
+        P3["显式 insert()"]
+        P4["显式 load()"]
+        P5["显式 search()"]
+        P1 --> P2 --> P3 --> P4 --> P5
+    end
+
+    subgraph LangChain["LangChain Milvus（本项目）"]
+        L1["Milvus() 初始化<br/>自动 Schema + Index + Load"]
+        L2["add_documents()<br/>自动 Embedding + BM25 + Insert"]
+        L3["similarity_search_with_score()<br/>自动 Embedding + Search + 融合"]
+        L1 --> L2 --> L3
+    end
+
+    Pymilvus -.->|"LangChain 封装了<br/>这些手动步骤"| LangChain
+
+    style Pymilvus fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px
+    style LangChain fill:#ECFDF5,stroke:#059669,stroke-width:2px</div>
+<p><strong>何时用 pymilvus vs LangChain</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快速原型、教学 Demo</td>
+<td>LangChain（少写代码）</td>
+</tr>
+<tr>
+<td>需要精细控制索引参数</td>
+<td>pymilvus（LangChain 用默认 HNSW 参数）</td>
+</tr>
+<tr>
+<td>需要性能调优（改 M/ef/nlist/nprobe）</td>
+<td>pymilvus</td>
+</tr>
+<tr>
+<td>需要管理 Collection 生命周期</td>
+<td>pymilvus</td>
+</tr>
+<tr>
+<td>生产环境大规模部署</td>
+<td>pymilvus（更灵活）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="langchain-milvus-pymilvus">第五部分：langchain-milvus 与 PyMilvus 的职责边界<a class="headerlink" href="#langchain-milvus-pymilvus" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 为什么需要底层适配层<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<p>本项目最终选择：<strong>继续使用 langchain-milvus 作为业务检索入口，保留 PyMilvus 作为底层连接、database 管理和 schema 检查工具，不迁移为纯 PyMilvus 实现。</strong></p>
+<p>原因是 <code>langchain-milvus</code> 不是独立驱动——它是套在 PyMilvus 之上的 LangChain VectorStore。业务代码面向 LangChain VectorStore，但底层连接、database、collection schema 仍然由 PyMilvus 完成。</p>
+<p>这里的“适配层”不是额外的临时兼容代码，而是当前 <code>langchain-milvus==0.2.2 + pymilvus==2.5.18 + Milvus 2.5+</code> 组合下的职责收口：业务层不直接操作 PyMilvus，但项目仍需要集中管理连接 alias、database 和 BM25 Function。</p>
+<h3 id="52">5.2 本项目当前的稳定做法<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<p>适配代码集中在 <code>qa_core/retrieval/milvus_compat.py</code>：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-15-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-15-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-15-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-15-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-15-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-15-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-15-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-15-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-15-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-15-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">collection_alias</span><span class="p">(</span><span class="n">collection_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">collection_name</span><span class="si">}</span><span class="s2">_alias&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">langchain_connection_args</span><span class="p">(</span><span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;uri&quot;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">milvus_uri</span><span class="p">,</span> <span class="s2">&quot;alias&quot;</span><span class="p">:</span> <span class="n">alias</span><span class="p">}</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">ensure_orm_alias_connection</span><span class="p">(</span><span class="n">alias</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8"></a>    <span class="k">if</span> <span class="n">connections</span><span class="o">.</span><span class="n">has_connection</span><span class="p">(</span><span class="n">alias</span><span class="p">):</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9"></a>        <span class="k">return</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10"></a>    <span class="n">connections</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="n">alias</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="n">target_uri</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><code>MilvusHybridStore.store</code> 在首次创建 wrapper 时做三件事：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-16-1">1</a></span>
+<span class="normal"><a href="#__codelineno-16-2">2</a></span>
+<span class="normal"><a href="#__codelineno-16-3">3</a></span>
+<span class="normal"><a href="#__codelineno-16-4">4</a></span>
+<span class="normal"><a href="#__codelineno-16-5">5</a></span>
+<span class="normal"><a href="#__codelineno-16-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1"></a><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2"></a>    <span class="n">ensure_milvus_database</span><span class="p">()</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3"></a>    <span class="n">alias</span> <span class="o">=</span> <span class="n">collection_alias</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_name</span><span class="p">)</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4"></a>    <span class="n">connection_args</span> <span class="o">=</span> <span class="n">langchain_connection_args</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5"></a>    <span class="n">ensure_orm_alias_connection</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">Milvus</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>工程价值：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-17-1">1</a></span>
+<span class="normal"><a href="#__codelineno-17-2">2</a></span>
+<span class="normal"><a href="#__codelineno-17-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1"></a>store.py 仍表达&quot;业务检索走 langchain-milvus&quot;
+<a id="__codelineno-17-2" name="__codelineno-17-2"></a>milvus_compat.py 表达&quot;BM25 Function、database、连接别名在这里收口&quot;
+<a id="__codelineno-17-3" name="__codelineno-17-3"></a>项目不需要改成纯 PyMilvus
+</code></pre></div></td></tr></table></div>
+<blockquote>
+<p>如果已经用了 LangChain Milvus，为什么还要导入 PyMilvus？<br />
+答案：LangChain Milvus 是抽象层，不是底层驱动。抽象层让 RAG 好写，底层驱动负责连接、database 和 collection schema。项目用一个很薄的适配层把这些底层细节收口。</p>
+</blockquote>
+<hr />
+<h2 id="_4">第六部分：索引构建的性能影响<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="61">6.1 索引构建耗时估算<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-18-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-18-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-18-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-18-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-18-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-18-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-18-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-18-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-18-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-18-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1"></a>影响项                  变化方向
+<a id="__codelineno-18-2" name="__codelineno-18-2"></a>────────────────────────────────────────────────────────────
+<a id="__codelineno-18-3" name="__codelineno-18-3"></a>向量数量 N 增大          构建时间、索引大小、查询候选数都会上升
+<a id="__codelineno-18-4" name="__codelineno-18-4"></a>向量维度 D 增大          距离计算成本、向量存储成本上升
+<a id="__codelineno-18-5" name="__codelineno-18-5"></a>HNSW 的 M 增大           召回可能更好，但索引更大、构建更慢
+<a id="__codelineno-18-6" name="__codelineno-18-6"></a>HNSW 的 ef/efSearch 增大 查询召回可能更好，但查询延迟上升
+<a id="__codelineno-18-7" name="__codelineno-18-7"></a>IVF 的 nlist 增大        簇更细，构建时间上升，需配合 nprobe 调整
+<a id="__codelineno-18-8" name="__codelineno-18-8"></a>IVF 的 nprobe 增大       搜索范围更大，召回更好，但延迟上升
+<a id="__codelineno-18-9" name="__codelineno-18-9"></a>过滤条件更复杂           标量过滤和向量检索组合成本上升
+<a id="__codelineno-18-10" name="__codelineno-18-10"></a>segment 过碎/未 compact  查询调度和扫描成本上升
+</code></pre></div></td></tr></table></div>
+<p>这张表不再给固定耗时，因为“多少条向量需要几秒”很容易被误解成官方承诺。正确解释是：本项目当前规模较小，使用 langchain-milvus 默认 HNSW 参数通常足够；如果数据量、维度、过滤表达式、QPS 或硬件发生变化，就应该通过压测报告确认构建时间、索引大小、Milvus P95 和召回率。</p>
+<h3 id="62">6.2 本项目为什么感觉不到索引的存在<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-19-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-19-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-19-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-19-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-19-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-19-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-19-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-19-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-19-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-19-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1"></a>实际流程：
+<a id="__codelineno-19-2" name="__codelineno-19-2"></a>  1. rebuild_kb_version.py 调用 store.add_documents()
+<a id="__codelineno-19-3" name="__codelineno-19-3"></a>  2. LangChain Milvus 自动完成 insert → flush → 后台构建索引
+<a id="__codelineno-19-4" name="__codelineno-19-4"></a>  3. 入库完成时，索引可能还没构建完
+<a id="__codelineno-19-5" name="__codelineno-19-5"></a>  4. 如果候选集较小，Growing Segment 走暴力搜索也可能很快
+<a id="__codelineno-19-6" name="__codelineno-19-6"></a>  5. 索引构建完成后，后续搜索自动走 HNSW 加速
+<a id="__codelineno-19-7" name="__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8"></a>→ 表面现象：入库后立刻就能搜索，感觉不到索引的存在
+<a id="__codelineno-19-9" name="__codelineno-19-9"></a>→ 实际原因：当前数据规模较小 + Growing Segment 暴力搜索兜底
+<a id="__codelineno-19-10" name="__codelineno-19-10"></a>→ 生产环境：必须等索引构建完成再开放搜索
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_5">本讲实践闭环<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本讲类型</td>
+<td>原理实验</td>
+</tr>
+<tr>
+<td>实践产物</td>
+<td>pymilvus 连接、创建 Collection、建索引、插入、搜索、删除 demo</td>
+</tr>
+<tr>
+<td>是否进入最终项目</td>
+<td>否，作为 Milvus 底层操作实验；最终项目通过 LangChain Milvus 封装使用</td>
+</tr>
+<tr>
+<td>验收方式</td>
+<td>插入样本后可以搜索到 Top-K 结果，删除后 collection 清理成功</td>
+</tr>
+<tr>
+<td>后续落点</td>
+<td>第 8 讲封装为 <code>MilvusHybridStore</code>，第 16 讲用于批量入库</td>
+</tr>
+</tbody>
+</table>
+<p>通过标准：能解释 Collection、Field、Index、load、search 分别做什么。</p>
+<h3 id="0-1">本讲从 0 到 1 实现闭环<a class="headerlink" href="#0-1" title="Permanent link">&para;</a></h3>
+<p>这一讲是底层实验，不直接交付最终项目业务代码。它的作用是解释第 8 讲 <code>MilvusHybridStore</code> 背后到底封装了什么。</p>
+<ol>
+<li>先用 PyMilvus 连接 Milvus。</li>
+<li>再创建一个最小 collection，包含主键、文本、dense 向量字段。</li>
+<li>然后创建向量索引并 <code>load_collection()</code>。</li>
+<li>插入几条样本向量后执行 Top-K 搜索。</li>
+<li>最后删除实验 collection，避免污染后续项目数据。</li>
+</ol>
+<p>来源：实验骨架，对应本讲 Milvus 底层操作 demo，不作为最终项目模块。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-20-1">1</a></span>
+<span class="normal"><a href="#__codelineno-20-2">2</a></span>
+<span class="normal"><a href="#__codelineno-20-3">3</a></span>
+<span class="normal"><a href="#__codelineno-20-4">4</a></span>
+<span class="normal"><a href="#__codelineno-20-5">5</a></span>
+<span class="normal"><a href="#__codelineno-20-6">6</a></span>
+<span class="normal"><a href="#__codelineno-20-7">7</a></span>
+<span class="normal"><a href="#__codelineno-20-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pymilvus</span><span class="w"> </span><span class="kn">import</span> <span class="n">MilvusClient</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">MilvusClient</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:19530&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4"></a><span class="n">client</span><span class="o">.</span><span class="n">create_collection</span><span class="p">(</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5"></a>    <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;demo_vector_search&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6"></a>    <span class="n">dimension</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7"></a>    <span class="n">metric_type</span><span class="o">=</span><span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>搜索前一定要确认 collection 已加载，生产环境还要确认索引构建完成。后续项目中这些细节由 LangChain Milvus 封装和本项目 Milvus 适配层处理。</p>
+<p>来源：实验骨架，对应 PyMilvus 的 insert/search 基础流程。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-21-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-21-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-21-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-21-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-21-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-21-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-21-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-21-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-21-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-21-10">10</a></span>
+<span class="normal"><a href="#__codelineno-21-11">11</a></span>
+<span class="normal"><a href="#__codelineno-21-12">12</a></span>
+<span class="normal"><a href="#__codelineno-21-13">13</a></span>
+<span class="normal"><a href="#__codelineno-21-14">14</a></span>
+<span class="normal"><a href="#__codelineno-21-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1"></a><span class="n">client</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2"></a>    <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;demo_vector_search&quot;</span><span class="p">,</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3"></a>    <span class="n">data</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4"></a>        <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;vector&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;入职流程&quot;</span><span class="p">},</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5"></a>        <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;vector&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;报销制度&quot;</span><span class="p">},</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6"></a>    <span class="p">],</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7"></a><span class="p">)</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8"></a>
+<a id="__codelineno-21-9" name="__codelineno-21-9"></a><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10"></a>    <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;demo_vector_search&quot;</span><span class="p">,</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11"></a>    <span class="n">data</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]],</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12"></a>    <span class="n">anns_field</span><span class="o">=</span><span class="s2">&quot;vector&quot;</span><span class="p">,</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13"></a>    <span class="n">limit</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14"></a>    <span class="n">output_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15"></a><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>来源：命令行验收。可以把上面的片段整理为独立脚本运行，也可以直接在 Python 交互环境中执行。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-22-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1"></a><span class="n">python</span> <span class="n">path</span><span class="p">/</span><span class="n">to</span><span class="p">/</span><span class="n">your_milvus_demo</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div></td></tr></table></div>
+<p>验收重点：能解释 Collection、Field、Index、load、insert、search 分别做什么；知道第 8 讲为什么可以不手写这些底层步骤。</p>
+<h2 id="_6">重点掌握<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>索引的本质：用空间和构建时间换查询速度</td>
+<td>理解为什么需要专门学这一讲</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>四种索引类型（FLAT/IVF_FLAT/IVF_PQ/HNSW）的差异和适用场景</td>
+<td>索引选型是面试高频题</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>HNSW 的工作原理：分层图 + 贪心搜索</td>
+<td>本项目使用的索引，也是第 2 讲 HNSW 概念的落地</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>pymilvus 基本操作六步走：连接→创建Collection→建索引→加载→插入→搜索</td>
+<td>理解底层 API，知道 LangChain 封装了什么</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>LangChain Milvus 在初始化/add_documents/search 时自动做了什么</td>
+<td>理解第 8 讲中为什么看不到 create_collection/create_index</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>langchain-milvus 与 PyMilvus 的职责边界和本项目连接适配层</td>
+<td>理解业务抽象和底层驱动如何分工</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>索引构建耗时估算</td>
+<td>了解即可，本项目规模下不用关心</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">本讲小结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>索引的本质</strong>：用空间和构建时间换查询速度。没索引走暴力搜索（FLAT），有索引走 ANN 近似搜索</li>
+<li><strong>四种主流索引</strong>：FLAT（100% 精度/最慢）、IVF_FLAT（聚类加速）、IVF_PQ（压缩+聚类）、HNSW（图搜索/本项目使用）</li>
+<li><strong>选型决策</strong>：小规模或强过滤后候选少→FLAT；重视低延迟和高召回且内存充足→HNSW；内存更敏感→IVF_FLAT；大规模且内存压力明显→IVF_PQ/DiskANN</li>
+<li><strong>pymilvus 基本操作</strong>：连接 → 创建 Collection → 创建索引 → 加载 → 插入 → 搜索</li>
+<li><strong>LangChain 自动帮我们做了</strong>：初始化时自动 Schema+Index+Load；add_documents 时自动 Embedding+BM25+Insert；search 时自动 Embedding+混合融合</li>
+<li><strong>本项目暂不调参</strong>：当前规模下先使用 langchain-milvus 默认 HNSW 参数；生产优化必须看压测和召回评测，不靠固定数字拍板</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./05-intent-classification.html">意图分类</a> — 6 种意图类型、规则优先+LLM 补充、structured output</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/03-langchain-ecosystem.html"><i class="fas fa-arrow-left"></i> 03 LangChain 生态系统</a>
+        <a class="pager-link next" href="/docs/05-intent-classification.html">05 意图分类 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  if (window.mermaid) {
+    mermaid.run({querySelector:".mermaid"});
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第9讲：QAService 核心编排 — KnowForge RAG Platform 讲义</title>
+<script src="/static/js/vendor/mermaid.min.js"></script>
+<script>if (window.mermaid) { mermaid.initialize({startOnLoad:false,theme:"default"}); }</script>
+<script>
+window.MathJax = {
+  loader: { paths: { mathjax: "/static/js/vendor/mathjax" } },
+  options: { enableAssistiveMml: false }
+};
+</script>
+<script src="/static/js/vendor/mathjax/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="/static/css/fontawesome-shim.css?v=1">
+<link rel="stylesheet" href="/static/css/doc.css?v=3">
+</head>
+<body>
+<div class="doc-shell">
+  <header class="doc-topbar">
+    <button class="sidebar-toggle" aria-label="切换侧边栏"><i class="fas fa-bars"></i></button>
+    <a class="doc-brand" href="/docs/index.html"><i class="fas fa-layer-group"></i><span>KnowForge 讲义</span></a>
+    <a class="btn btn-ghost" href="/"><i class="fas fa-comment-dots"></i> 进入问答</a>
+  </header>
+  <div class="doc-layout">
+    <aside class="doc-sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+<ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/index.html">首页</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/animation/business-flow.html">📊 业务流程图</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/course-outline.html">课程大纲</a></li>
+<li class="nav-section"><span class="nav-section-title">第一阶段：基础概念</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/01-project-overview.html">01 项目概述与环境搭建</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/02-rag-fundamentals.html">02 RAG 核心概念深入</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第二阶段：核心 RAG 链路</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/03-langchain-ecosystem.html">03 LangChain 生态系统</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/04-milvus-index-and-operations.html">04 Milvus 索引机制与基本操作</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/05-intent-classification.html">05 意图分类</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/06-retrieval-strategy.html">06 检索策略与动态计划</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/07-query-rewrite-variants.html">07 查询改写与变体生成</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/08-milvus-hybrid-search.html">08 Milvus 混合检索</a></li>
+<li class="nav-item"><a class="nav-link active" href="/docs/09-qaservice-orchestration.html">09 QAService 核心编排</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/11-prompt-engineering.html">11 Prompt 工程与 Profile 系统</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第三阶段：Web 服务基础设施</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/12-fastapi-async.html">12 FastAPI 与异步 Web 框架</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/13-app-entry-preflight.html">13 应用入口与环境前置校验</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">第四阶段：治理与运维</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/14-kb-versioning.html">14 知识库多版本管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/15-data-isolation.html">15 数据隔离与多租户</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/16-ingestion-pipeline.html">16 文档入库与索引链路</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/17-quality-evaluation.html">17 RAG 回归验收与入库质量</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/18-testing-system.html">18 测试与接口验收</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/19-observability-tracing.html">19 LangSmith 观测、Trace 与生产化部署</a></li>
+</ul></li>
+<li class="nav-section"><span class="nav-section-title">技术附录</span><ul class="nav-list">
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-a-pydantic.html">A Pydantic 数据校验与 Settings 管理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-b-sha256-fingerprint.html">B SHA256 文件指纹</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-c-hnsw-index.html">C HNSW 索引参数调优</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-d-crossencoder-reranker.html">D CrossEncoder Reranker 原理</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-e-recursive-splitter.html">E RecursiveCharacterTextSplitter</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-f-embedding-models.html">F Embedding 模型选型</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-g-chunking-strategy.html">G 文档切分策略 Parent-Child Chunking</a></li>
+<li class="nav-item"><a class="nav-link" href="/docs/appendix/appendix-h-tool-foundations.html">H 项目工具类开发详解</a></li>
+</ul></li>
+</ul>
+      </nav>
+    </aside>
+    <main class="doc-content">
+<h1 id="9qaservice">第9讲：QAService 核心编排<a class="headerlink" href="#9qaservice" title="Permanent link">&para;</a></h1>
+<p><strong>上一讲</strong>：<a href="./08-milvus-hybrid-search.html">Milvus 混合检索深度解析</a><br />
+<strong>下一讲</strong>：<a href="./10-rag-pipeline.html">RAG Pipeline 主流程深度解析</a></p>
+<h2 id="_1">本讲目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>理解 QAService 作为服务编排层（Orchestration Layer）的设计理念</li>
+<li>掌握"服务门面"模式在 RAG 系统中的应用</li>
+<li>理解两个核心方法的职责分工</li>
+<li>理解 Generator（生成器）在流式问答中的角色</li>
+</ul>
+<hr />
+<h2 id="_2">第一部分：前置知识 — 服务编排模式<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 什么是服务编排<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p><strong>服务编排（Service Orchestration）</strong> 是软件架构中的一种模式：用一个中心化的"编排器"来协调多个子服务的调用顺序和数据流转。</p>
+<p>打个比方：
+- <strong>没有编排</strong>：每个厨师自己决定做什么菜、用什么食材、先炒哪个后炒哪个 → 混乱
+- <strong>有编排</strong>：主厨（编排器）决定菜单、分配任务、协调出菜顺序 → 有序</p>
+<p>在 RAG 系统中，"子服务"包括：
+- 意图识别 → 判断用户想干什么
+- 历史读取 → 获取会话上下文
+- 查询改写 → 补全追问
+- 检索计划 → 决定如何检索
+- FAQ 检索 → 查标准答案
+- 文档检索 → 查业务资料
+- 上下文构建 → 组织参考资料
+- LLM 生成 → 产生答案
+- 历史写入 → 保存对话</p>
+<p>QAService 就是协调这些子服务的"主厨"。</p>
+<h3 id="12-qaservice">1.2 QAService 不做什么（边界）<a class="headerlink" href="#12-qaservice" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-0-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-0-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-0-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-0-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-0-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-0-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-0-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-0-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-0-10">10</a></span>
+<span class="normal"><a href="#__codelineno-0-11">11</a></span>
+<span class="normal"><a href="#__codelineno-0-12">12</a></span>
+<span class="normal"><a href="#__codelineno-0-13">13</a></span>
+<span class="normal"><a href="#__codelineno-0-14">14</a></span>
+<span class="normal"><a href="#__codelineno-0-15">15</a></span>
+<span class="normal"><a href="#__codelineno-0-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QAService</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="sd">    这层代码承担的职责：</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="sd">    1. 读取历史并决定是否需要改写追问</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="sd">    2. 判断问题意图，过滤无需 RAG 的场景</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="sd">    3. 根据意图构建检索计划</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7"></a><span class="sd">    4. 先查 FAQ，再查文档</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8"></a><span class="sd">    5. 生成最终上下文，调用 LLM 流式输出</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9"></a><span class="sd">    6. 保存历史，返回诊断信息</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11"></a><span class="sd">    这层不做的事情：</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12"></a><span class="sd">    1. 不创建 FastAPI 响应对象</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13"></a><span class="sd">    2. 不直接操作静态页面</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14"></a><span class="sd">    3. 不实现底层 Milvus 连接细节</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15"></a><span class="sd">    4. 不新增绕过 Pipeline 的并行检索入口</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16"></a><span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="qaservice">第二部分：QAService 的两个核心方法<a class="headerlink" href="#qaservice" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 方法职责对照<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<div class="mermaid">flowchart TD
+    Client["🖥️ 浏览器"] --> WS["WebSocket /api/stream<br/>在线问答唯一入口"]
+    Client --> Debug["POST /api/retrieval/debug<br/>检索半链路"]
+
+    WS --> Stream["stream_query()<br/>唯一主干链路"]
+    Stream --> Intent{"意图识别结果"}
+    Intent -->|"问候/越界/转人工"| DirectReturn["直接答案事件<br/>跳过检索和 LLM"]
+    Intent -->|"FAQ/知识问答/追问"| Rag["FAQ/文档检索<br/>重排/生成"]
+    Stream --> Generator["Generator 持续产出事件"]
+
+    Generator --> Events["start → status → token* → end/error"]
+
+    Debug --> DebugFn["debug_retrieval()<br/>不调用 LLM 生成"]
+    DebugFn --> Diag["返回诊断 JSON<br/>intent/plan/sources"]
+
+    style Stream fill:#ECFDF5,stroke:#059669,stroke-width:2px
+    style DebugFn fill:#FFFBEB,stroke:#D97706,stroke-width:2px</div>
+<h3 id="22-stream_query">2.2 stream_query() — 唯一主干链路<a class="headerlink" href="#22-stream_query" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">stream_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;委托 RAGPipeline 执行完整流式问答。&quot;&quot;&quot;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3"></a>    <span class="k">yield from</span> <span class="n">rag_stream_query</span><span class="p">(</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>        <span class="c1"># 历史存储适配器</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validate_source</span><span class="p">,</span> <span class="c1"># source 校验函数</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6"></a>        <span class="n">query</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7"></a>        <span class="n">source_filter</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8"></a>        <span class="n">session_id</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9"></a>        <span class="n">kb_version</span><span class="o">=</span><span class="n">kb_version</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10"></a>        <span class="n">scenario_id</span><span class="o">=</span><span class="n">scenario_id</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11"></a>        <span class="o">...</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><code>yield from</code> 是 Python 的委托语法。<code>rag_stream_query</code> 是 <code>qa_core.pipeline.rag</code> 模块中 <code>stream_query</code> 函数的 import alias（<code>from qa_core.pipeline.rag import stream_query as rag_stream_query</code>），它是一个生成器函数，每次 <code>yield</code> 产生一个事件。<code>yield from</code> 把这些事件"透传"给调用方（FastAPI WebSocket 路由），所以 QAService 不需要自己维护生成循环。</p>
+<h3 id="23-debug_retrieval">2.3 debug_retrieval() — 检索诊断半链路<a class="headerlink" href="#23-debug_retrieval" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">debug_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;复用主链路的场景、数据域、意图和检索逻辑，但不调用最终回答 LLM。&quot;&quot;&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3"></a>    <span class="k">return</span> <span class="n">rag_debug_retrieval</span><span class="p">(</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">validate_source</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6"></a>        <span class="n">query</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7"></a>        <span class="n">source_filter</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8"></a>        <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9"></a>        <span class="o">...</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10"></a>    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>这个方法服务于状态页、评测脚本和排障。它可以告诉开发者"意图是什么、检索计划是什么、FAQ/Doc 命中了什么"，但不会生成面向用户的最终答案。</p>
+<p>注意：<code>debug_retrieval()</code> 是<strong>检索诊断半链路</strong>，它故意从 <code>prepare_retrieval()</code> 开始，以便观察检索类意图、source 推断、按需改写、检索计划和召回质量；线上用户问答仍从 <code>stream_query()</code> 进入，并先执行 <code>decide_route()</code>。因此，调试接口没有走 <code>route=direct_answer / faq_exact / retrieval</code>，并不代表在线主链路跳过查询路由。</p>
+<h3 id="24-source">2.4 source 白名单校验<a class="headerlink" href="#24-source" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
+<span class="normal"><a href="#__codelineno-3-2">2</a></span>
+<span class="normal"><a href="#__codelineno-3-3">3</a></span>
+<span class="normal"><a href="#__codelineno-3-4">4</a></span>
+<span class="normal"><a href="#__codelineno-3-5">5</a></span>
+<span class="normal"><a href="#__codelineno-3-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">scenario</span><span class="p">):</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;在访问 Milvus 之前拒绝不支持的业务分类过滤项。&quot;&quot;&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3"></a>    <span class="k">if</span> <span class="n">source_filter</span> <span class="ow">and</span> <span class="n">source_filter</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scenario</span><span class="o">.</span><span class="n">valid_sources</span><span class="p">:</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5"></a>            <span class="sa">f</span><span class="s2">&quot;无效的业务分类。当前场景支持: </span><span class="si">{</span><span class="n">scenario</span><span class="o">.</span><span class="n">valid_sources</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6"></a>        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>这个校验放在 QAService 层（而非 API 层或 retrieval 层）是经过考虑的：
+- <strong>API 层</strong>：不应该知道 Milvus 过滤规则（它只管 HTTP 参数校验）
+- <strong>Retrieval 层</strong>：不应该承担业务白名单判断（它只管执行检索）
+- <strong>QAService（编排层）</strong>：最清楚"前端筛选项 + 意图推断分类"如何进入主链路</p>
+<hr />
+<h2 id="generator-rag">第三部分：Generator 模式在 RAG 中的应用<a class="headerlink" href="#generator-rag" title="Permanent link">&para;</a></h2>
+<h3 id="31-generator">3.1 什么是 Generator<a class="headerlink" href="#31-generator" title="Permanent link">&para;</a></h3>
+<p>Generator（生成器）是 Python 的一个核心特性，使用 <code>yield</code> 关键字：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
+<span class="normal"><a href="#__codelineno-4-2">2</a></span>
+<span class="normal"><a href="#__codelineno-4-3">3</a></span>
+<span class="normal"><a href="#__codelineno-4-4">4</a></span>
+<span class="normal"><a href="#__codelineno-4-5">5</a></span>
+<span class="normal"><a href="#__codelineno-4-6">6</a></span>
+<span class="normal"><a href="#__codelineno-4-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">simple_generator</span><span class="p">():</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2"></a>    <span class="k">yield</span> <span class="s2">&quot;第一步完成&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3"></a>    <span class="k">yield</span> <span class="s2">&quot;第二步完成&quot;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="k">yield</span> <span class="s2">&quot;第三步完成&quot;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">simple_generator</span><span class="p">():</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>  <span class="c1"># 逐个输出，而不是等全部完成</span>
+</code></pre></div></td></tr></table></div>
+<p>Generator 的特点是<strong>惰性求值</strong>：每次只产生一个值，调用方可以在每个值之间做其他事情。</p>
+<h3 id="32-rag-generator">3.2 为什么 RAG 适合用 Generator<a class="headerlink" href="#32-rag-generator" title="Permanent link">&para;</a></h3>
+<p>RAG 的问答过程不是一个"输入→等待→输出"的单步操作，而是一个<strong>多阶段持续产出</strong>的过程：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-5-10">10</a></span>
+<span class="normal"><a href="#__codelineno-5-11">11</a></span>
+<span class="normal"><a href="#__codelineno-5-12">12</a></span>
+<span class="normal"><a href="#__codelineno-5-13">13</a></span>
+<span class="normal"><a href="#__codelineno-5-14">14</a></span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span>
+<span class="normal"><a href="#__codelineno-5-16">16</a></span>
+<span class="normal"><a href="#__codelineno-5-17">17</a></span>
+<span class="normal"><a href="#__codelineno-5-18">18</a></span>
+<span class="normal"><a href="#__codelineno-5-19">19</a></span>
+<span class="normal"><a href="#__codelineno-5-20">20</a></span>
+<span class="normal"><a href="#__codelineno-5-21">21</a></span>
+<span class="normal"><a href="#__codelineno-5-22">22</a></span>
+<span class="normal"><a href="#__codelineno-5-23">23</a></span>
+<span class="normal"><a href="#__codelineno-5-24">24</a></span>
+<span class="normal"><a href="#__codelineno-5-25">25</a></span>
+<span class="normal"><a href="#__codelineno-5-26">26</a></span>
+<span class="normal"><a href="#__codelineno-5-27">27</a></span>
+<span class="normal"><a href="#__codelineno-5-28">28</a></span>
+<span class="normal"><a href="#__codelineno-5-29">29</a></span>
+<span class="normal"><a href="#__codelineno-5-30">30</a></span>
+<span class="normal"><a href="#__codelineno-5-31">31</a></span>
+<span class="normal"><a href="#__codelineno-5-32">32</a></span>
+<span class="normal"><a href="#__codelineno-5-33">33</a></span>
+<span class="normal"><a href="#__codelineno-5-34">34</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">stream_query</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2"></a>    <span class="c1"># 阶段 1：查询路由</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;正在进行查询路由...&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4"></a>    <span class="n">route</span> <span class="o">=</span> <span class="n">decide_route</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5"></a>    <span class="k">if</span> <span class="n">route</span><span class="o">.</span><span class="n">answer</span><span class="p">:</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6"></a>        <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">route</span><span class="o">.</span><span class="n">answer</span><span class="p">}</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7"></a>        <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;end&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8"></a>        <span class="k">return</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10"></a>    <span class="c1"># 阶段 2：检索准备</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;正在识别问题意图...&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12"></a>    <span class="n">prepared</span> <span class="o">=</span> <span class="n">prepare_retrieval</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13"></a>
+<a id="__codelineno-5-14" name="__codelineno-5-14"></a>    <span class="c1"># 兜底：处理直接答案（通常已在阶段 1 返回）</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15"></a>    <span class="k">if</span> <span class="n">prepared</span><span class="o">.</span><span class="n">intent</span><span class="o">.</span><span class="n">direct_answer</span><span class="p">:</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16"></a>        <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">prepared</span><span class="o">.</span><span class="n">intent</span><span class="o">.</span><span class="n">direct_answer</span><span class="p">}</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17"></a>        <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;end&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18"></a>        <span class="k">return</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19"></a>
+<a id="__codelineno-5-20" name="__codelineno-5-20"></a>    <span class="c1"># 阶段 4：FAQ 检索</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;正在检索业务 FAQ 知识库...&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22"></a>    <span class="n">faq_result</span> <span class="o">=</span> <span class="n">search_faq</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">prepared</span><span class="p">)</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24"></a>    <span class="c1"># 阶段 5：文档 RAG</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;正在匹配相关业务资料...&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26"></a>    <span class="n">doc_result</span> <span class="o">=</span> <span class="n">search_doc</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">prepared</span><span class="p">)</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27"></a>
+<a id="__codelineno-5-28" name="__codelineno-5-28"></a>    <span class="c1"># 阶段 6：LLM 流式生成</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;正在生成回答...&quot;</span><span class="p">}</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30"></a>    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">stream_llm_answer</span><span class="p">(</span><span class="n">system_prompt</span><span class="p">,</span> <span class="n">user_prompt</span><span class="p">):</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31"></a>        <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">chunk</span><span class="o">.</span><span class="n">content</span><span class="p">}</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32"></a>
+<a id="__codelineno-5-33" name="__codelineno-5-33"></a>    <span class="c1"># 阶段 7：保存 + 收尾</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34"></a>    <span class="k">yield</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;end&quot;</span><span class="p">,</span> <span class="s2">&quot;sources&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="s2">&quot;retrieval&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}}</span>
+</code></pre></div></td></tr></table></div>
+<p>每个 <code>yield</code> 都是<strong>一个可以立即推送给前端的事件</strong>。用户不需要等全部流程跑完才能看到任何东西。</p>
+<h3 id="33">3.3 前端接收到的体验<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span>
+<span class="normal"><a href="#__codelineno-6-2">2</a></span>
+<span class="normal"><a href="#__codelineno-6-3">3</a></span>
+<span class="normal"><a href="#__codelineno-6-4">4</a></span>
+<span class="normal"><a href="#__codelineno-6-5">5</a></span>
+<span class="normal"><a href="#__codelineno-6-6">6</a></span>
+<span class="normal"><a href="#__codelineno-6-7">7</a></span>
+<span class="normal"><a href="#__codelineno-6-8">8</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a>[0.0s] 用户点击发送 &quot;入职流程有哪些步骤&quot;
+<a id="__codelineno-6-2" name="__codelineno-6-2"></a>[0.1s] 页面显示 &quot;正在进行查询路由...&quot;
+<a id="__codelineno-6-3" name="__codelineno-6-3"></a>[0.5s] 页面显示 &quot;正在识别问题意图...&quot;
+<a id="__codelineno-6-4" name="__codelineno-6-4"></a>[1.2s] 页面显示 &quot;正在检索业务 FAQ 知识库...&quot;
+<a id="__codelineno-6-5" name="__codelineno-6-5"></a>[2.0s] 页面显示 &quot;正在匹配相关业务资料...&quot;
+<a id="__codelineno-6-6" name="__codelineno-6-6"></a>[3.5s] 页面显示 &quot;正在生成回答...&quot;
+<a id="__codelineno-6-7" name="__codelineno-6-7"></a>[3.8s] 页面开始逐字出现 &quot;入&quot; &quot;职&quot; &quot;流&quot; &quot;程&quot; &quot;包&quot; &quot;括&quot; ...
+<a id="__codelineno-6-8" name="__codelineno-6-8"></a>[6.0s] 回答完成，显示来源引用
+</code></pre></div></td></tr></table></div>
+<p>如果不用 Generator 而是一次性返回：</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
+<span class="normal"><a href="#__codelineno-7-2">2</a></span>
+<span class="normal"><a href="#__codelineno-7-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a>[0.0s] 用户点击发送
+<a id="__codelineno-7-2" name="__codelineno-7-2"></a>[6.0s] 空白等待...
+<a id="__codelineno-7-3" name="__codelineno-7-3"></a>[6.0s] 整个答案突然出现
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_3">第四部分：应用工厂模式<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="41-get_qa_service">4.1 get_qa_service() 工厂函数<a class="headerlink" href="#41-get_qa_service" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-8-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-8-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-8-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-8-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-8-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-8-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-8-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-8-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-8-10">10</a></span>
+<span class="normal"><a href="#__codelineno-8-11">11</a></span>
+<span class="normal"><a href="#__codelineno-8-12">12</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="c1"># qa_core/application/factory.py</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_qa_service</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">QAService</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;返回进程级缓存的 QAService 实例。</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8"></a><span class="sd">    单例缓存确保了 settings 和 history store 在整个进程中只加载一次。</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9"></a><span class="sd">    QAService 本身不保存请求级状态（所有变量都在方法局部作用域内），</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10"></a><span class="sd">    所以多用户并发是安全的。</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12"></a>    <span class="k">return</span> <span class="n">QAService</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>为什么用单例</strong>：
+- <code>settings</code> 是只读配置，加载一次即可
+- <code>history</code> 是历史存储适配器，本身负责按 session_id 隔离会话
+- 每次请求创建新的 QAService 会重复加载配置，但没有好处</p>
+<p><strong>为什么不担心并发</strong>：
+- QAService 只保存 <code>settings</code>（只读）和 <code>history</code>（线程安全适配器）
+- 请求级变量（query、intent、plan、sources 等）都不在 QAService 上，而在方法局部变量中</p>
+<h3 id="42-api">4.2 在 API 中使用<a class="headerlink" href="#42-api" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-9-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-9-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-9-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-9-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-9-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-9-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-9-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-9-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-9-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a><span class="c1"># qa_core/api/chat.py</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">qa_core.application.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_qa_service</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6"></a>    <span class="n">service</span> <span class="o">=</span> <span class="n">get_qa_service</span><span class="p">()</span>  <span class="c1"># 同一个单例</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7"></a>    <span class="n">generator</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8"></a>        <span class="k">lambda</span><span class="p">:</span> <span class="n">service</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9"></a>    <span class="p">)</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10"></a>    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+<hr />
+<h2 id="_4">第五部分：错误处理与事件协议<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="51-websocket">5.1 异常不抛给 WebSocket 路由<a class="headerlink" href="#51-websocket" title="Permanent link">&para;</a></h3>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-10-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-10-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-10-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-10-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-10-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-10-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-10-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-10-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-10-10">10</a></span>
+<span class="normal"><a href="#__codelineno-10-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a><span class="c1"># qa_core/pipeline/rag.py</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3"></a>    <span class="c1"># 完整的 RAG 流程...</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4"></a>    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">stream_llm_answer</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5"></a>        <span class="k">yield</span> <span class="n">build_token_event</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6"></a>    <span class="k">yield</span> <span class="n">finish_success</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="n">answer</span><span class="p">)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8"></a><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;QA stream failed&quot;</span><span class="p">)</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10"></a>    <span class="c1"># 错误以事件形式返回给前端，不抛出到路由层</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11"></a>    <span class="k">yield</span> <span class="n">finish_error</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p><strong>设计意图</strong>：如果抛出异常到 WebSocket 路由，前端收到的就是一个 WebSocket 协议级别的错误，页面无法优雅地展示错误信息。以事件形式返回错误，前端可以按同一套 UI 渲染错误信息，并允许用户继续下一轮提问。</p>
+<h3 id="52">5.2 事件类型汇总<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>事件类型</th>
+<th>含义</th>
+<th>前端处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start</code></td>
+<td>请求已接收</td>
+<td>创建答案区域，显示加载状态</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>当前进行到哪个阶段</td>
+<td>更新进度提示文字</td>
+</tr>
+<tr>
+<td><code>token</code></td>
+<td>LLM 生成的一个 token</td>
+<td>追加到答案文本末尾</td>
+</tr>
+<tr>
+<td><code>end</code></td>
+<td>问答完成</td>
+<td>显示来源引用、诊断信息、耗时</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>可恢复的错误</td>
+<td>显示错误信息，允许继续提问</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_5">本讲实践闭环<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本讲类型</td>
+<td>系统集成</td>
+</tr>
+<tr>
+<td>实践产物</td>
+<td><code>QAService</code>、WebSocket stream、检索诊断的服务编排</td>
+</tr>
+<tr>
+<td>是否进入最终项目</td>
+<td>是</td>
+</tr>
+<tr>
+<td>验收方式</td>
+<td>WebSocket 能持续输出事件，检索诊断能返回命中明细</td>
+</tr>
+<tr>
+<td>后续落点</td>
+<td>第 10 讲接入完整 Pipeline 事件，第 12 讲纳入 FastAPI 路由</td>
+</tr>
+</tbody>
+</table>
+<p>通过标准：在线问答只有 WebSocket 主入口；同一个业务服务能支撑流式回答和检索诊断，但不把 RAG 细节泄露给 API 层。</p>
+<h3 id="0-1">本讲从 0 到 1 实现闭环<a class="headerlink" href="#0-1" title="Permanent link">&para;</a></h3>
+<p>这一讲的目标不是再写一个 RAG 算法，而是把前面已经具备的能力包装成一个稳定的应用服务层。实现时按这个顺序推进：</p>
+<div class="mermaid">flowchart LR
+    API["WebSocket / HTTP Debug<br/>协议层"] --> Service["QAService<br/>应用服务门面"]
+    Service --> Stream["stream_query<br/>进入 RAG Pipeline"]
+    Stream --> Direct{"意图是否可直答？"}
+    Direct -->|"是"| DirectAnswer["token/end 事件<br/>问候/越界/转人工"]
+    Direct -->|"否"| Rag["FAQ/Doc 检索<br/>LLM 流式生成"]
+    Stream --> Events["start / status / token / end / error"]
+    Service --> Debug["debug_retrieval<br/>检索诊断"]
+    Service --> History["ChatHistory<br/>保存会话"]
+    Service --> Trace["LangSmith Trace<br/>记录诊断信息"]</div>
+<ol>
+<li>先定义 <code>QAService</code>，让 API 层以后只调用 service，不直接碰 Milvus、Prompt、Pipeline。</li>
+<li>实现 <code>stream_query()</code>，把完整 RAG Pipeline 产出的事件原样透传给 WebSocket；问候、越界、转人工等直答也在这条链路内完成。</li>
+<li>实现 <code>debug_retrieval()</code>，复用检索准备逻辑但不调用最终回答 LLM。</li>
+<li>最后补一个工厂函数 <code>get_qa_service()</code>，避免每个请求重复初始化 settings、history、retriever。</li>
+</ol>
+<p>实现完成后，相关代码结构应该是下面这张图：</p>
+<div class="mermaid">flowchart LR
+    subgraph Core["qa_core"]
+        subgraph Application["application"]
+            Service["service.py<br/>QAService<br/>stream_query / debug_retrieval"]
+        end
+        subgraph API["api"]
+            Chat["chat.py<br/>WebSocket stream<br/>retrieval debug"]
+        end
+        subgraph Pipeline["pipeline"]
+            Rag["rag.py<br/>完整 RAG 事件流"]
+        end
+        subgraph Memory["memory"]
+            History["history.py<br/>会话历史"]
+        end
+    end
+
+    subgraph Scripts["scripts"]
+        Smoke["api_e2e_smoke.py<br/>HTTP 管理接口 / WS 冒烟"]
+    end
+
+    Chat --> Service
+    Service --> Rag
+    Service --> History
+    Smoke -. 验证 .-> Chat</div>
+<p>来源：真实代码逻辑压缩版，对应 <code>qa_core/application/service.py::QAService</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-11-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-11-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-11-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-11-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-11-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-11-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-11-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-11-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-11-10">10</a></span>
+<span class="normal"><a href="#__codelineno-11-11">11</a></span>
+<span class="normal"><a href="#__codelineno-11-12">12</a></span>
+<span class="normal"><a href="#__codelineno-11-13">13</a></span>
+<span class="normal"><a href="#__codelineno-11-14">14</a></span>
+<span class="normal"><a href="#__codelineno-11-15">15</a></span>
+<span class="normal"><a href="#__codelineno-11-16">16</a></span>
+<span class="normal"><a href="#__codelineno-11-17">17</a></span>
+<span class="normal"><a href="#__codelineno-11-18">18</a></span>
+<span class="normal"><a href="#__codelineno-11-19">19</a></span>
+<span class="normal"><a href="#__codelineno-11-20">20</a></span>
+<span class="normal"><a href="#__codelineno-11-21">21</a></span>
+<span class="normal"><a href="#__codelineno-11-22">22</a></span>
+<span class="normal"><a href="#__codelineno-11-23">23</a></span>
+<span class="normal"><a href="#__codelineno-11-24">24</a></span>
+<span class="normal"><a href="#__codelineno-11-25">25</a></span>
+<span class="normal"><a href="#__codelineno-11-26">26</a></span>
+<span class="normal"><a href="#__codelineno-11-27">27</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QAService</span><span class="p">:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">get_settings</span><span class="p">()</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">get_history_store</span><span class="p">()</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">scenario</span><span class="p">):</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7"></a>        <span class="n">validate_source_filter</span><span class="p">(</span><span class="n">source_filter</span><span class="p">,</span> <span class="n">scenario</span><span class="o">.</span><span class="n">valid_sources</span><span class="p">)</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">stream_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10"></a>        <span class="k">yield from</span> <span class="n">rag_stream_query</span><span class="p">(</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">validate_source</span><span class="p">,</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13"></a>            <span class="n">query</span><span class="p">,</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14"></a>            <span class="n">source_filter</span><span class="p">,</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15"></a>            <span class="n">session_id</span><span class="p">,</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16"></a>            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17"></a>        <span class="p">)</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18"></a>
+<a id="__codelineno-11-19" name="__codelineno-11-19"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">debug_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">source_filter</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20"></a>        <span class="k">return</span> <span class="n">rag_debug_retrieval</span><span class="p">(</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">validate_source</span><span class="p">,</span>
+<a id="__codelineno-11-23" name="__codelineno-11-23"></a>            <span class="n">query</span><span class="p">,</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24"></a>            <span class="n">source_filter</span><span class="p">,</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25"></a>            <span class="n">session_id</span><span class="p">,</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26"></a>            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27"></a>        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>直答场景不再放在额外 API 入口处理，而是在 Pipeline 的意图识别阶段处理。这样历史保存、Trace、限流、事件协议都只走一套实现，问候、越界、转人工和复杂 RAG 问题不会分裂成两条在线链路。</p>
+<p>WebSocket 不应该知道 RAG 内部有多少阶段，它只消费 service 产出的事件。这样以后 Pipeline 从 7 阶段变成 9 阶段，API 层也不需要跟着大改。</p>
+<p>来源：真实代码调用点，见 <code>qa_core/api/chat.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-12-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-12-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-12-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-12-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-12-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-12-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-12-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-12-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-12-10">10</a></span>
+<span class="normal"><a href="#__codelineno-12-11">11</a></span>
+<span class="normal"><a href="#__codelineno-12-12">12</a></span>
+<span class="normal"><a href="#__codelineno-12-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/api/stream&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">websocket_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3"></a>    <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4"></a>    <span class="n">raw_data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">receive_text</span><span class="p">()</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5"></a>    <span class="n">request_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_data</span><span class="p">)</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6"></a>    <span class="n">context</span> <span class="o">=</span> <span class="n">QueryServiceContext</span><span class="o">.</span><span class="n">from_ws_payload</span><span class="p">(</span><span class="n">request_data</span><span class="p">)</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7"></a>    <span class="n">stream</span> <span class="o">=</span> <span class="n">get_qa_service</span><span class="p">()</span><span class="o">.</span><span class="n">stream_query</span><span class="p">(</span><span class="o">*</span><span class="n">context</span><span class="o">.</span><span class="n">service_args</span><span class="p">())</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10"></a>        <span class="n">has_event</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">to_thread</span><span class="p">(</span><span class="n">_next_stream_event</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_event</span><span class="p">:</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12"></a>            <span class="k">break</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13"></a>        <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send_json</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+<p>验收时重点看两件事：WebSocket 能持续收到 <code>start/status/token/end/error</code> 事件；<code>/api/retrieval/debug</code> 能返回检索诊断信息但不生成最终答案。</p>
+<p>来源：命令行验收，对应 <code>scripts/api_e2e_smoke.py</code>。</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">api_e2e_smoke</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-base-url</span> <span class="n">http</span><span class="p">://</span><span class="n">127</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">1</span><span class="p">:</span><span class="n">8001</span>
+</code></pre></div></td></tr></table></div>
+<p>闭环验证重点：</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>验证方式</th>
+<th>期望结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebSocket stream</td>
+<td>连接 <code>/api/stream</code></td>
+<td>持续收到事件</td>
+</tr>
+<tr>
+<td>检索诊断</td>
+<td>请求 <code>/api/retrieval/debug</code></td>
+<td>返回意图、计划、FAQ/Doc 命中</td>
+</tr>
+<tr>
+<td>业务分层</td>
+<td>查看 <code>chat.py</code></td>
+<td>路由只调用 service，不写检索细节</td>
+</tr>
+<tr>
+<td>历史保存</td>
+<td>连续追问</td>
+<td>下一轮能读取上下文</td>
+</tr>
+<tr>
+<td>Trace 记录</td>
+<td>查看诊断字段</td>
+<td>有 hit_type、intent、kb_version、data_scope、耗时等信息</td>
+</tr>
+<tr>
+<td>调试入口</td>
+<td>调用 <code>debug_retrieval()</code></td>
+<td>只跑检索半链路，不调用最终 LLM</td>
+</tr>
+</tbody>
+</table>
+<p>验收重点：API 层只负责协议和连接，业务编排集中在 service；service 再把请求交给 Pipeline，而不是把每个模块揉在路由函数里。</p>
+<h2 id="_6">重点掌握<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>内容</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>★★★ 必会</td>
+<td>QAService 服务编排层的定位：协调意图识别、历史、检索、生成、存储，不直接处理 HTTP 或 Milvus 细节</td>
+<td>理解"编排层"在分层架构中的角色，面试常问</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>两个核心方法：stream_query（唯一在线问答主干链路，yield from 透传事件）、debug_retrieval（只查不生成）</td>
+<td>QAService 对外的完整接口</td>
+</tr>
+<tr>
+<td>★★★ 必会</td>
+<td>Generator（生成器）模式在流式问答中的应用：惰性求值，每个 yield 产生一个可立即推送给前端的事件</td>
+<td>理解 RAG 流式体验的技术实现</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>直答分流放在 Pipeline 主链路中：问候、越界、转人工也通过 WebSocket 事件返回</td>
+<td>避免多套在线入口导致口径和状态不一致</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>单例工厂 get_qa_service() + @lru_cache：只缓存 settings 和 history，请求级状态在局部变量中</td>
+<td>并发安全的保证</td>
+</tr>
+<tr>
+<td>★★ 理解</td>
+<td>错误以事件（error 类型）形式返回给前端，不抛异常到 WebSocket 路由</td>
+<td>用户体验和安全设计</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>source 白名单校验放在 QAService 层的理由</td>
+<td>理解分层职责的划分依据</td>
+</tr>
+<tr>
+<td>★ 了解</td>
+<td>事件类型汇总：start / status / token / end / error</td>
+<td>回顾第 11 讲的 WebSocket 事件协议</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">本讲小结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>QAService 是服务编排层</strong>，协调意图、历史、检索、生成、存储，但不直接处理 HTTP 或 Milvus 细节</li>
+<li><strong>stream_query</strong> 是唯一在线问答主干链路，通过 Generator 持续产出事件</li>
+<li><strong>debug_retrieval</strong> 是检索诊断半链路，只查不生成</li>
+<li><strong>yield from</strong> 将 RAG Pipeline 的事件透传给调用方</li>
+<li><strong>单例工厂</strong>确保 settings 和 history 只加载一次，请求级状态全在局部变量中</li>
+<li><strong>错误以事件形式返回</strong>，前端可以优雅展示并允许继续提问</li>
+</ul>
+<p><strong>下一讲</strong>：<a href="./10-rag-pipeline.html">RAG Pipeline 主流程深度解析</a> — Stage 0-7 事件生成、上下文构建、答案引用增强</p>
+      <div class="doc-pager">
+        <a class="pager-link prev" href="/docs/08-milvus-hybrid-search.html"><i class="fas fa-arrow-left"></i> 08 Milvus 混合检索</a>
+        <a class="pager-link next" href="/docs/10-rag-pipeline.html">10 RAG Pipeline 主流程 <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="doc-back-to-top" id="backToTop" title="回到顶部"><i class="fas fa-arrow-up"></i></button>
+<script>
+(function() {
+  // Mobile sidebar toggle
+  document.querySelector(".sidebar-toggle").addEventListener("click", function() {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  // Close sidebar on nav link click (mobile)
+  document.querySelectorAll(".nav-link").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("sidebar").classList.remove("open");
+    });
+  });
+  // Back-to-top button
+  var btn = document.getElementById("backToTop");
+  window.addEventListener("scroll", function() {
+    btn.classList.toggle("visible", window.scrollY > 400);
+  });
+  btn.addEventListener("click", function() { window.scrollTo({top:0,behavior:"smooth"}); });
+  // Render mermaid diagrams
+  if (window.mermaid) {
+    mermaid.run({querySelector:".mermaid"});
+  }
+})();
+</script>
+</body>
+</html>
