@@ -279,7 +279,7 @@
 }
 
 .refresh-button:hover {
-  border-color: rgba(96, 165, 250, 0.58);
+  border-color: rgba(147, 197, 253, 0.46);
   background: rgba(30, 64, 112, 0.74);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -292,7 +292,7 @@
   height: 36px;
   padding: 0 14px;
   margin-right: 7px;
-  border-color: rgba(74, 144, 226, 0.44);
+  border-color: rgba(125, 154, 190, 0.34);
   border-radius: 4px;
   background:
     linear-gradient(180deg, rgba(18, 47, 84, 0.96), rgba(10, 31, 57, 0.96)),
@@ -312,7 +312,7 @@
 
 .refresh-button:active {
   transform: translateY(0) scale(0.97);
-  border-color: rgba(96, 165, 250, 0.46);
+  border-color: rgba(125, 154, 190, 0.40);
   background: rgba(9, 28, 52, 0.98);
   box-shadow: inset 0 1px 4px rgba(2, 6, 23, 0.28);
 }
