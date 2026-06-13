@@ -435,7 +435,7 @@
 
 .scenario-item {
   min-height: 36px;
-  padding: 0 8px;
+  padding: 0 10px;
   color: #AFC0D6;
   font-size: 12px;
   font-weight: 650;
@@ -486,8 +486,8 @@
 
 .taxonomy-list span,
 .taxonomy-item {
-  min-height: 32px;
-  padding: 0 6px;
+  min-height: 34px;
+  padding: 0 10px;
   color: #9DAFC6;
   font-weight: 500;
 }

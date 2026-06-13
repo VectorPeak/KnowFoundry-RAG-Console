@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KnowForge RAG 工业资料分类助手</title>
-  <script src="/static/js/vendor/lucide.min.js?v=20260613-catalog-cards"></script>
+  <script src="/static/js/vendor/lucide.min.js?v=20260613-no-selects"></script>
   <script src="/static/js/vendor/marked.min.js"></script>
   <script src="/static/js/vendor/purify.min.js"></script>
-  <link rel="stylesheet" href="/static/css/app.css?v=20260613-catalog-cards" />
+  <link rel="stylesheet" href="/static/css/app.css?v=20260613-no-selects" />
 </head>
 <body>
   <div class="app-shell industrial-shell">
@@ -38,10 +38,7 @@
         <div class="panel-body sidebar-body">
           <section class="sidebar-section business-scene-section">
             <div class="sidebar-label">当前业务场景</div>
-            <label class="operation-select-wrap sidebar-scenario-select">
-              <span class="sr-only">业务场景</span>
-              <select id="scenarioSelect" class="scenario-select" aria-label="业务场景"></select>
-            </label>
+            <select id="scenarioSelect" class="sr-only" aria-label="业务场景"></select>
             <div class="scenario-list" id="scenarioList"></div>
             <div class="business-scene-note">
               <i data-lucide="workflow"></i>
@@ -53,10 +50,7 @@
 
           <section class="sidebar-section">
             <div class="sidebar-label">资料分类</div>
-            <div class="field category-field">
-              <label for="sourceFilter" class="sr-only">业务分类</label>
-              <select id="sourceFilter"><option value="">全部分类</option></select>
-            </div>
+            <select id="sourceFilter" class="sr-only" aria-label="业务分类"><option value="">全部分类</option></select>
             <div class="taxonomy-list" id="categoryList">
               <span><i data-lucide="shield-check"></i>规范标准</span>
               <span><i data-lucide="calendar-days"></i>施工工艺</span>
@@ -125,15 +119,15 @@
     </main>
   </div>
 
-  <script src="/static/js/state.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/utils.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/scenario-catalog.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/render.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/api.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/scenario.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/session.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/chat.js?v=20260613-catalog-cards"></script>
-  <script src="/static/js/app.js?v=20260613-catalog-cards"></script>
+  <script src="/static/js/state.js?v=20260613-no-selects"></script>
+  <script src="/static/js/utils.js?v=20260613-no-selects"></script>
+  <script src="/static/js/scenario-catalog.js?v=20260613-no-selects"></script>
+  <script src="/static/js/render.js?v=20260613-no-selects"></script>
+  <script src="/static/js/api.js?v=20260613-no-selects"></script>
+  <script src="/static/js/scenario.js?v=20260613-no-selects"></script>
+  <script src="/static/js/session.js?v=20260613-no-selects"></script>
+  <script src="/static/js/chat.js?v=20260613-no-selects"></script>
+  <script src="/static/js/app.js?v=20260613-no-selects"></script>
   <script>
     // Keep Lucide icons active for the initial static shell; dynamic areas refresh in render.js.
     if (window.lucide) window.lucide.createIcons();
