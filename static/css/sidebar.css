@@ -1346,7 +1346,7 @@
 }
 
 .right-panel.insight-panel .classification-card .classification-result > div {
-  grid-template-columns: minmax(104px, 0.92fr) minmax(0, 1.08fr);
+  grid-template-columns: minmax(104px, 0.92fr) 56px;
   gap: 12px;
 }
 
@@ -1367,7 +1367,7 @@
 /* Highlight top classification and align the recommendation tag to the score rail, 2026-06-13. */
 .right-panel.insight-panel .classification-card .classification-result > div strong {
   justify-self: end;
-  margin-right: 86px;
+  margin-right: 0;
 }
 
 .right-panel.insight-panel .classification-card .classification-result li:first-child span,
