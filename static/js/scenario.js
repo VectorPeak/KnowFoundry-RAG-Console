@@ -181,6 +181,10 @@ function renderKbPill(payload) {
   const effectiveVersion = payload?.effective_active_version || state.kbVersion || '未激活';
   const displayVersion = state.kbVersion || effectiveVersion;
   const scenarioId = payload?.scenario_id || state.scenarioId || '-';
+  els.kbPill.dataset.kbVersion = effectiveVersion;
+  els.kbPill.setAttribute('role', 'button');
+  els.kbPill.setAttribute('tabindex', '0');
+  els.kbPill.setAttribute('aria-label', `复制知识库版本 ${effectiveVersion}`);
   els.kbPill.innerHTML = `
     <i data-lucide="database"></i>
     <span class="kb-pill-label">${escapeHtml(shortText(displayVersion, 24))}</span>
@@ -192,6 +196,54 @@ function renderKbPill(payload) {
       <span class="kb-tooltip-row"><em>effective_active_version</em><strong>${escapeHtml(effectiveVersion)}</strong></span>
     </span>
   `;
+  els.kbPill.onclick = copyCurrentKbVersion;
+  els.kbPill.onkeydown = event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      copyCurrentKbVersion();
+    }
+  };
+}
+
+async function copyCurrentKbVersion() {
+  const version = els.kbPill?.dataset?.kbVersion;
+  if (!version || version === '未激活') return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(version);
+    } else {
+      fallbackCopyText(version);
+    }
+    markKbVersionCopied();
+  } catch {
+    fallbackCopyText(version);
+    markKbVersionCopied();
+  }
+}
+
+function fallbackCopyText(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  textarea.remove();
+}
+
+function markKbVersionCopied() {
+  const title = els.kbPill.querySelector('.kb-tooltip-title');
+  if (!title) return;
+  const originalText = title.textContent;
+  els.kbPill.classList.add('is-copied');
+  title.textContent = '已复制知识库版本';
+  window.clearTimeout(els.kbPill._copyTimer);
+  els.kbPill._copyTimer = window.setTimeout(() => {
+    title.textContent = originalText;
+    els.kbPill.classList.remove('is-copied');
+  }, 1400);
 }
 
 function currentScenario() {
