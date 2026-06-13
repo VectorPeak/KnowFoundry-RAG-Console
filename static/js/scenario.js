@@ -165,14 +165,33 @@ function categoryIcon(label, index) {
 
 async function loadKbVersion() {
   if (!state.scenarioId) return;
+  let payload = null;
   try {
-    const payload = await fetchJson(`/api/kb_versions?scenario_id=${encodeURIComponent(state.scenarioId)}`);
+    payload = await fetchJson(`/api/kb_versions?scenario_id=${encodeURIComponent(state.scenarioId)}`);
     state.kbVersion = payload.effective_active_version || payload.active_version || null;
   } catch {
     state.kbVersion = null;
   }
-  els.kbPill.innerHTML = `<i data-lucide="database"></i><span>${escapeHtml(shortText(state.kbVersion || '未激活', 24))}</span>`;
+  renderKbPill(payload);
   refreshIcons();
+}
+
+function renderKbPill(payload) {
+  const activeVersion = payload?.active_version || '-';
+  const effectiveVersion = payload?.effective_active_version || state.kbVersion || '未激活';
+  const displayVersion = state.kbVersion || effectiveVersion;
+  const scenarioId = payload?.scenario_id || state.scenarioId || '-';
+  els.kbPill.innerHTML = `
+    <i data-lucide="database"></i>
+    <span class="kb-pill-label">${escapeHtml(shortText(displayVersion, 24))}</span>
+    <span class="kb-tooltip" role="tooltip">
+      <span class="kb-tooltip-title">完整知识库版本</span>
+      <code>${escapeHtml(effectiveVersion)}</code>
+      <span class="kb-tooltip-row"><em>scenario_id</em><strong>${escapeHtml(scenarioId)}</strong></span>
+      <span class="kb-tooltip-row"><em>active_version</em><strong>${escapeHtml(activeVersion)}</strong></span>
+      <span class="kb-tooltip-row"><em>effective_active_version</em><strong>${escapeHtml(effectiveVersion)}</strong></span>
+    </span>
+  `;
 }
 
 function currentScenario() {
