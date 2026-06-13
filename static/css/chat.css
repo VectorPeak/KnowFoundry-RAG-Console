@@ -705,6 +705,15 @@
   height: 8px;
 }
 
+.industrial-chat-head .context-tags #kbPill {
+  overflow: visible;
+}
+
+.industrial-chat-head .context-tags #kbPill span {
+  line-height: 1.35;
+  padding-bottom: 1px;
+}
+
 .chat-history {
   padding: 22px 28px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);

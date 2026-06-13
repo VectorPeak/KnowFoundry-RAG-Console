@@ -171,7 +171,7 @@ async function loadKbVersion() {
   } catch {
     state.kbVersion = null;
   }
-  els.kbPill.innerHTML = `<i data-lucide="git-branch"></i><span>${escapeHtml(shortText(state.kbVersion || '未激活', 24))}</span>`;
+  els.kbPill.innerHTML = `<i data-lucide="database"></i><span>${escapeHtml(shortText(state.kbVersion || '未激活', 24))}</span>`;
   refreshIcons();
 }
 
