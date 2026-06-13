@@ -273,27 +273,28 @@
 
 .industrial-topbar {
   height: 58px;
-  padding: 0 18px;
+  padding: 0 16px;
   background: linear-gradient(90deg, #07172A 0%, #0A2341 52%, #07182C 100%);
   border-bottom: 1px solid rgba(105, 142, 190, 0.32);
   box-shadow: 0 8px 24px rgba(3, 12, 28, 0.24);
 }
 
 .industrial-brand {
-  min-width: 320px;
+  min-width: 350px;
+  gap: 12px;
 }
 
 .industrial-brand .brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 4px;
   background: linear-gradient(135deg, #2D7CFF, #064FD8);
-  box-shadow: 0 8px 18px rgba(22, 91, 219, 0.28);
+  box-shadow: 0 7px 16px rgba(22, 91, 219, 0.26);
 }
 
 .industrial-brand .brand-mark svg {
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   color: #FFFFFF;
   stroke-width: 2.3;
 }
@@ -301,6 +302,7 @@
 .industrial-brand .brand-text {
   font-size: 17px;
   font-weight: 700;
+  line-height: 1;
   color: #F3F8FF;
 }
 
