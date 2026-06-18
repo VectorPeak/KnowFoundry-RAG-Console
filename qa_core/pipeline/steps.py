@@ -77,14 +77,43 @@ class RouteDecision:
     reason: str = ""
 
 
-def build_source_classification(query: str, scenario, *, suggested_source: str | None = None, limit: int = 8) -> dict[str, Any]:
+def build_source_classification(
+    query: str,
+    scenario,
+    *,
+    suggested_source: str | None = None,
+    selected_source: str | None = None,
+    sources: list[dict[str, Any]] | None = None,
+    question_category: str | None = None,
+    limit: int = 8,
+) -> dict[str, Any]:
     """Build a ranked source classification snapshot for UI diagnostics."""
-    scores = score_source_map(query, scenario)
+    scores: dict[str, float] = {source: float(score) for source, score in score_source_map(query, scenario).items()}
+    evidence: dict[str, set[str]] = {source: {"query_pattern"} for source in scores}
+
+    for index, source_payload in enumerate(sources or []):
+        metadata = source_payload.get("metadata") or {}
+        source = str(metadata.get("source") or source_payload.get("source") or "").strip()
+        if source not in scenario.valid_sources:
+            continue
+        try:
+            hit_score = float(source_payload.get("score") or 0)
+        except (TypeError, ValueError):
+            hit_score = 0.0
+        scores[source] = scores.get(source, 0.0) + max(hit_score, 0.0) * 100 + max(0, limit - index)
+        evidence.setdefault(source, set()).add("retrieval_hit")
+
+    if suggested_source in scenario.valid_sources:
+        scores[suggested_source] = scores.get(suggested_source, 0.0) + 10.0
+        evidence.setdefault(suggested_source, set()).add("intent_suggestion")
+
+    if selected_source in scenario.valid_sources:
+        scores[selected_source] = scores.get(selected_source, 0.0) + 10000.0
+        evidence.setdefault(selected_source, set()).add("selected_filter")
+
     ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
-    if suggested_source and suggested_source not in scores and suggested_source in scenario.valid_sources:
-        ranked.append((suggested_source, 0))
     top_items = ranked[:limit]
-    max_score = max((score for _, score in top_items), default=0)
+    max_score = max((score for _, score in top_items), default=0.0)
     candidates = []
     for source, raw_score in top_items:
         normalized = round(raw_score / max_score, 4) if max_score > 0 else 1.0
@@ -93,13 +122,15 @@ def build_source_classification(query: str, scenario, *, suggested_source: str |
                 "source": source,
                 "label": scenario.label_for_source(source),
                 "score": normalized,
-                "raw_score": raw_score,
+                "raw_score": round(raw_score, 4),
+                "evidence": sorted(evidence.get(source, set())),
             }
         )
     suggested = candidates[0] if candidates else None
     return {
         "suggested_source": suggested["source"] if suggested else None,
         "suggested_label": suggested["label"] if suggested else None,
+        "question_category": question_category,
         "candidates": candidates,
     }
 
@@ -229,6 +260,14 @@ def try_fast_faq_direct_answer(context: RAGQueryContext) -> tuple[str | None, In
         return None, intent
     context.hit_type = "faq_direct"
     context.sources = faq_result.source_payloads()
+    context.retrieval_info["classification"] = build_source_classification(
+        context.query,
+        context.scenario,
+        suggested_source=suggested_source or effective_source_filter,
+        selected_source=context.source_filter,
+        sources=context.sources,
+        question_category=plan.question_category,
+    )
     context.retrieval_info["fast_path_hit"] = True
     return answer, intent
 
@@ -400,7 +439,9 @@ def prepare_retrieval(context: RAGQueryContext) -> RetrievalPreparation:
         "classification": build_source_classification(
             context.rewritten_query,
             context.scenario,
-            suggested_source=intent.suggested_source,
+            suggested_source=effective_source_filter or intent.suggested_source,
+            selected_source=context.source_filter,
+            question_category=plan.question_category,
         ),
         "query_variants": query_variants,
         "scenario_id": context.scenario.scenario_id,
@@ -454,6 +495,14 @@ def prepare_answer(
     context.retrieval_info["context_source_count"] = len({str((doc.metadata or {}).get("source") or "") for doc in context_docs})
     context.retrieval_info["context_min_score"] = prepared.plan.min_context_score
     context.retrieval_info["context_top_score"] = top_score
+    context.retrieval_info["classification"] = build_source_classification(
+        prepared.rewritten_query,
+        context.scenario,
+        suggested_source=prepared.effective_source_filter or prepared.intent.suggested_source,
+        selected_source=context.source_filter,
+        sources=sources,
+        question_category=prepared.plan.question_category,
+    )
 
     # 将历史消息转为中文对话文本，填充到提示词模板中
     user_prompt = prepared.prompt_profile.user_template.format(

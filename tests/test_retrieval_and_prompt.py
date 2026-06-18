@@ -17,7 +17,7 @@ from qa_core.pipeline.citations import enforce_answer_citations, has_source_cita
 from qa_core.pipeline.context import build_context, direct_faq_answer, select_context_docs
 from qa_core.pipeline.query_variants import generate_query_variants
 from qa_core.pipeline.runtime import RAGQueryContext
-from qa_core.pipeline.steps import decide_route, should_try_faq_fast_path
+from qa_core.pipeline.steps import build_source_classification, decide_route, should_try_faq_fast_path
 from qa_core.prompts.selector import build_answer_prompt_profile
 from qa_core.retrieval.filters import build_source_expr
 from qa_core.retrieval.ranking import merge_hits_by_document, normalize_queries, sort_hits_by_score
@@ -456,6 +456,34 @@ class RetrievalPlanTests(unittest.TestCase):
         self.assertTrue(plan.prefer_table)
         self.assertTrue(plan.faq_direct_exact_only)
         self.assertEqual(plan.question_category, "pricing")
+
+    def test_source_classification_prefers_retrieval_hits(self) -> None:
+        scenario = get_scenario_registry().resolve("enterprise_knowledge")
+        classification = build_source_classification(
+            "general internal question",
+            scenario,
+            sources=[
+                {"score": 0.21, "metadata": {"source": "hr"}},
+                {"score": 0.92, "metadata": {"source": "it"}},
+                {"score": 0.35, "metadata": {"source": "it"}},
+            ],
+            question_category="troubleshooting",
+        )
+        self.assertEqual(classification["suggested_source"], "it")
+        self.assertEqual(classification["question_category"], "troubleshooting")
+        self.assertIn("retrieval_hit", classification["candidates"][0]["evidence"])
+        self.assertEqual(classification["candidates"][0]["score"], 1.0)
+
+    def test_source_classification_respects_selected_filter(self) -> None:
+        scenario = get_scenario_registry().resolve("enterprise_knowledge")
+        classification = build_source_classification(
+            "VPN is unavailable",
+            scenario,
+            selected_source="finance",
+            sources=[{"score": 0.99, "metadata": {"source": "it"}}],
+        )
+        self.assertEqual(classification["suggested_source"], "finance")
+        self.assertIn("selected_filter", classification["candidates"][0]["evidence"])
 
 
 class PromptProfileTests(unittest.TestCase):
