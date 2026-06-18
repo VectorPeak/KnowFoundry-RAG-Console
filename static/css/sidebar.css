@@ -1449,6 +1449,12 @@
   contain: layout paint;
 }
 
+/* Hide the outer chrome of right-side insight cards while keeping inner dividers. */
+.right-panel.insight-panel .insight-card {
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(18, 32, 54, 0.035);
+}
+
 .right-panel.insight-panel .classification-card .side-section-title {
   grid-template-columns: 18px minmax(0, 1fr) 18px;
   min-height: 44px;
