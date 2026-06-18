@@ -393,6 +393,11 @@
   border-color: transparent;
 }
 
+.taxonomy-item.active,
+.taxonomy-item:hover {
+  border-color: transparent;
+}
+
 .sidebar-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.08);
