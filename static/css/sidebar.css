@@ -1451,6 +1451,10 @@
   box-shadow: none;
 }
 
+.right-panel.insight-panel > .insight-body {
+  padding: 0 8px 10px;
+}
+
 .right-panel.insight-panel .insight-card {
   contain: layout paint;
 }
