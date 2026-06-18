@@ -136,6 +136,10 @@
   margin-bottom: 8px;
 }
 
+.industrial-composer .composer-hint {
+  color: #9AA8BA;
+}
+
 .composer-toolbar {
   display: flex;
   align-items: center;
