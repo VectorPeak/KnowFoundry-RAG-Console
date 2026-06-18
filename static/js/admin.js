@@ -98,6 +98,23 @@
     return `<span class="status-badge ${tone}">${escapeHtml(raw)}</span>`;
   }
 
+  function statsSummary(stats = {}) {
+    const faq = stats.last_faq_count ?? stats.total_faq_written ?? 0;
+    const docs = stats.last_doc_count ?? stats.total_doc_written ?? 0;
+    const runs = (stats.doc_ingest_runs ?? 0) + (stats.faq_ingest_runs ?? 0);
+    return `FAQ ${faq} 文档 ${docs} 入库 ${runs}`;
+  }
+
+  function statsCell(stats = {}) {
+    const json = JSON.stringify(stats || {}, null, 2);
+    return `
+      <button class="stats-chip" type="button" data-stats-json="${escapeHtml(json)}" aria-label="复制统计 JSON">
+        <span>${escapeHtml(statsSummary(stats))}</span>
+        <pre>${escapeHtml(json)}</pre>
+      </button>
+    `;
+  }
+
   function renderLangSmith(status) {
     document.getElementById('langsmithEnabledValue').textContent = status.enabled ? '已开启' : '未开启';
     document.getElementById('langsmithProjectValue').textContent = status.project || '-';
@@ -123,7 +140,7 @@
         <td>${statusBadge(version.status || '-')}</td>
         <td>${escapeHtml(dateText(version.created_at))}</td>
         <td>${escapeHtml(shortText(version.description || version.notes || '-', 70))}</td>
-        <td>${escapeHtml(JSON.stringify(version.stats || {}))}</td>
+        <td>${statsCell(version.stats || {})}</td>
       </tr>
     `).join('');
   }
@@ -208,6 +225,12 @@
   refreshBtn.addEventListener('click', loadDashboard);
   tokenInput.addEventListener('change', loadDashboard);
   scenarioSelect.addEventListener('change', loadDashboard);
+  document.addEventListener('click', event => {
+    const statsButton = event.target.closest('.stats-chip');
+    if (!statsButton) return;
+    const value = statsButton.dataset.statsJson || '{}';
+    navigator.clipboard?.writeText(value).catch(() => {});
+  });
 
   loadScenarios()
     .then(loadDashboard)

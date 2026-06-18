@@ -918,6 +918,57 @@ td {
   color: #1d4ed8;
 }
 
+.stats-chip {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 28px;
+  align-items: center;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: left;
+  cursor: copy;
+}
+
+.stats-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-chip pre {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: calc(100% + 8px);
+  display: none;
+  width: max-content;
+  max-width: min(420px, 60vw);
+  max-height: 260px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #0F1E33;
+  color: #E7F0FC;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.22);
+  font: 12px/1.55 Consolas, "SFMono-Regular", monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.stats-chip:hover pre,
+.stats-chip:focus-visible pre {
+  display: block;
+}
+
 @media (max-width: 1180px) {
   .metric-grid,
   .dashboard-grid {
