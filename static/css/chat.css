@@ -921,7 +921,7 @@
 }
 
 .message.assistant .message-content {
-  border-color: #D8E2EF;
+  border-color: transparent;
   box-shadow: 0 8px 22px rgba(26, 45, 78, 0.06);
 }
 
