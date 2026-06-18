@@ -224,7 +224,7 @@ function renderClassificationResult(classification) {
   els.classificationResult.innerHTML = `
     <div><span>可能分类</span><strong class="classification-badge" title="${escapeAttribute(suggestedLabel)}">${escapeHtml(suggestedLabel)}</strong></div>
     <ol>${rows}</ol>
-    <p>相对强度按当前候选集归一化展示，最高项固定为 1.00，不代表绝对置信度。</p>
+    <p>相对强度按当前候选集归一化展示，最高项固定为 1.00，不代表绝对置信度</p>
   `;
 }
 
