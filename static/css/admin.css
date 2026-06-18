@@ -468,7 +468,7 @@
   width: 100%;
   min-height: 42px;
   padding: 0 14px;
-  border: 1px solid var(--admin-line);
+  border: 1px solid transparent;
   border-radius: 8px;
   background: #fff;
   color: var(--admin-ink);
@@ -548,7 +548,7 @@ select.control-input option {
 
 .metric-card,
 .panel {
-  border: 1px solid var(--admin-line);
+  border: 1px solid transparent;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--admin-shadow-sm);
@@ -769,7 +769,7 @@ select.control-input option {
   gap: 12px;
   align-items: center;
   padding: 13px;
-  border: 1px solid var(--admin-line-soft);
+  border: 1px solid transparent;
   border-radius: 8px;
   background: var(--admin-surface-soft);
 }
