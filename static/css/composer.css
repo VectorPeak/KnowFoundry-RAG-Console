@@ -197,7 +197,7 @@
 }
 
 .industrial-composer .composer-box {
-  grid-template-columns: minmax(0, 1fr) 110px;
+  grid-template-columns: minmax(0, 1fr) 108px;
   padding: 8px;
   border: 1px solid #C7D8F2;
   border-radius: 10px;
