@@ -1475,6 +1475,17 @@
   min-width: 0;
 }
 
+.right-panel.insight-panel .classification-card .classification-result > div {
+  grid-template-columns: minmax(0, 1fr) minmax(76px, max-content);
+}
+
+.right-panel.insight-panel .classification-card .classification-result > div strong {
+  max-width: 136px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Lock insight-card headers so collapsed/expanded states do not shift title text. */
 .right-panel.insight-panel .insight-card .side-section-title {
   height: 44px;

@@ -202,9 +202,9 @@ function renderClassificationResult(classification) {
     : [];
   if (!candidates.length) {
     els.classificationResult.innerHTML = `
-      <div><span>建议分类</span><strong class="classification-badge is-waiting">等待分类</strong></div>
+      <div><span>可能分类</span><strong class="classification-badge is-waiting">等待分类</strong></div>
       <ol></ol>
-      <p>分类结果会随最近一次回答更新，辅助判断问题归属与资料适用范围</p>
+      <p>分类结果会随最近一次回答更新，展示候选分类的相对强度。</p>
     `;
     return;
   }
@@ -214,7 +214,7 @@ function renderClassificationResult(classification) {
     const score = Number(item.score);
     const normalized = Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
     return `
-      <li style="--score: ${(normalized * 100).toFixed(0)}%" title="${escapeAttribute(`${item.source || item.label} · raw ${item.raw_score ?? '-'}`)}">
+      <li style="--score: ${(normalized * 100).toFixed(0)}%" title="${escapeAttribute(`${item.source || item.label} · 原始分 ${item.raw_score ?? '-'}`)}">
         <span>${escapeHtml(item.label)}</span>
         <strong>${normalized.toFixed(2)}</strong>
       </li>
@@ -222,9 +222,9 @@ function renderClassificationResult(classification) {
   }).join('');
 
   els.classificationResult.innerHTML = `
-    <div><span>建议分类</span><strong class="classification-badge">${escapeHtml(suggestedLabel)}</strong></div>
+    <div><span>可能分类</span><strong class="classification-badge" title="${escapeAttribute(suggestedLabel)}">${escapeHtml(suggestedLabel)}</strong></div>
     <ol>${rows}</ol>
-    <p>分类结果来自最近一次问题的业务资料分类信号，按匹配强度归一化展示。</p>
+    <p>相对强度按当前候选集归一化展示，最高项固定为 1.00，不代表绝对置信度。</p>
   `;
 }
 
