@@ -1074,7 +1074,7 @@
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
-  color: #9AA8BC;
+  color: #C2CBD8;
   cursor: pointer;
   opacity: 0.56;
   transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
@@ -1087,10 +1087,10 @@
 }
 
 .conversation-rail .session-delete-btn:hover {
-  opacity: 1;
-  color: #D92D20;
-  background: #FFF1F0;
-  border-color: #FFB4AB;
+  opacity: 0.9;
+  color: #8FA0B8;
+  background: #F5F8FC;
+  border-color: #E2E9F3;
 }
 
 .conversation-rail .session-delete-btn:focus-visible {
