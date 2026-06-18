@@ -760,8 +760,8 @@
   padding: 0 12px 0 9px;
   border-color: #C9D8EC;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 251, 255, 0.92)),
-    #FFFFFF;
+    linear-gradient(180deg, #F2F6FC 0%, #EAF1FA 100%),
+    #F2F6FC;
   color: #4E617D;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.90),
