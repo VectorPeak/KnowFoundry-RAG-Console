@@ -218,8 +218,9 @@
 
 .industrial-composer .send-button {
   width: 100%;
-  height: 46px;
+  height: 42px;
   gap: 8px;
   border-radius: 8px;
   font-weight: 800;
+  background: linear-gradient(135deg, #2F7FF4, #1E63D8);
 }

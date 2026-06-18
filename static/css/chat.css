@@ -921,9 +921,9 @@
 }
 
 .message.user .message-content {
-  background: linear-gradient(135deg, #0B67F3, #0652D7);
+  background: linear-gradient(135deg, #2F7FF4, #1E63D8);
   border-radius: 8px;
-  box-shadow: 0 10px 24px rgba(10, 92, 226, 0.24);
+  box-shadow: 0 8px 20px rgba(30, 99, 216, 0.18);
 }
 
 .chat-history .welcome-message {
