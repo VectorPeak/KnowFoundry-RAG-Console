@@ -1445,6 +1445,12 @@
   scrollbar-gutter: stable;
 }
 
+/* Remove the outer border around the stacked right insight rail. */
+.right-panel.insight-panel {
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .right-panel.insight-panel .insight-card {
   contain: layout paint;
 }
