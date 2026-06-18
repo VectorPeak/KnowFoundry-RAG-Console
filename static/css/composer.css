@@ -199,10 +199,10 @@
 .industrial-composer .composer-box {
   grid-template-columns: minmax(0, 1fr) 110px;
   padding: 8px;
-  border: 1px solid #8DB8FF;
+  border: 1px solid #C7D8F2;
   border-radius: 10px;
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(11, 101, 244, 0.08);
+  box-shadow: 0 0 0 3px rgba(71, 115, 180, 0.045);
 }
 
 .industrial-composer .chat-input {
