@@ -389,6 +389,10 @@
   color: #65A0FF;
 }
 
+.scenario-item.active {
+  border-color: transparent;
+}
+
 .sidebar-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.08);
