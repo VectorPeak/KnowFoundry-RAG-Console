@@ -447,6 +447,8 @@
 
 .industrial-chat-panel {
   background: #FFFFFF;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .workspace-grid {
