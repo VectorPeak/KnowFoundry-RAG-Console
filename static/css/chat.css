@@ -769,6 +769,11 @@
   cursor: copy;
 }
 
+.industrial-chat-head .context-tags #connectionPill,
+.industrial-chat-head .context-tags #kbPill {
+  border-color: transparent;
+}
+
 .industrial-chat-head .context-tags #kbPill svg {
   width: 18px;
   height: 18px;
