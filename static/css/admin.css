@@ -943,30 +943,23 @@ td {
   white-space: nowrap;
 }
 
-.stats-chip pre {
-  position: absolute;
-  z-index: 20;
-  left: 0;
-  top: calc(100% + 8px);
-  display: none;
+.stats-tooltip {
+  position: fixed;
+  z-index: 1000;
   width: max-content;
-  max-width: min(420px, 60vw);
+  max-width: min(420px, calc(100vw - 24px));
   max-height: 260px;
   overflow: auto;
   margin: 0;
   padding: 12px 14px;
+  border: 1px solid #DDE6F2;
   border-radius: 8px;
-  background: #0F1E33;
-  color: #E7F0FC;
-  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.22);
+  background: #FFFFFF;
+  color: #1E293B;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
   font: 12px/1.55 Consolas, "SFMono-Regular", monospace;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.stats-chip:hover pre,
-.stats-chip:focus-visible pre {
-  display: block;
 }
 
 @media (max-width: 1180px) {

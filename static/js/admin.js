@@ -110,9 +110,43 @@
     return `
       <button class="stats-chip" type="button" data-stats-json="${escapeHtml(json)}" aria-label="复制统计 JSON">
         <span>${escapeHtml(statsSummary(stats))}</span>
-        <pre>${escapeHtml(json)}</pre>
       </button>
     `;
+  }
+
+  let statsTooltip;
+
+  function getStatsTooltip() {
+    if (statsTooltip) return statsTooltip;
+    statsTooltip = document.createElement('pre');
+    statsTooltip.className = 'stats-tooltip';
+    statsTooltip.hidden = true;
+    document.body.appendChild(statsTooltip);
+    return statsTooltip;
+  }
+
+  function positionStatsTooltip(button) {
+    const tooltip = getStatsTooltip();
+    const rect = button.getBoundingClientRect();
+    const margin = 12;
+    const left = Math.max(margin, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - margin));
+    let top = rect.bottom + 8;
+    if (top + tooltip.offsetHeight > window.innerHeight - margin) {
+      top = Math.max(margin, rect.top - tooltip.offsetHeight - 8);
+    }
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.round(top)}px`;
+  }
+
+  function showStatsTooltip(button) {
+    const tooltip = getStatsTooltip();
+    tooltip.textContent = button.dataset.statsJson || '{}';
+    tooltip.hidden = false;
+    requestAnimationFrame(() => positionStatsTooltip(button));
+  }
+
+  function hideStatsTooltip() {
+    if (statsTooltip) statsTooltip.hidden = true;
   }
 
   function renderLangSmith(status) {
@@ -231,6 +265,24 @@
     const value = statsButton.dataset.statsJson || '{}';
     navigator.clipboard?.writeText(value).catch(() => {});
   });
+  document.addEventListener('mouseover', event => {
+    const statsButton = event.target.closest('.stats-chip');
+    if (statsButton) showStatsTooltip(statsButton);
+  });
+  document.addEventListener('mouseout', event => {
+    const statsButton = event.target.closest('.stats-chip');
+    if (!statsButton || statsButton.contains(event.relatedTarget)) return;
+    hideStatsTooltip();
+  });
+  document.addEventListener('focusin', event => {
+    const statsButton = event.target.closest('.stats-chip');
+    if (statsButton) showStatsTooltip(statsButton);
+  });
+  document.addEventListener('focusout', event => {
+    if (event.target.closest('.stats-chip')) hideStatsTooltip();
+  });
+  window.addEventListener('resize', hideStatsTooltip);
+  window.addEventListener('scroll', hideStatsTooltip, true);
 
   loadScenarios()
     .then(loadDashboard)
