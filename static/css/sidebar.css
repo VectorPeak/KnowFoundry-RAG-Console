@@ -1164,7 +1164,7 @@
 .right-panel.insight-panel .kb-summary,
 .right-panel.insight-panel .health-list,
 .right-panel.insight-panel .sample-list {
-  padding: 14px 16px 16px;
+  padding: 2px 16px 16px;
 }
 
 .right-panel.insight-panel .classification-result > div {
@@ -1443,7 +1443,7 @@
 }
 
 .right-panel.insight-panel .classification-card .classification-result {
-  padding-top: 8px;
+  padding-top: 2px;
   padding-bottom: 12px;
 }
 
