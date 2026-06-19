@@ -110,6 +110,7 @@
     return `
       <button class="stats-chip" type="button" data-stats-json="${escapeHtml(json)}" aria-label="复制统计 JSON">
         <span>${escapeHtml(statsSummary(stats))}</span>
+        <span class="stats-chip-action" aria-hidden="true">复制</span>
       </button>
     `;
   }
@@ -147,6 +148,18 @@
 
   function hideStatsTooltip() {
     if (statsTooltip) statsTooltip.hidden = true;
+  }
+
+  function showStatsCopied(button) {
+    const label = button.querySelector('.stats-chip-action');
+    if (!label) return;
+    label.textContent = '已复制';
+    button.classList.add('is-copied');
+    clearTimeout(button._copyTimer);
+    button._copyTimer = setTimeout(() => {
+      label.textContent = '复制';
+      button.classList.remove('is-copied');
+    }, 1200);
   }
 
   function renderLangSmith(status) {
@@ -263,7 +276,9 @@
     const statsButton = event.target.closest('.stats-chip');
     if (!statsButton) return;
     const value = statsButton.dataset.statsJson || '{}';
-    navigator.clipboard?.writeText(value).catch(() => {});
+    navigator.clipboard?.writeText(value)
+      .then(() => showStatsCopied(statsButton))
+      .catch(() => showStatsCopied(statsButton));
   });
   document.addEventListener('mouseover', event => {
     const statsButton = event.target.closest('.stats-chip');
