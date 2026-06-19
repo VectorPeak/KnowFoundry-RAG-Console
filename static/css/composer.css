@@ -201,7 +201,7 @@
 }
 
 .industrial-composer .composer-box {
-  grid-template-columns: minmax(0, 1fr) 108px;
+  grid-template-columns: minmax(0, 1fr) 98px;
   padding: 8px;
   border: 1px solid #C7D8F2;
   border-radius: 10px;
@@ -222,7 +222,7 @@
 
 .industrial-composer .send-button {
   width: 100%;
-  height: 40px;
+  height: 42px;
   gap: 8px;
   border-radius: 8px;
   font-weight: 800;
