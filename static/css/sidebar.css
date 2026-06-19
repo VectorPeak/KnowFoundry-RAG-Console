@@ -505,7 +505,7 @@
   min-height: 34px;
   padding: 0 10px;
   color: #9DAFC6;
-  font-weight: 500;
+  font-weight: 800;
 }
 
 .taxonomy-list svg,
@@ -1438,7 +1438,7 @@
 
 /* Reduce empty vertical air in the top insight cards, 2026-06-13. */
 .right-panel.insight-panel .recent-card .sample-list {
-  padding-top: 8px;
+  padding-top: 0;
   padding-bottom: 10px;
 }
 

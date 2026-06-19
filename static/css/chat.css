@@ -928,8 +928,11 @@
 
 .message.user .message-content {
   background: linear-gradient(135deg, #4C91F7, #3476DF);
+  border: 0;
   border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(52, 118, 223, 0.14);
+  box-shadow:
+    0 10px 24px rgba(52, 118, 223, 0.18),
+    0 2px 6px rgba(15, 23, 42, 0.06);
 }
 
 .chat-history .welcome-message {
