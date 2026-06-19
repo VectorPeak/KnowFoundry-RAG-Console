@@ -924,58 +924,23 @@ td {
   max-width: 100%;
   min-height: 28px;
   align-items: center;
-  gap: 8px;
   border: 0;
   border-radius: 7px;
-  padding: 4px 5px 4px 9px;
-  background: linear-gradient(180deg, #F8FBFF 0%, #EEF6FF 100%);
+  padding: 5px 9px;
+  background: #EFF6FF;
   color: #1D4ED8;
   font: inherit;
   font-size: 12px;
   font-weight: 800;
   line-height: 1.35;
   text-align: left;
-  box-shadow:
-    inset 0 0 0 1px #D9E8FF,
-    0 1px 2px rgba(37, 99, 235, 0.08);
   cursor: copy;
-  transition: background 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
-}
-
-.stats-chip:hover,
-.stats-chip:focus-visible {
-  background: #FFFFFF;
-  box-shadow:
-    inset 0 0 0 1px #BFDBFE,
-    0 4px 12px rgba(37, 99, 235, 0.12);
-  outline: none;
-}
-
-.stats-chip.is-copied {
-  background: linear-gradient(180deg, #ECFDF5 0%, #DCFCE7 100%);
-  color: #15803D;
-  box-shadow:
-    inset 0 0 0 1px #BBF7D0,
-    0 4px 12px rgba(34, 197, 94, 0.12);
 }
 
 .stats-chip span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.stats-chip .stats-chip-action {
-  flex: 0 0 auto;
-  min-width: 38px;
-  padding: 3px 7px;
-  border-radius: 5px;
-  background: #FFFFFF;
-  color: currentColor;
-  font-size: 11px;
-  font-weight: 900;
-  text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.14);
 }
 
 .stats-tooltip {
