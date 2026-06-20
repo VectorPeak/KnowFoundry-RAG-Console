@@ -119,6 +119,7 @@ Pygments==2.19.2
 pymilvus-model==0.3.0
 pymilvus==2.5.18
 PyMuPDF==1.26.7
+pymdown-extensions==10.14
 PyMySQL==1.1.1
 pyparsing==3.0.9
 pyreadline3==3.5.4
