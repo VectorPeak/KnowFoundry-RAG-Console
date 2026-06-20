@@ -1,5 +1,5 @@
-site_name: KnowForge RAG Platform — 系统讲义
-site_description: 基于 LangChain + Milvus Hybrid Search 的 KnowForge RAG Platform — 19 讲系统课程
+site_name: KnowFoundry-RAG-Console — 系统讲义
+site_description: 基于 LangChain + Milvus Hybrid Search 的 KnowFoundry-RAG-Console — 19 讲系统课程
 docs_dir: docs
 site_dir: site
 use_directory_urls: false
@@ -72,7 +72,7 @@ nav:
   - 课程大纲: course-outline.md
   - 📊 业务流程图: animation/business-flow.html
   - 第一阶段：基础概念:
-      - 01 项目概述与环境搭建: 01-project-overview.md
+      - 01 项目概述: 01-project-overview.md
       - 02 RAG 核心概念深入: 02-rag-fundamentals.md
   - 第二阶段：核心 RAG 链路:
       - 03 LangChain 生态系统: 03-langchain-ecosystem.md

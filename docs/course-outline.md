@@ -1,4 +1,4 @@
-# KnowForge RAG Platform — 课程大纲
+# KnowFoundry-RAG-Console — 课程大纲
 
 本目录包含 19 讲系统化课程，从零开始讲解如何构建一个企业级多场景 RAG 知识平台。
 
@@ -26,7 +26,7 @@
 ```mermaid
 flowchart LR
     subgraph Phase1["第一阶段：基础概念"]
-        L01["01 项目概述<br/>与环境搭建"]
+        L01["01 项目概述"]
         L02["02 RAG 核心<br/>概念深入"]
     end
 
@@ -93,7 +93,7 @@ flowchart LR
 
 | 讲次 | 主题 | 优先级 | 核心收获 |
 |------|------|--------|---------|
-| 01 | 项目概述与环境搭建 | P0 | 理解 RAG 基本概念，完成环境搭建，跑通项目 |
+| 01 | 项目概述 | P0 | 理解项目定位、RAG 基本概念和整体架构，完成环境验证并跑通项目 |
 | 02 | RAG 核心概念深入 | P0 | 掌握 Embedding、Dense/Sparse 检索、Reranker 原理 |
 | 03 | LangChain 生态系统 | P0 | 掌握 Runnable/LCEL、ChatOpenAI、VectorStore、Loader/Splitter |
 | 04 | Milvus 索引机制与基本操作 | P0 | 掌握四种索引类型（FLAT/IVF/HNSW）、pymilvus 基本操作、LangChain 底层封装 |
@@ -117,8 +117,8 @@ flowchart LR
 
 ### 第一阶段：基础概念
 
-#### 第 1 讲：项目概述与环境搭建
-- **内容**：什么是 RAG、RAG 系统的基本组成、向量和向量检索的直观理解、8 个业务场景介绍、技术架构总览、环境搭建与验证
+#### 第 1 讲：项目概述
+- **内容**：这个项目是什么、为什么不是普通聊天 Demo、RAG 系统的基本组成、向量和向量检索的直观理解、8 个业务场景介绍、技术架构总览、环境验证与项目跑通
 - **学完后**：能启动项目，在页面上完成一次完整问答
 - **关键代码**：`docker-compose.yml`、`.env`
 

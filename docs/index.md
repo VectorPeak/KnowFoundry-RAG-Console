@@ -1,6 +1,6 @@
-# KnowForge RAG Platform — 系统讲义
+# KnowFoundry-RAG-Console — 系统讲义
 
-欢迎！这是一套基于 **LangChain + Milvus Hybrid Search** 构建的 **KnowForge RAG Platform** 19 讲系统课程。
+欢迎！这是一套基于 **LangChain + Milvus Hybrid Search** 构建的 **KnowFoundry-RAG-Console** 19 讲系统课程。
 
 > 🎬 **快速入门**：先看 [RAG Pipeline 执行流程动画演示](animation/pipeline-demo.html)，5 分钟建立对整个系统执行流程的直观认识。
 
@@ -114,7 +114,7 @@ app.py
 - [学习与演示总入口](learning_demo_guide.md) — 演示路径、代码阅读顺序、面试主线
 - [核心术语速查表](core_terms.md) — 快速理解 DataScope、Bad Case、OCR/VLM、table_row 等高频概念
 - [课程大纲与学习路线](course-outline.md) — 18 讲整体结构和推荐学习顺序
-- [第 1 讲：项目概述与环境搭建](01-project-overview.md) — 从这里开始
+- [第 1 讲：项目概述](01-project-overview.md) — 从这里开始
 - [技术附录](appendix/appendix-a-pydantic.md) — 专题深度解析
 - [复习笔记卡片](notes/index.md) — 快速回顾每讲要点
 - [教师备课速查手册](lecture_notes.md) — 13 章凝练版，含教学要点提示
@@ -132,7 +132,7 @@ app.py
 
 | 讲次 | 主题 | 优先级 | 第一遍学习要求 |
 |------|------|--------|----------------|
-| 01 | 项目概述与环境搭建 | P0 | 必学，先跑通系统 |
+| 01 | 项目概述 | P0 | 必学，先建立项目全局视角 |
 | 02 | RAG 核心概念 | P0 | 必学，理解 Dense/Sparse/Reranker |
 | 03 | LangChain 生态 | P0 | 必学，RAG 的"语言基础" — Runnable/LCEL/ChatOpenAI |
 | 04 | 意图分类 | P0 | 必学，后续策略都依赖它 |

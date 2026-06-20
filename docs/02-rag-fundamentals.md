@@ -1,6 +1,6 @@
 # 第2讲：RAG 核心概念深入
 
-**上一讲**：[项目概述与环境搭建](./01-project-overview.md)  
+**上一讲**：[项目概述](./01-project-overview.md)  
 **下一讲**：[LangChain 生态系统](./03-langchain-ecosystem.md)
 
 ## 本讲目标

@@ -1,6 +1,6 @@
 <div align="center">
 
-# KnowForge RAG Platform | 企业级多场景 RAG 知识平台
+# KnowFoundry-RAG-Console | 企业级多场景 RAG 知识平台
 
 **面向企业知识问答、风控审核、设备运维与工程资料检索的 RAG 工程化方案**
 
@@ -18,9 +18,31 @@
 
 </div>
 
-KnowForge RAG Platform 是一个面向企业知识问答、风控审核、设备运维和工程资料检索等场景的 RAG 工程项目。它不是一个只调用大模型的聊天 Demo，而是围绕“资料入库、混合检索、答案生成、版本治理、质量评测、部署验收”构建的一套可运行、可演示、可复盘的知识平台。
+## 项目概述
 
-项目采用 `LangChain` 组织 RAG 主链路，使用 `Milvus 2.5.x` 承载 dense vector + BM25 sparse 混合检索，通过 `FastAPI / WebSocket` 提供接口与流式问答，并内置知识库版本切换、场景隔离、入库质量检查、回归评测和 LangSmith 观测能力。当前一期冻结 8 个业务场景，重点验证企业级 RAG 从“能问答”到“可交付”的工程闭环。
+### 这个项目是什么
+
+本项目是一个面向企业级知识问答与业务资料检索的 RAG 工程化系统。它把 RAG 面试和真实项目里最常见的核心环节串成一条完整链路：资料入库、混合检索、FAQ 直出、重排、Prompt 路由、流式生成、知识库版本治理、质量评测、接口验收和部署文档。
+
+技术主线是 `LangChain + Milvus Hybrid Search + FastAPI`。
+
+项目采用 `LangChain` 组织 RAG 主链路，使用 `Milvus 2.5.x` 承载 dense vector + BM25 sparse 混合检索，通过 `FastAPI / WebSocket` 提供接口与流式问答，并内置多场景切换、数据隔离、入库质量检查、RAG 回归评测和 LangSmith 观测能力。当前一期冻结 8 个业务场景，重点验证企业级 RAG 从“能问答”到“可交付”的工程闭环。
+
+当前业务场景已经冻结为 8 个，一期不再继续新增场景包；后续重点放在资料质量、评测回归、版本治理和二期 Agent 能力。
+
+这个项目的一大亮点是很容易迁移到自己的业务中。得益于可插拔的场景包、检索链路和治理脚本，你可以把它快速改造成企业知识库、客服知识助手、设备运维问答、合同风控审核、保险理赔审核或工程资料检索系统。具体使用策略会在后文 [业务场景](#2-业务场景) 与 [核心功能](#3-核心功能) 中展开。
+
+### 不只是项目，更是一整套思路
+
+比这个项目本身更有价值的，是它背后沉淀的一整套工程化思路：
+
+- 如何把 RAG 从聊天 Demo 拆成可维护的检索、重排、生成、引用和评测模块；
+- 如何用 `DEV_SPEC` 式的开发规格约束功能边界、目录结构和验收口径；
+- 如何用脚本、测试、guardrail 和 smoke check 保证每次修改后系统仍然可交付；
+- 如何把知识库版本、场景隔离、权限 metadata 和评测报告串成上线前的治理闭环；
+- 如何在一期 RAG 主链路稳定后，继续向 Agent、GraphRAG、SQL 查询和业务工作流扩展。
+
+学会这套思路后，你可以自己做全新的项目，也可以把它拆成模块迁移到已有业务系统里。上手建议从 [第 1 讲：项目概述](docs/01-project-overview.md) 开始，再按 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md) 和 [标准演示 Runbook](docs/standard_demo_runbook.md) 逐步跑通。
 
 | 模块 | 当前能力 |
 | --- | --- |
@@ -61,7 +83,7 @@ KnowForge RAG Platform 是一个面向企业知识问答、风控审核、设备
 
 一句话介绍：
 
-> 基于 LangChain 和 Milvus Hybrid Search 构建的 KnowForge RAG Platform，支持 FAQ 直出、文档问答、知识库多版本、数据隔离、流式输出、入库质量检查和 RAG 回归验收。
+> 基于 LangChain 和 Milvus Hybrid Search 构建的 KnowFoundry-RAG-Console，支持 FAQ 直出、文档问答、知识库多版本、数据隔离、流式输出、入库质量检查和 RAG 回归验收。
 
 ## 2. 业务场景
 
