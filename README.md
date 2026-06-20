@@ -44,13 +44,17 @@
 
 学会这套思路后，你可以自己做全新的项目，也可以把它拆成模块迁移到已有业务系统里。上手建议从 [第 1 讲：项目概述](docs/01-project-overview.md) 开始，再按 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md) 和 [标准演示 Runbook](docs/standard_demo_runbook.md) 逐步跑通。
 
-| 模块 | 当前能力 |
-| --- | --- |
-| 业务场景 | 企业知识库、SaaS 客服、设备运维、合规问答、跨境贸易风控、招投标合同履约、保险理赔审核、工程项目资料问答 |
-| 检索链路 | FAQ 高置信直出 + 文档 RAG，Milvus dense/sparse hybrid search，rerank 后构建引用上下文 |
-| 知识治理 | 多格式资料入库、OCR 待复核流、知识库版本、active 版本切换、数据隔离 metadata |
-| 质量验收 | Recall@K、MRR、关键词覆盖、Prompt 命中、场景隔离、接口 smoke 和交付报告 |
-| 部署形态 | Docker Compose 部署，FastAPI API 服务，MkDocs 项目文档，部署态配置与代码仓库隔离 |
+### 核心能力一览
+
+| 能力 | 链路 / 架构 | 说明 |
+| --- | --- | --- |
+| Ingestion Pipeline | PDF -> Markdown -> Chunk -> Transform -> Embedding -> Upsert | 全链路数据摄取，覆盖多格式资料解析、OCR 复核流和向量库写入，并可扩展多模态图片描述（Image Captioning） |
+| Hybrid Search | Dense 向量 + Sparse BM25 + RRF Fusion + Rerank | 粗排召回 + 精排重排的两段式检索架构，兼顾语义召回、关键词匹配和最终上下文质量 |
+| Operations | 知识库多版本管理 + 数据隔离 + 多租户 + RAG 回归验收与入库质量报告 | 把知识库更新、active 版本切换、权限 metadata、质量门禁和验收报告纳入同一套治理闭环 |
+| Observability | 全链路白盒化追踪 | 接入 LangSmith、trace_id 和 Bad Case 沉淀，让 Ingestion 与 Query 两条链路的关键中间状态透明可见 |
+| Evaluation | Ragas + Custom 评估体系 | 支持 golden test set 回归测试，用 Recall@K、MRR、关键词覆盖、Prompt 命中和场景隔离等指标拒绝“凭感觉”调优 |
+| Dashboard | Vue 页面管理平台 / 静态管理页 | 提供状态页、问答页、链路解析页和治理摘要入口，用于演示、验收和排障 |
+| Skill 驱动全流程 | auto-coder / qa-tester / package / setup 等 Skill | 从编写、测试、打包到环境配置形成可复用工作流，覆盖开发生命周期中的重复性工程动作 |
 
 建议先从 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md)、[学习与演示总入口](docs/learning_demo_guide.md)、[标准演示 Runbook](docs/standard_demo_runbook.md) 和 [当前项目状态](docs/current_project_status.md) 进入。它们分别回答“先学什么”“怎么演示”“怎么验收”和“当前边界在哪里”。
 
