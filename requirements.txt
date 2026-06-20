@@ -35,4 +35,5 @@ websockets==15.0.1
 markdown==3.7
 pymdown-extensions==10.14
 pygments==2.19
+mkdocs==1.6.1
 mkdocs-material==9.7.6
