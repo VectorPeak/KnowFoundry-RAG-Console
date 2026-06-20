@@ -1,14 +1,20 @@
 # KnowForge RAG Platform
 
-这是一个基于 `LangChain + Milvus Hybrid Search + FastAPI` 的多场景 RAG 教学项目。项目目标不是做一个简单聊天页面，而是把企业级 RAG 的主链路、知识库治理、RAG 回归验收、版本管理、数据隔离和流式问答做成可以演示、可以验收、可以写进简历的完整工程。
+**企业级多场景 RAG 知识平台 | LangChain + Milvus Hybrid Search + FastAPI**
 
-工程名统一为 `knowforge-rag-platform`，产品展示名为 **KnowForge RAG Platform**，中文定位是 **企业级多场景 RAG 知识平台**。
+KnowForge RAG Platform 是一个面向企业知识问答、风控审核、设备运维和工程资料检索等场景的 RAG 工程项目。它不是一个只调用大模型的聊天 Demo，而是围绕“资料入库、混合检索、答案生成、版本治理、质量评测、部署验收”构建的一套可运行、可演示、可复盘的知识平台。
 
-当前业务场景已经冻结为 8 个，一期不再继续新增场景包；后续重点放在资料质量、评测回归、版本治理和二期 Agent 能力。
+项目采用 `LangChain` 组织 RAG 主链路，使用 `Milvus 2.5.x` 承载 dense vector + BM25 sparse 混合检索，通过 `FastAPI / WebSocket` 提供接口与流式问答，并内置知识库版本切换、场景隔离、入库质量检查、回归评测和 LangSmith 观测能力。当前一期冻结 8 个业务场景，重点验证企业级 RAG 从“能问答”到“可交付”的工程闭环。
 
-如果是第一次学习或准备演示，建议先看 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md)、[学习与演示总入口](docs/learning_demo_guide.md) 和 [标准演示 Runbook](docs/standard_demo_runbook.md)。前者帮助先抓主线，后两者按“怎么跑、怎么看代码、怎么演示”的顺序串起当前文档和主链路。
+| 模块 | 当前能力 |
+| --- | --- |
+| 业务场景 | 企业知识库、SaaS 客服、设备运维、合规问答、跨境贸易风控、招投标合同履约、保险理赔审核、工程项目资料问答 |
+| 检索链路 | FAQ 高置信直出 + 文档 RAG，Milvus dense/sparse hybrid search，rerank 后构建引用上下文 |
+| 知识治理 | 多格式资料入库、OCR 待复核流、知识库版本、active 版本切换、数据隔离 metadata |
+| 质量验收 | Recall@K、MRR、关键词覆盖、Prompt 命中、场景隔离、接口 smoke 和交付报告 |
+| 部署形态 | Docker Compose 部署，FastAPI API 服务，MkDocs 项目文档，部署态配置与代码仓库隔离 |
 
-如果需要快速判断当前仓库的交付边界，先看 [当前项目状态](docs/current_project_status.md)。该文档明确区分已验证的 RAG 教学/演示能力和未覆盖的生产级 SaaS 能力。
+建议先从 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md)、[学习与演示总入口](docs/learning_demo_guide.md)、[标准演示 Runbook](docs/standard_demo_runbook.md) 和 [当前项目状态](docs/current_project_status.md) 进入。它们分别回答“先学什么”“怎么演示”“怎么验收”和“当前边界在哪里”。
 
 如果需要从第 05 章开始按章节跟敲项目代码，进入 [codealong/](codealong/README.md)。该目录和主项目源码分开，按章节提供可运行、可测试的小闭环。
 
