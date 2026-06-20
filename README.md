@@ -1,6 +1,22 @@
-# KnowForge RAG Platform
+<div align="center">
 
-**企业级多场景 RAG 知识平台 | LangChain + Milvus Hybrid Search + FastAPI**
+# KnowForge RAG Platform | 企业级多场景 RAG 知识平台
+
+**面向企业知识问答、风控审核、设备运维与工程资料检索的 RAG 工程化方案**
+
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.135-009688)
+![LangChain](https://img.shields.io/badge/LangChain-1.2-1C3C3C)
+![Milvus](https://img.shields.io/badge/Milvus-2.5-00A1EA)
+![Hybrid Search](https://img.shields.io/badge/hybrid-search-purple)
+![BM25](https://img.shields.io/badge/BM25-sparse-orange)
+![RAG](https://img.shields.io/badge/RAG-knowledge--platform-brightgreen)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
+![MkDocs](https://img.shields.io/badge/docs-MkDocs-blueviolet)
+
+简体中文 | [English](README.md)
+
+</div>
 
 KnowForge RAG Platform 是一个面向企业知识问答、风控审核、设备运维和工程资料检索等场景的 RAG 工程项目。它不是一个只调用大模型的聊天 Demo，而是围绕“资料入库、混合检索、答案生成、版本治理、质量评测、部署验收”构建的一套可运行、可演示、可复盘的知识平台。
 
