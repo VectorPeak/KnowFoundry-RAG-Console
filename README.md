@@ -2,7 +2,7 @@
 
 # KnowFoundry-RAG-Console | 企业级多场景 RAG 知识平台
 
-**面向企业知识问答、风控审核、设备运维与工程资料检索的 RAG 工程化方案**
+**面向通用知识库问答场景的模块化 RAG 工程框架，覆盖数据摄取、混合检索、重排、生成、评估与可观测闭环**
 
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.135-009688)
