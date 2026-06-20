@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import sys
 from collections import deque
 from importlib import metadata
 from pathlib import Path

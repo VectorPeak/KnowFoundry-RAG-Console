@@ -71,7 +71,7 @@ def run_checks(args: argparse.Namespace) -> dict:
     details["scenario_count"] = len(scenarios.get("scenarios") or [])
 
     versions = fetch_json(args.base_url, f"/api/kb_versions?scenario_id={args.scenario}", admin_token)
-    checks["kb_versions"] = check_fields(versions, ["scenario_id", "versions", "manifest_path"])
+    checks["kb_versions"] = check_fields(versions, ["scenario_id", "versions", "metadata_store"])
     details["kb_active"] = versions.get("effective_active_version")
 
     admin_status = fetch_json(args.base_url, "/api/admin/status", admin_token)

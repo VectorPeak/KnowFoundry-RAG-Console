@@ -8,7 +8,7 @@
 
 | 场景 | 脚本 |
 |---|---|
-| 环境与项目约束 | `check_langchain_stack.py`、`check_project_guardrails.py`、`check_docs_consistency.py` |
+| 环境与项目约束 | `check_langchain_stack.py`、`check_project_guardrails.py`、`check_docs_consistency.py`、`check_chapter_maps.py` |
 | 文档和 FAQ 入库 | `rebuild_kb_version.py`、`rebuild_scenarios.py`、`manage_kb_versions.py`、`cleanup_missing_docs.py` |
 | 入库质量 | `check_ingestion_quality_gate.py` |
 | 主链路评测 | `evaluate_core_chain.py`、`evaluate_followup_chain.py`、`check_evaluation_gate.py`、`check_followup_gate.py` |
@@ -29,6 +29,14 @@ notepad .env.compose
 
 `deploy_docker.ps1` 会按顺序启动 MySQL/Milvus、构建 API 镜像、初始化 active 场景知识库，
 最后启动 API。新环境不能先启动 API 再入库，因为 API 的 preflight 会检查 active KB 版本。
+脚本会提前创建 `logs/` 和 `reports/` 目录，避免 Docker 把缺失的宿主机目录挂成不可用路径。
+知识库版本与入库 manifest 状态写入 MySQL，不再维护本地 manifest 目录。
+
+## 讲义站点
+
+讲义只保留一条发布链路：`docs/` Markdown 通过 MkDocs 构建到 `site/`，FastAPI 的 `/docs`
+也只读取 `site/`。不要再恢复 `static/docs/`、`scripts/build_docs.py` 或根目录独立 Markdown 转 HTML
+脚本，避免同一份讲义出现两套 HTML 输出。
 
 ## 子目录专项脚本
 
@@ -45,6 +53,8 @@ notepad .env.compose
 
 ```powershell
 python scripts/check_project_guardrails.py
+python scripts/check_chapter_maps.py
+python -m mkdocs build
 python scripts/rebuild_kb_version.py --scenario enterprise_knowledge --new-version --force --quality-gate --activate
 python scripts/rebuild_scenarios.py --reset-collections  # 新环境或 schema 变化：重置 collection 并初始化 8 个场景
 python scripts/rebuild_scenarios.py                      # 已有知识库：保留 collection，只刷新 8 个场景的新版本
@@ -52,6 +62,14 @@ python scripts/evaluate_core_chain.py --dataset eval_sets/multi_scenario_smoke.j
 python scripts/check_evaluation_gate.py --dataset eval_sets/multi_scenario_smoke.json --limit 20
 python scripts/api_e2e_smoke.py --base-url http://127.0.0.1:8000
 python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000
+```
+
+章节跟敲代码验收使用目标 Conda 环境运行。第 08 章之后会加载真实
+`langchain-milvus`、Embedding/Reranker 和 Milvus 相关链路，一次性跑完整套测试耗时较长；
+需要定位问题时优先按章节运行：
+
+```powershell
+C:\ProgramData\anaconda3\envs\knowforge-rag\python.exe -m unittest discover -s codealong\chapters\ch08_milvus_hybrid_search\tests
 ```
 
 Docker Compose 模式下，先保证 `.env.compose` 已经从 `.env.compose.example` 生成并填写真实配置。新环境首次初始化 8 个场景：

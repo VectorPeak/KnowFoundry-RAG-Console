@@ -14,8 +14,6 @@ from qa_core.scenarios.registry import ScenarioDefinition, get_scenario_registry
 
 MIN_OTHER_SCENARIO_SCORE = 12
 CURRENT_SCENARIO_SAFE_SCORE = 8
-MIN_OTHER_SOURCE_SCORE = 12
-SOURCE_BOUNDARY_MARGIN = 18
 
 
 @dataclass(frozen=True)
@@ -150,10 +148,9 @@ def detect_source_boundary(
 
     执行流程：
       1. 用户没有选择 source 时不做提示。
-      2. 对当前场景内所有 source pattern 打分。
-      3. 如果最佳命中就是用户选择的 source，或整体分数不高，则不提示。
-      4. 如果用户选择的 source 也有一定证据，且和最佳 source 分差不大，也不提示。
-      5. 否则认为所选 source 不匹配，建议切换到更匹配的 source。
+      2. 根据当前场景 source_patterns 推断问题更像哪个 source。
+      3. 如果没有命中或命中结果就是用户选择的 source，则继续正常流程。
+      4. 如果命中的是另一个 source，则提示切换分类。
 
     参数：
         query: 用户原始问题。
@@ -166,27 +163,18 @@ def detect_source_boundary(
     # 用户未指定分类时不做越界提示，避免空分类场景下的误报干扰
     if not selected_source:
         return SourceBoundaryDecision(mismatched=False, reason="no_selected_source")
-    scores = score_source_map(query, current_scenario)
     matched_source, score = score_source_matches(query, current_scenario)
-    selected_score = scores.get(selected_source, 0)
-    # 无匹配 / 已选分类最佳 / 得分过低 → 判定未跨域，减少不必要的前端切换建议
-    if not matched_source or matched_source == selected_source or score < MIN_OTHER_SOURCE_SCORE:
-        return SourceBoundaryDecision(mismatched=False, selected_source=selected_source, reason=f"score={score}, selected_score={selected_score}")
-    # 当前分类也有非零证据且分差小于阈值时保留现状，避免频繁提示切换干扰用户操作
-    if selected_score >= CURRENT_SCENARIO_SAFE_SCORE and score - selected_score < SOURCE_BOUNDARY_MARGIN:
-        return SourceBoundaryDecision(
-            mismatched=False,
-            selected_source=selected_source,
-            reason=f"selected_source_has_evidence, matched_score={score}, selected_score={selected_score}",
-        )
-    # 用户所选分类证据明显不足且更匹配的分类存在 → 主动建议切换，帮助用户快速定位
+    # 无匹配 / 已选分类最佳 → 保持当前流程，减少不必要的前端切换建议
+    if not matched_source or matched_source == selected_source:
+        return SourceBoundaryDecision(mismatched=False, selected_source=selected_source, reason="source_matched_or_unknown")
+    # 命中另一个分类 → 主动建议切换，帮助用户快速定位
     return SourceBoundaryDecision(
         mismatched=True,
         selected_source=selected_source,
         selected_source_label=current_scenario.label_for_source(selected_source),
         matched_source=matched_source,
         matched_source_label=current_scenario.label_for_source(matched_source),
-        reason=f"matched_source_score={score}, selected_score={selected_score}",
+        reason=f"matched_source_score={score}",
     )
 
 

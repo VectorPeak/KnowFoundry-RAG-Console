@@ -22,7 +22,7 @@ def cleanup_missing_document_chunks(
     # 原因： dry_run 默认防止误删——文件"消失"可能是因为临时路径变更或权限抖动而非用户意图删除，必须先预览确认后再确认执行
     scenario = resolve_scenario(scenario_id)
     effective_version = kb_version or resolve_active_kb_version(None, scenario.scenario_id)
-    manifest = IndexManifest(path=scenario.index_manifest_path)
+    manifest = IndexManifest()
     records = manifest.iter_records(scenario_id=scenario.scenario_id, source=source, kb_version=effective_version)
     missing: list[ManifestRecord] = [record for record in records if record.path and not Path(record.path).exists()]
     existing: list[ManifestRecord] = [record for record in records if record.path and Path(record.path).exists()]

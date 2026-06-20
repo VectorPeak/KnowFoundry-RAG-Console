@@ -63,6 +63,22 @@ def _clean_ingestion_report() -> dict:
 class QualityGateTests(unittest.TestCase):
     """Project-specific quality rules that remain local."""
 
+    def test_all_frozen_scenarios_have_multiformat_data(self) -> None:
+        required_suffixes = {".md", ".csv", ".xlsx", ".docx", ".pptx", ".pdf"}
+        scenario_roots = sorted(path for path in Path("scenarios").iterdir() if (path / "scenario.toml").exists())
+
+        self.assertEqual(len(scenario_roots), 8)
+        for scenario_root in scenario_roots:
+            data_root = scenario_root / "data"
+            suffixes = {path.suffix.lower() for path in data_root.rglob("*") if path.is_file()}
+            self.assertTrue(required_suffixes.issubset(suffixes), f"{scenario_root.name} 缺少格式：{sorted(required_suffixes - suffixes)}")
+
+            for suffix in sorted(required_suffixes - {".md"}):
+                sample = next(path for path in data_root.rglob("*") if path.is_file() and path.suffix.lower() == suffix)
+                docs = load_file(sample)
+                content = "\n".join(doc.page_content for doc in docs)
+                self.assertTrue(content.strip(), f"{scenario_root.name} 的 {sample.name} 未解析出正文")
+
     def test_ingestion_gate_rejects_faq_document_conflicts(self) -> None:
         report = _clean_ingestion_report()
         report["faq_document_conflicts"] = {"conflict_count": 1}
@@ -113,6 +129,8 @@ class QualityGateTests(unittest.TestCase):
         self.assertEqual(len(chunks), 1)
         self.assertEqual(len(ids), 1)
         self.assertEqual(chunks[0].metadata["content_type"], "table_row")
+        self.assertEqual(chunks[0].page_content, normalized[0].page_content.strip())
+        self.assertEqual(chunks[0].metadata["parent_content"], normalized[0].page_content.strip())
         self.assertIn("验收记录", chunks[0].metadata["parent_content"])
 
     def test_ingestion_quality_report_marks_table_and_ocr_risk_files(self) -> None:

@@ -1,8 +1,8 @@
 """意图识别模块：在检索前决定问题应该走哪条处理路径。
 
 它会判断当前问题是问候、追问、FAQ、文档知识查询、人工客服还是越界请求，并把结果
-交给检索计划和 Prompt 模板使用。整体策略是“规则优先 + LLM 补充”：高频确定场景用
-规则快速返回，模糊问题才调用 LLM，平衡速度、成本和准确性。
+交给检索计划和 Prompt 模板使用。整体策略是“规则优先 + 默认知识查询”：高频确定场景用
+规则快速返回，规则无法明确细分的问题默认进入知识检索，避免在入口阶段增加额外模型调用。
 """
 
 from __future__ import annotations
@@ -11,19 +11,13 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-from pydantic import BaseModel, Field
+from langchain_core.messages import BaseMessage
 
-from qa_core.config.logging_config import get_logger
 from qa_core.config.settings import get_settings
-from qa_core.llm.client import get_chat_model
-from qa_core.memory.history import format_messages
-from qa_core.prompts.constants import INTENT_SYSTEM_PROMPT
 from qa_core.scenarios.boundary import score_source_matches
 from qa_core.scenarios.registry import ScenarioDefinition
 
 
-logger = get_logger(__name__)
 Intent = Literal["GREETING", "FOLLOW_UP", "KNOWLEDGE_QUERY", "FAQ_QUERY", "HUMAN_SERVICE", "OUT_OF_SCOPE"]
 
 
@@ -70,20 +64,6 @@ class IntentResult:
         }
 
 
-class IntentLLMDecision(BaseModel):
-    """LLM 意图识别的结构化输出模型。
-
-    使用 Pydantic 约束模型只能返回枚举、布尔值和分数，避免模型输出解释性长文本后
-    污染检索计划。
-    """
-
-    intent: Intent = Field(description="用户问题意图")
-    confidence: float = Field(default=0.6, ge=0.0, le=1.0)
-    reason: str = Field(default="")
-    requires_rewrite: bool = Field(default=False)
-    suggested_source: str | None = Field(default=None)
-
-
 def classify_direct_intent(query: str, scenario: ScenarioDefinition | None = None) -> IntentResult | None:
     """供查询路由层复用的确定性直答规则：问候、越界、短句转人工。
 
@@ -120,17 +100,17 @@ def classify_direct_intent(query: str, scenario: ScenarioDefinition | None = Non
 
 
 def classify_intent(query: str, history: list[BaseMessage], scenario: ScenarioDefinition | None = None) -> IntentResult:
-    """按优先级规则识别用户问题意图，规则无法判断时再调用 LLM。（★★★ 核心）
+    """按优先级规则识别用户问题意图，规则无法判断时默认知识查询。（★★★ 核心）
 
     执行流程（命中即返回）：
       1. 问候识别：你好、hello、你是谁等，直接返回介绍话术。
       2. 越界识别：违法、攻击、色情等无关/风险问题，直接拒答。
       3. 人工客服：短句中出现转人工、客服电话等请求，直接返回联系方式。
       4. 追问识别：有历史且当前问题是“那这个呢”等省略表达，需要先改写。
-      5. 强规则识别：FAQ/知识库关键词和问法足够明确时，不调用 LLM。
-      6. LLM 兜底：前面规则都不命中时，使用结构化输出模型判断。
+      5. 规则识别：FAQ/知识库关键词和问法足够明确时直接分类。
+      6. 默认知识查询：前面规则都不命中时，交给后续检索链路处理。
 
-    规则优先于 LLM 的核心业务决策：高频场景（问候/越界拦截/追问/FAQ 关键词）用规则 0ms 返回，避免不必要的 LLM 调用成本和延迟。
+    规则优先的核心业务决策：高频场景（问候/越界拦截/追问/FAQ 关键词）用规则快速返回，避免不必要的模型调用成本和延迟。
 
     参数：
         query: 用户原始问题。
@@ -153,12 +133,17 @@ def classify_intent(query: str, history: list[BaseMessage], scenario: ScenarioDe
             requires_rewrite=True,
             suggested_source=suggested_source,
         )
-    # 规则 5 — 强领域规则：通过 FAQ/knowledge 关键词和问题句式模式，高置信度判定业务意图而不需要 LLM 开销
+    # 规则 5 — 领域规则：通过 FAQ/knowledge 关键词和问题句式模式判断业务意图
     strong_rule_intent = _strong_rule_domain_intent(query, suggested_source)
     if strong_rule_intent is not None:
         return strong_rule_intent
-    # 规则 6 — LLM 兜底：前 5 条规则均未命中时，用结构化输出 LLM 做最终意图判断。代价较高但能覆盖长尾。
-    return _classify_with_llm(query, history, suggested_source, scenario)
+    # 规则 6 — 默认知识查询：规则无法明确细分时，继续进入后续检索链路
+    return IntentResult(
+        intent="KNOWLEDGE_QUERY",
+        confidence=0.6,
+        reason="default_knowledge",
+        suggested_source=suggested_source,
+    )
 
 def infer_source(query: str, scenario: ScenarioDefinition | None = None) -> str | None:
     """只根据当前业务场景配置推断问题所属 source。
@@ -227,56 +212,3 @@ def _strong_rule_domain_intent(query: str, suggested_source: str | None) -> Inte
     if KNOWLEDGE_HINTS.search(normalized) and (suggested_source or len(normalized) <= 24):
         return IntentResult(intent="KNOWLEDGE_QUERY", confidence=0.84, reason="strong_knowledge_rule", suggested_source=suggested_source)
     return None
-
-
-def _classify_with_llm(
-    query: str,
-    history: list[BaseMessage],
-    suggested_source: str | None,
-    scenario: ScenarioDefinition | None = None,
-) -> IntentResult:
-    """规则无法判断时，调用 LLM 做结构化意图识别。（★★ 理解）
-
-    业务决策：LLM 兜底的代价——每次调用增加 500ms~2s 延迟和 token 成本。覆盖长尾/模糊场景，但高频场景已在规则层拦截。
-
-    执行流程：
-      1. 把最近 6 条历史消息格式化为中文对话文本。
-      2. 获取绑定 IntentLLMDecision 的结构化输出模型。
-      3. 用系统提示词、历史对话和当前问题调用 LLM。
-      4. 校验 LLM 返回的 source 是否属于当前场景白名单。
-      5. 组装 IntentResult；如果是 FOLLOW_UP，强制要求后续问题改写。
-
-    参数：
-        query: 用户原始问题。
-        history: 完整历史消息列表，实际只使用最近 6 条。
-        suggested_source: 规则推断出的 source，可能为空。
-        scenario: 当前业务场景，用于 source 白名单过滤。
-
-    返回：
-        根据 LLM 结构化结果组装出的 IntentResult。
-    """
-    # 将最近 6 条消息转为中文对话文本
-    history_text = format_messages(history[-6:]) if history else "无"
-    # 获取结构化输出模型，限制 LLM 只返回枚举字段
-    model = get_chat_model(streaming=False).with_structured_output(IntentLLMDecision)
-    # 调用 LLM 进行意图识别
-    decision = model.invoke(
-        [
-            SystemMessage(content=INTENT_SYSTEM_PROMPT),
-            HumanMessage(content=f"对话历史：\n{history_text}\n\n当前问题：{query}"),
-        ]
-    )
-    source = decision.suggested_source or suggested_source
-    valid_sources = scenario.valid_sources if scenario else []
-    # LLM 建议的 source 必须属于当前场景允许范围，防止跨域数据泄漏
-    if source and source not in valid_sources:
-        source = suggested_source
-    return IntentResult(
-        intent=decision.intent,
-        confidence=decision.confidence,
-        reason=decision.reason or "llm_structured",
-        # FOLLOW_UP 必须在检索前结合历史上下文重写问题，否则检索会丢失对话语境
-        requires_rewrite=decision.requires_rewrite or decision.intent == "FOLLOW_UP",
-        suggested_source=source,
-    )
-

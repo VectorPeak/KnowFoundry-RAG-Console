@@ -1,6 +1,7 @@
 fastapi==0.135.3
 uvicorn==0.42.0
 pydantic-settings==2.13.1
+tomli==2.2.1
 langchain==1.2.13
 langchain-core==1.2.31
 langchain-community==0.4.1
@@ -14,6 +15,7 @@ pymilvus[model]==2.5.18
 pymilvus-model==0.3.0
 ujson==5.12.1
 sentence-transformers==4.1.0
+accelerate==1.14.0
 sentencepiece==0.2.0
 torch==2.7.1+cpu
 SQLAlchemy==2.0.30
@@ -23,6 +25,8 @@ pandas==2.2.2
 openpyxl==3.1.5
 xlrd==2.0.2
 PyMuPDF==1.26.7
+python-docx==1.1.2
+python-pptx==1.0.2
 paddleocr==2.9.1
 python-multipart==0.0.20
 ragas==0.3.6
@@ -31,3 +35,4 @@ websockets==15.0.1
 markdown==3.7
 pymdown-extensions==10.14
 pygments==2.19
+mkdocs-material==9.7.6

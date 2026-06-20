@@ -45,7 +45,32 @@ def split_documents(documents: list[Document]) -> tuple[list[Document], list[str
             # 表格 loader 已经把一行表格转换成"表头 + 行号 + 单元格键值"的完整语义单元。
             # 这里不再按字符递归切分，否则一行中的列和值可能被拆开，检索到金额却丢失
             # 对应状态或审批人。
-            parent_docs = [doc]
+            parent_content = str(doc.page_content or "").strip()
+            if not parent_content:
+                continue
+            parent_id = stable_hash(
+                doc.metadata.get("scenario_id"),
+                doc.metadata.get("kb_version"),
+                doc.metadata.get("embedding_model_version"),
+                doc.metadata.get("chunk_schema_version"),
+                doc.metadata.get("doc_id"),
+                doc.metadata.get("table_id"),
+                doc.metadata.get("sheet_name"),
+                doc.metadata.get("row_number"),
+                parent_content,
+            )
+            chunk_id = stable_hash(parent_id, parent_content)
+            metadata = dict(doc.metadata or {})
+            metadata.update(
+                {
+                    "parent_id": parent_id,
+                    "parent_content": parent_content,
+                    "chunk_id": chunk_id,
+                }
+            )
+            chunks.append(Document(page_content=parent_content, metadata=metadata))
+            ids.append(chunk_id)
+            continue
         elif file_type == ".md":
             header_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=markdown_headers)
             # Markdown 标题会先转成结构化元数据，再进入递归切分，能提升来源标签和上下文质量。

@@ -2,14 +2,18 @@
 """
 
 from __future__ import annotations
+import re
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from qa_core.config.logging_config import get_logger
+from qa_core.config.rules import QueryVariantReplacementRule, get_rule_config
 from qa_core.prompts.constants import QUERY_VARIANT_SYSTEM_PROMPT
 from qa_core.config.settings import get_settings
 from qa_core.llm.client import get_chat_model
 logger = get_logger(__name__)
+
+FOLLOW_UP_REWRITE_MARKERS = ("追问：", "追问:")
 
 class QueryVariants(BaseModel):
     """LLM 输出检索表达时使用的 Pydantic 结构化模型，避免模型输出解释性文本。
@@ -18,7 +22,7 @@ class QueryVariants(BaseModel):
     queries: list[str] = Field(default_factory=list, description="等价检索表达")
 
 
-def generate_query_variants(query: str, *, enabled: bool) -> list[str]:
+def generate_query_variants(query: str, *, enabled: bool, allow_short_structured: bool = False) -> list[str]:
     """为同一检索意图生成少量同义表达（如"流程"→"SOP"），提升召回而不改变问题含义。
     """
     # 加载应用全局设置（retrieval_variant_max 等检索配置）
@@ -28,8 +32,12 @@ def generate_query_variants(query: str, *, enabled: bool) -> list[str]:
     if not enabled or not cleaned or settings.retrieval_variant_max <= 0:
         return [cleaned]
 
-    # 短结构化问题的常见同义说法已被启发式规则枚举，规则成本为零而 LLM 调用成本高
-    if _looks_like_short_structured_question(cleaned):
+    # 普通短结构化问题保持克制；已追问改写的问题仍允许规则变体，避免上下文锚点丢失同义召回机会。
+    if (
+        _looks_like_short_structured_question(cleaned)
+        and not allow_short_structured
+        and not _is_rewritten_follow_up_query(cleaned)
+    ):
         return [cleaned]
 
     # 第一层：先用确定性本地规则（零成本）为高频业务术语生成同义变体
@@ -58,10 +66,9 @@ def generate_query_variants(query: str, *, enabled: bool) -> list[str]:
 
 
 def _heuristic_variants(query: str, max_extra: int) -> list[str]:
-    """用本地确定性规则为高频业务知识说法生成同义变体（流程→SOP、告警→报警等）。
-    """
+    """用配置中的确定性规则为高频业务知识说法生成同义变体。"""
     variants = [query]
-    normalized = query.lower()
+    rules = get_rule_config().query_variants
 
     def add(candidate: str) -> None:
         """在保持顺序和上限的前提下，追加非空不重复变体。"""
@@ -69,60 +76,28 @@ def _heuristic_variants(query: str, max_extra: int) -> list[str]:
         if candidate and candidate not in variants and len(variants) < max_extra + 1:
             variants.append(candidate)
 
-    if "安装" in query or "失败" in query or "报错" in query:
-        add(query.replace("失败", "报错"))
-        add(query.replace("报错", "失败"))
-    if "流程" in query:
-        add(query.replace("流程", "SOP"))
-        add(query.replace("流程", "处理步骤"))
-    if "发票" in query:
-        add(query.replace("发票", "开票"))
-        add(query.replace("发票", "账单"))
-    if "开票" in query:
-        add(query.replace("开票", "发票"))
-    if "告警" in query:
-        add(query.replace("告警", "报警"))
-        add(query.replace("告警", "异常"))
-    if "webhook" in normalized:
-        add(query.replace("webhook", "回调").replace("Webhook", "回调"))
-        add(query.replace("Webhook", "Webhook 回调").replace("webhook", "Webhook 回调"))
-    if "资料" in query:
-        add(query.replace("资料", "材料"))
-        add(query.replace("资料", "记录"))
-    if "材料" in query:
-        add(query.replace("材料", "资料"))
-    if "流程" in query and "怎么走" in query:
-        add(query.replace("怎么走", "有哪些步骤"))
-        add(query.replace("流程", "办理流程"))
-    if "怎么排查" in query:
-        add(query.replace("怎么排查", "如何处理"))
-        add(query.replace("怎么排查", "处理步骤"))
-    if "能不能" in query:
-        add(query.replace("能不能", "是否可以"))
-    if "可以吗" in query:
-        add(query.replace("可以吗", "是否可以"))
+    for rule in rules.replacements:
+        if not rule.matches(query):
+            continue
+        for old, new in rule.replacements:
+            add(_replace_term(query, old, new, rule))
     return variants
 
 
 def _looks_like_short_structured_question(query: str) -> bool:
-    """判断问题的常见同义说法是否已被启发式规则覆盖，无需进一步 LLM 扩展。
-    """
-    compact = query.strip()
-    if not compact or len(compact) > 24:
-        return False
-    return any(
-        marker in compact
-        for marker in (
-            "怎么走",
-            "资料",
-            "材料",
-            "怎么排查",
-            "怎么处理",
-            "需要哪些",
-            "能不能",
-            "可以吗",
-            "是什么",
-            "要看什么",
-        )
-    )
+    """判断问题的常见同义说法是否已被配置规则覆盖，无需进一步 LLM 扩展。"""
+    return get_rule_config().query_variants.is_short_structured_question(query)
+
+
+def _is_rewritten_follow_up_query(query: str) -> bool:
+    """判断是否为追问改写产物，例如"报销流程是什么；追问：那审批呢"。"""
+    return any(marker in query for marker in FOLLOW_UP_REWRITE_MARKERS)
+
+
+def _replace_term(query: str, old: str, new: str, rule: QueryVariantReplacementRule) -> str:
+    """Apply one configured replacement, optionally case-insensitive."""
+
+    if not rule.ignore_case:
+        return query.replace(old, new)
+    return re.sub(re.escape(old), new, query, flags=re.IGNORECASE)
 

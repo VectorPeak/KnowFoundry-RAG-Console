@@ -442,7 +442,7 @@ def summarize_compose_alignment(
             name="Compose / .env 对齐",
             ok=True,
             required=False,
-            detail="；".join(details + [f".env 中的容器网络主机名与 {standard_summary['compose_file']} 一致。"]),
+            detail="；".join(details + [f"当前运行配置中的容器网络主机名与 {standard_summary['compose_file']} 一致。"]),
         )
 
     return RuntimeCheck(
@@ -525,7 +525,7 @@ def check_llm_key_configured(llm_api_key: str) -> RuntimeCheck:
         ok=ok,
         required=True,
         detail="已配置（已隐藏）" if ok else "未配置或仍是占位符",
-        suggestion="" if ok else "在 .env 中填写真实可用的 DASHSCOPE_API_KEY。",
+        suggestion="" if ok else "在当前运行配置中填写真实可用的 DASHSCOPE_API_KEY；本机调试写 .env，Compose 部署写 .env.compose。",
     )
 
 
@@ -541,7 +541,7 @@ def check_admin_token_strength(admin_token: str) -> list[RuntimeCheck]:
             ok=configured,
             required=True,
             detail="已配置（已隐藏）" if configured else "未配置",
-            suggestion="" if configured else "在 .env 中设置随机长令牌，管理接口不能留空。",
+            suggestion="" if configured else "在当前运行配置中设置随机长令牌；本机调试写 .env，Compose 部署写 .env.compose。",
         )
     ]
     checks.append(
@@ -649,8 +649,8 @@ def relax_compose_network_host_checks(checks: list[RuntimeCheck], runtime_mode: 
     if runtime_mode != "compose_api_network":
         return
     targets = {
-        "Milvus 端口": "compose 网络模式下，该端口应在 API 容器内检查；宿主机侧可用 docker compose ps 或 API healthcheck 验证。",
-        "MySQL 端口": "compose 网络模式下，该端口应在 API 容器内检查；宿主机侧可用 docker compose ps 或 API healthcheck 验证。",
+        "Milvus 端口": "compose 网络模式下，该端口应在 API 容器内检查；宿主机侧可用 docker compose --env-file .env.compose ps 或 API healthcheck 验证。",
+        "MySQL 端口": "compose 网络模式下，该端口应在 API 容器内检查；宿主机侧可用 docker compose --env-file .env.compose ps 或 API healthcheck 验证。",
         "Embedding 模型目录": "compose 网络模式下，/app/models 由 docker-compose.yml 的 ./models:/app/models 挂载提供。",
         "Reranker 模型目录": "compose 网络模式下，/app/models 由 docker-compose.yml 的 ./models:/app/models 挂载提供。",
     }
@@ -747,8 +747,8 @@ def build_runtime_report(args: argparse.Namespace) -> dict[str, object]:
         [
             check_command("WSL 状态", ["wsl", "--status"], "修复 WSL 后再启动 Docker Desktop。"),
             check_command("Docker 服务端", ["docker", "version", "--format", "{{.Server.Version}}"], "启动 Docker Desktop，并确认 Linux 容器后端正常。"),
-            check_tcp("Milvus 端口", milvus_host, milvus_port, "执行 docker compose up -d etcd minio milvus。"),
-            check_tcp("MySQL 端口", settings.mysql_host, settings.mysql_port, "执行 docker compose up -d mysql，并确认账号密码与 .env 一致。"),
+            check_tcp("Milvus 端口", milvus_host, milvus_port, "执行 docker compose --env-file .env.compose up -d etcd minio milvus。"),
+            check_tcp("MySQL 端口", settings.mysql_host, settings.mysql_port, "执行 docker compose --env-file .env.compose up -d mysql，并确认账号密码与当前运行配置一致。"),
             check_llm_key_configured(settings.llm_api_key),
             check_path("Embedding 模型目录", settings.embedding_model_path, "下载或放置 models/bge-m3。"),
             check_path("Reranker 模型目录", settings.reranker_model_path, "下载或放置 models/bge-reranker-large。"),

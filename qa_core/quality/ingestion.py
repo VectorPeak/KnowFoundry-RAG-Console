@@ -8,7 +8,7 @@ from typing import Any
 
 from langchain_core.documents import Document
 
-from qa_core.common import list_json_reports, path_updated_at, read_json_dict, utc_file_stamp, utc_now, write_json
+from qa_core.common import list_json_reports, utc_file_stamp, utc_now, write_json
 from qa_core.config.logging_config import get_logger
 from qa_core.config.settings import PROJECT_ROOT, get_settings
 from qa_core.governance.data_scope import resolve_data_scope

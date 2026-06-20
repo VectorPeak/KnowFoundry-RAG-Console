@@ -159,7 +159,7 @@ def ingest_directory(
         created_by="ingest_directory",
     )
     active_kb_version = version.kb_version
-    manifest = IndexManifest(path=scenario.index_manifest_path)
+    manifest = IndexManifest()
     doc_store = get_doc_store(scenario.doc_collection)
     total_chunks = 0
     skipped_files = 0
@@ -174,7 +174,7 @@ def ingest_directory(
                 skipped_files += 1
             else:
                 total_chunks += chunks
-    # 将索引清单持久化到本地 JSON 文件
+    # MySQL manifest 在每次 update 时已经持久化，这里保留 save() 兼容文件版接口。
     manifest.save()
     # 在版本清单中记录本次入库统计
     version_store.record_ingest_result(active_kb_version, content_type="doc", count=total_chunks, source=resolved_source)

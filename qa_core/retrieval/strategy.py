@@ -234,7 +234,7 @@ def build_retrieval_plan(query: str, intent: IntentResult) -> RetrievalPlan:
         'final_context_top_n': settings.final_context_top_n,
         'direct_threshold': settings.faq_direct_score_threshold,
         'faq_direct_exact_only': False,
-        'reason': 'balanced_hybrid',
+        'reason': 'balanced_retrieval',
     }
 
     # 链式调用 4 个决策层（各层职责正交、解耦便于单独调参）
@@ -260,4 +260,5 @@ def build_retrieval_plan(query: str, intent: IntentResult) -> RetrievalPlan:
         faq_direct_exact_only=params['faq_direct_exact_only'],
         reason=params['reason'],
     )
+
 

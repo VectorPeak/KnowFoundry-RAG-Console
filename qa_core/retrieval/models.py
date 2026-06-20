@@ -40,11 +40,14 @@ def get_embeddings():
     """
     # 加载应用全局设置（embedding 模型路径等配置）
     settings = get_settings()
+    model_path = Path(settings.embedding_model_path)
+    if not model_path.exists():
+        raise RuntimeError(f"Embedding model path does not exist: {model_path}")
     # 创建 BGE HuggingFaceEmbeddings 实例，用于生成稠密向量
     return HuggingFaceEmbeddings(
-        model_name=settings.embedding_model_path,
+        model_name=str(model_path),
         # 自动选择 CUDA 或 CPU 作为推理设备
-        model_kwargs={"device": resolve_device()},
+        model_kwargs={"device": resolve_device(), "local_files_only": True},
         encode_kwargs={"normalize_embeddings": True},
     )
 

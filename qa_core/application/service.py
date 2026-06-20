@@ -12,7 +12,7 @@ from qa_core.retrieval.filters import validate_source_filter
 from qa_core.config.logging_config import get_logger
 from qa_core.pipeline.rag import debug_retrieval as rag_debug_retrieval
 from qa_core.pipeline.rag import stream_query as rag_stream_query
-from qa_core.scenarios.registry import ScenarioDefinition, resolve_scenario
+from qa_core.scenarios.registry import ScenarioDefinition
 from qa_core.config.settings import get_settings
 
 logger = get_logger(__name__)

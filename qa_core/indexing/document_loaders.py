@@ -7,8 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+import fitz
 from langchain_core.documents import Document
-from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader, TextLoader, UnstructuredPowerPointLoader
+from langchain_community.document_loaders import TextLoader
+from docx import Document as DocxDocument
+from pptx import Presentation
 
 from qa_core.config.logging_config import get_logger
 from qa_core.indexing.table_documents import load_table_file
@@ -43,17 +46,81 @@ def _utf8_text_loader(path: Path) -> SupportsLoad:
     return TextLoader(str(path), encoding="utf-8")
 
 def _pdf_loader(path: Path) -> SupportsLoad:
-    """创建 PDF 文本层加载器。使用 PyPDFLoader，适合有文本层的业务 PDF。"""
-    return PyPDFLoader(str(path))
+    """创建 PDF 文本层加载器。使用 PyMuPDF，适合有中文文本层的业务 PDF。"""
+    return PyMuPdfLoader(path)
 
 def _word_loader(path: Path) -> SupportsLoad:
-    """创建 Word 文档加载器。"""
-    return Docx2txtLoader(str(path))
+    """创建 Word 文档加载器。优先使用当前依赖里的 python-docx，避免额外依赖 docx2txt。"""
+    return PythonDocxLoader(path)
 
 
 def _powerpoint_loader(path: Path) -> SupportsLoad:
-    """创建 PPT/PPTX 文档加载器。"""
-    return UnstructuredPowerPointLoader(str(path))
+    """创建 PPT/PPTX 文档加载器。优先使用当前依赖里的 python-pptx。"""
+    return PythonPptxLoader(path)
+
+
+class PythonDocxLoader:
+    """轻量 DOCX loader，读取正文段落和表格文本。"""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def load(self) -> list[Document]:
+        if self.path.suffix.lower() != ".docx":
+            raise RuntimeError(f"{self.path.suffix.lower()} 需要额外转换器，请先转为 .docx 后入库。")
+        docx = DocxDocument(str(self.path))
+        lines = [paragraph.text.strip() for paragraph in docx.paragraphs if paragraph.text.strip()]
+        for table in docx.tables:
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                if cells:
+                    lines.append(" | ".join(cells))
+        content = "\n".join(lines).strip()
+        return [Document(page_content=content, metadata={"file_type": ".docx"})] if content else []
+
+
+class PyMuPdfLoader:
+    """轻量 PDF loader，按页提取文本层内容。"""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def load(self) -> list[Document]:
+        documents: list[Document] = []
+        with fitz.open(str(self.path)) as pdf:
+            for page_index, page in enumerate(pdf):
+                text = page.get_text("text").strip()
+                if text:
+                    documents.append(Document(page_content=text, metadata={"page": page_index, "file_type": ".pdf"}))
+        return documents
+
+
+class PythonPptxLoader:
+    """轻量 PPTX loader，按幻灯片提取文本框和表格文本。"""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def load(self) -> list[Document]:
+        if self.path.suffix.lower() != ".pptx":
+            raise RuntimeError(f"{self.path.suffix.lower()} 需要额外转换器，请先转为 .pptx 后入库。")
+        presentation = Presentation(str(self.path))
+        documents: list[Document] = []
+        for slide_index, slide in enumerate(presentation.slides):
+            lines: list[str] = []
+            for shape in slide.shapes:
+                if getattr(shape, "has_table", False):
+                    for row in shape.table.rows:
+                        cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                        if cells:
+                            lines.append(" | ".join(cells))
+                text = getattr(shape, "text", "").strip()
+                if text:
+                    lines.append(text)
+            content = "\n".join(dict.fromkeys(lines)).strip()
+            if content:
+                documents.append(Document(page_content=content, metadata={"page": slide_index, "file_type": ".pptx"}))
+        return documents
 
 class TableDocumentLoader:
     """把 CSV/Excel 表格包装成 LangChain loader 协议。表格行转换成 Document 后复用主链路。"""

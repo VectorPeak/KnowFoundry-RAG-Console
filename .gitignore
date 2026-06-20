@@ -16,7 +16,9 @@ venv/
 # 运行产物
 logs/
 reports/
-.index_manifest/
+.jbeval/
+site/
+docs/archive/
 
 # 本地大模型和向量库/数据库卷
 models/
@@ -27,7 +29,14 @@ minio_data/
 etcd_data/
 
 # 编辑器和系统文件
+.claude/
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# 临时文件
+*.log
+*.tmp
+*.bak
+repro_*.py

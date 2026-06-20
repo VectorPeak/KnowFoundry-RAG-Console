@@ -12,8 +12,28 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# PROJECT_ROOT 固定为仓库根目录（向上两级），避免路径错落到 qa_core 目录
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+def _discover_project_root() -> Path:
+    """定位真实仓库根目录，保证 codealong 章节也复用主项目资源。"""
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "qa_core").exists() and (parent / "scenarios").exists() and (parent / "models").exists():
+            return parent
+    return current.parents[2]
+
+
+PROJECT_ROOT = _discover_project_root()
+
+
+def _resolve_project_relative_path(value: str) -> str:
+    """把 .env 中的相对路径固定解析到仓库根目录。"""
+    if not value:
+        return value
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return str(path)
+    return str(PROJECT_ROOT / path)
+
+
 class Settings(BaseSettings):
     """LangChain + Milvus 主链路的运行时配置。仅负责读取配置值，外部依赖由 `validate_runtime_environment()` 统一校验。"""
 
@@ -29,7 +49,7 @@ class Settings(BaseSettings):
     active_scenario_id: str = Field(default="enterprise_knowledge", validation_alias="ACTIVE_SCENARIO_ID")
     scenario_config_dir: str = Field(default=str(PROJECT_ROOT / "scenarios"), validation_alias="SCENARIO_CONFIG_DIR")
 
-    # MySQL 仅用于聊天历史、摘要和反馈，启动前必须可连接。
+    # MySQL 保存聊天历史、摘要、反馈、知识库版本控制面和入库 manifest，启动前必须可连接。
     mysql_host: str = Field(default="localhost", validation_alias="MYSQL_HOST")
     mysql_port: int = Field(default=3306, validation_alias="MYSQL_PORT")
     mysql_user: str = Field(default="root", validation_alias="MYSQL_USER")
@@ -101,9 +121,7 @@ class Settings(BaseSettings):
 
     feedback_table_name: str = Field(default="qa_feedback", validation_alias="FEEDBACK_TABLE_NAME")
     chat_summary_table_name: str = Field(default="chat_session_summaries", validation_alias="CHAT_SUMMARY_TABLE_NAME")
-    index_manifest_path: str = Field(default=str(PROJECT_ROOT / ".index_manifest" / "documents.json"), validation_alias="INDEX_MANIFEST_PATH")
     active_kb_version: str = Field(default="", validation_alias="ACTIVE_KB_VERSION")
-    kb_versions_manifest_path: str = Field(default=str(PROJECT_ROOT / ".index_manifest" / "kb_versions.json"), validation_alias="KB_VERSIONS_MANIFEST_PATH")
 
     # 父子块切分参数，调整后需重新入库才能生效
     parent_chunk_size: int = Field(default=1000, validation_alias="PARENT_CHUNK_SIZE")
@@ -125,6 +143,17 @@ class Settings(BaseSettings):
             except json.JSONDecodeError:
                 return [item.strip() for item in value.split(",") if item.strip()]
         return value
+
+    @field_validator(
+        "scenario_config_dir",
+        "embedding_model_path",
+        "reranker_model_path",
+        mode="after",
+    )
+    @classmethod
+    def resolve_project_relative_paths(cls, value: str) -> str:
+        """允许 .env 使用 models/bge-m3 这类相对路径，但运行时统一成绝对路径。"""
+        return _resolve_project_relative_path(value)
 
     @property
     def mysql_sync_uri(self) -> str:

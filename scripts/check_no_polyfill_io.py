@@ -11,7 +11,6 @@ SCAN_TARGETS = (
     ROOT / "Dockerfile",
     ROOT / "docker-compose.yml",
     ROOT / "docker-compose.milvus.yml",
-    ROOT / "mermaid_formatter.py",
     ROOT / "mkdocs.yml",
     ROOT / "README.md",
     ROOT / "docs",

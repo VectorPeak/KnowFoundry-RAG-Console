@@ -8,8 +8,9 @@
 2. 禁止 `try import A except ImportError import B` 这类隐藏兼容分支；
 3. 禁止恢复旧版 `mysql_qa` / `rag_qa` / `legacy` 等运行入口；
 4. 禁止代码重新引用旧链路模块；
-5. `requirements.txt` 必须锁定版本，避免教学环境漂移；
-6. 必须存在 `requirements.lock.txt`，记录当前环境的完整依赖快照。
+5. 禁止恢复旧版 static/docs 自定义讲义导出链路；
+6. `requirements.txt` 必须锁定版本，避免教学环境漂移；
+7. 必须存在 `requirements.lock.txt`，记录当前环境的完整依赖快照。
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ import ast
 import csv
 import re
 import sys
-import tomllib
+import tomli as tomllib
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,6 +35,12 @@ LEGACY_PATHS = (
     "old_main.py",
     "new_main.py",
     "static/old_index.html",
+    "static/docs",
+    "static/css/doc.css",
+    "static/js/vendor/mathjax",
+    "scripts/build_docs.py",
+    "mermaid_formatter.py",
+    "convert_md_to_html.py",
     "tests/test_websocket_stream.py",
 )
 LEGACY_IMPORT_PREFIXES = ("mysql_qa", "rag_qa", "legacy")
@@ -48,7 +55,14 @@ FORBIDDEN_IMPORT_PREFIXES = (
     "rank_bm25",
     "RedisSearch",
 )
-REQUIRED_GITIGNORE_PATTERNS = (".env", "logs/", "reports/", ".index_manifest/", "models/")
+REQUIRED_GITIGNORE_PATTERNS = (".env", "logs/", "reports/", "models/")
+COMPOSE_ENV_OVERRIDE_KEYS = (
+    "MYSQL_HOST",
+    "MYSQL_PORT",
+    "MILVUS_URI",
+    "EMBEDDING_MODEL_PATH",
+    "RERANKER_MODEL_PATH",
+)
 SCENARIO_REQUIRED_FIELDS = (
     "scenario_id",
     "display_name",
@@ -61,6 +75,7 @@ SCENARIO_REQUIRED_FIELDS = (
     "doc_collection",
 )
 SUPPORTED_SCENARIO_DOC_SUFFIXES = {".txt", ".md", ".pdf", ".docx", ".doc", ".ppt", ".pptx", ".csv", ".xlsx", ".xls"}
+REQUIRED_SCENARIO_DOC_SUFFIXES = {".md", ".csv", ".xlsx", ".docx", ".pptx", ".pdf"}
 FROZEN_SCENARIO_IDS = {
     "enterprise_knowledge",
     "saas_support",
@@ -204,7 +219,55 @@ def check_secret_hygiene() -> list[GuardrailIssue]:
     for env_example in env_examples:
         if env_example.exists() and "sk-" in env_example.read_text(encoding="utf-8"):
             issues.append(GuardrailIssue(env_example, 1, f"{env_example.name} 只能写占位符，不能出现真实 Key 形态。"))
+    dockerignore = PROJECT_ROOT / ".dockerignore"
+    if dockerignore.exists() and "!.env.example" in dockerignore.read_text(encoding="utf-8"):
+        issues.append(GuardrailIssue(dockerignore, 1, ".dockerignore 不应继续放行已删除的 .env.example。"))
     return issues
+
+
+def check_env_file_contract() -> list[GuardrailIssue]:
+    """检查 Docker 和本机 env 文件边界，避免两种运行视角再次混在一起。"""
+    issues: list[GuardrailIssue] = []
+    compose_file = PROJECT_ROOT / "docker-compose.yml"
+    if compose_file.exists():
+        text = compose_file.read_text(encoding="utf-8")
+        if "${ENV_FILE:-.env.compose}" not in text:
+            issues.append(GuardrailIssue(compose_file, 1, "api.env_file 默认值必须是 .env.compose，不能回退到 .env。"))
+        for key in COMPOSE_ENV_OVERRIDE_KEYS:
+            if re.search(rf"^\s+{re.escape(key)}\s*:", text, flags=re.MULTILINE):
+                issues.append(GuardrailIssue(compose_file, 1, f"api.environment 不应硬编码 {key}，应从 .env.compose 读取。"))
+
+    env_files = [
+        PROJECT_ROOT / ".env",
+        PROJECT_ROOT / ".env.local.example",
+        PROJECT_ROOT / ".env.compose",
+        PROJECT_ROOT / ".env.compose.example",
+    ]
+    parsed = {path.name: _parse_env_keys(path) for path in env_files if path.exists()}
+    if ".env.local.example" in parsed and ".env" in parsed:
+        if set(parsed[".env"].keys()) != set(parsed[".env.local.example"].keys()):
+            issues.append(GuardrailIssue(PROJECT_ROOT / ".env", 1, ".env 的配置项必须与 .env.local.example 保持一致。"))
+    if ".env.compose.example" in parsed and ".env.compose" in parsed:
+        if set(parsed[".env.compose"].keys()) != set(parsed[".env.compose.example"].keys()):
+            issues.append(GuardrailIssue(PROJECT_ROOT / ".env.compose", 1, ".env.compose 的配置项必须与 .env.compose.example 保持一致。"))
+    course_outline = PROJECT_ROOT / "docs" / "course-outline.md"
+    if course_outline.exists():
+        text = course_outline.read_text(encoding="utf-8")
+        if "`docker compose ps`" in text:
+            issues.append(GuardrailIssue(course_outline, 1, "课程大纲中的 Compose 验收命令必须显式使用 --env-file .env.compose。"))
+    return issues
+
+
+def _parse_env_keys(path: Path) -> dict[str, str]:
+    """读取 env 文件键值，不输出真实值。"""
+    values: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
 
 
 def _faq_text(row: dict[str, str], *names: str) -> str:
@@ -300,6 +363,21 @@ def check_scenario_packages() -> list[GuardrailIssue]:
             if not docs:
                 issues.append(GuardrailIssue(source_dir, 1, f"{source}_data 中没有可入库文档。"))
 
+        suffixes = {
+            path.suffix.lower()
+            for path in data_root.rglob("*")
+            if path.is_file() and path.suffix.lower() in SUPPORTED_SCENARIO_DOC_SUFFIXES
+        }
+        missing_suffixes = sorted(REQUIRED_SCENARIO_DOC_SUFFIXES - suffixes)
+        if missing_suffixes:
+            issues.append(
+                GuardrailIssue(
+                    data_root,
+                    1,
+                    f"冻结业务场景必须保留多格式样例，当前缺少：{missing_suffixes}",
+                )
+            )
+
     duplicate_scenarios = [item for item, count in scenario_ids.items() if count > 1]
     duplicate_faq_collections = [item for item, count in faq_collections.items() if count > 1]
     duplicate_doc_collections = [item for item, count in doc_collections.items() if count > 1]
@@ -355,6 +433,7 @@ def main() -> None:
     issues.extend(check_legacy_paths())
     issues.extend(check_requirements())
     issues.extend(check_secret_hygiene())
+    issues.extend(check_env_file_contract())
     issues.extend(check_scenario_packages())
     for path in iter_python_files():
         issues.extend(check_python_file(path))

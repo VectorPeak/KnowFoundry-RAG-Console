@@ -326,7 +326,6 @@ def debug_retrieval(
         "source_filter": prepared.effective_source_filter,
         "kb_version": context.active_kb_version,
         "intent": prepared.intent.as_dict(),
-        "classification": context.retrieval_info.get("classification") or {},
         "retrieval_plan": {
             **prepared.plan.as_dict(),
             "query_variants": prepared.query_variants,

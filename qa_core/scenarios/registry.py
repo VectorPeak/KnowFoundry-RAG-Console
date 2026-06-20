@@ -1,14 +1,14 @@
 """多业务场景注册与解析。
 
 当前项目的 RAG 主链路是统一的，但每个业务场景有独立的 Milvus 集合、source 白名单、
-资料目录、FAQ 文件和知识库版本清单。新增或调整场景时，优先改 `scenario.toml`，
+资料目录和 FAQ 文件。新增或调整场景时，优先改 `scenario.toml`，
 不要把业务分类硬编码进 Python 主链路。
 """
 
 from __future__ import annotations
 
 import re
-import tomllib
+import tomli as tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -52,7 +52,7 @@ class ScenarioDefinition:
     """单个业务场景的运行时配置。
 
     QAService 会根据它选择 FAQ/文档集合、source 白名单、Prompt 场景变量、
-    数据目录和知识库版本清单。
+    数据目录。
     """
 
     scenario_id: str
@@ -67,8 +67,6 @@ class ScenarioDefinition:
     doc_collection: str
     data_root: str
     faq_csv_path: str
-    index_manifest_path: str
-    kb_versions_manifest_path: str
     source_labels: dict[str, str] = field(default_factory=dict)
     source_patterns: dict[str, str] = field(default_factory=dict)
     sample_questions: list[str] = field(default_factory=list)
@@ -83,7 +81,7 @@ class ScenarioDefinition:
           1. 校验必填字段是否齐全。
           2. 提取并清洗 scenario_id。
           3. 计算场景基础目录，默认是 PROJECT_ROOT/scenarios/<scenario_id>。
-          4. 解析 data_root、faq_csv、manifest 等路径。
+          4. 解析 data_root、faq_csv 等路径。
           5. 校验 valid_sources 非空。
           6. 组装不可变 dataclass 实例。
 
@@ -106,14 +104,6 @@ class ScenarioDefinition:
         root = base_dir or PROJECT_ROOT / "scenarios" / scenario_id
         data_root = _resolve_project_path(payload.get("data_root"), root / "data")
         faq_csv_path = _resolve_project_path(payload.get("faq_csv_path"), root / "faq.csv")
-        index_manifest_path = _resolve_project_path(
-            payload.get("index_manifest_path"),
-            PROJECT_ROOT / ".index_manifest" / scenario_id / "documents.json",
-        )
-        kb_versions_manifest_path = _resolve_project_path(
-            payload.get("kb_versions_manifest_path"),
-            PROJECT_ROOT / ".index_manifest" / scenario_id / "kb_versions.json",
-        )
         valid_sources = [str(item) for item in payload.get("valid_sources", [])]
         if not valid_sources:
             raise ValueError(f"场景 {scenario_id} 的 valid_sources 不能为空")
@@ -130,8 +120,6 @@ class ScenarioDefinition:
             doc_collection=str(payload["doc_collection"]),
             data_root=data_root,
             faq_csv_path=faq_csv_path,
-            index_manifest_path=index_manifest_path,
-            kb_versions_manifest_path=kb_versions_manifest_path,
             source_labels={str(k): str(v) for k, v in dict(payload.get("source_labels", {})).items()},
             source_patterns={str(k): str(v) for k, v in dict(payload.get("source_patterns", {})).items()},
             sample_questions=[str(item) for item in payload.get("sample_questions", [])],
@@ -212,8 +200,6 @@ class ScenarioDefinition:
                     "doc_collection": self.doc_collection,
                     "data_root": self.data_root,
                     "faq_csv_path": self.faq_csv_path,
-                    "index_manifest_path": self.index_manifest_path,
-                    "kb_versions_manifest_path": self.kb_versions_manifest_path,
                 }
             )
         return payload

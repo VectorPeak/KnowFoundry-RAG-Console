@@ -26,7 +26,6 @@ from qa_core.retrieval.milvus_compat import (
     bm25_function,
     collection_alias,
     ensure_milvus_database,
-    ensure_orm_alias_connection,
     langchain_connection_args,
 )
 from qa_core.retrieval.filters import build_source_expr
@@ -76,12 +75,12 @@ class MilvusHybridStore:
         """为当前集合懒加载 LangChain Milvus 存储对象。（★★ 理解）
 
         首次访问时创建并缓存 LangChain Milvus wrapper。创建前会确保数据库存在，
-        并为每个 collection 使用独立连接别名。
+        并为每个 collection 生成独立连接 alias。
 
         执行流程：
-          1. 未缓存时确认数据库存在，构造连接参数并连接 Milvus。
-          2. 显式注册 PyMilvus ORM alias，避免底层 Collection API 找不到连接。
-          3. 创建 Milvus wrapper，配置 BGE embedding、Milvus BM25、向量字段、文本字段和主键。
+          1. 未缓存时确认数据库存在，构造连接参数。
+          2. 创建 Milvus wrapper，配置 BGE embedding、Milvus BM25、向量字段、文本字段和主键。
+          3. langchain-milvus 通过 connection_args 中的 alias 自动注册 PyMilvus 连接。
           4. 缓存并返回 Milvus wrapper。
 
         返回：
@@ -92,8 +91,6 @@ class MilvusHybridStore:
             ensure_milvus_database()
             alias = collection_alias(self.collection_name)
             connection_args = langchain_connection_args(alias)
-            # 业务检索走 langchain-milvus；这里预注册底层 ORM alias，避免旧 ORM API 找不到连接。
-            ensure_orm_alias_connection(alias)
             self._store = Milvus(
                 # 获取已缓存的 BGE 向量模型，用于稠密向量检索
                 embedding_function=get_embeddings(),

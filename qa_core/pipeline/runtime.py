@@ -44,7 +44,7 @@ class RAGQueryContext:
     active_kb_version: str                          # 当前生效的知识库版本号
     answer_parts: list[str] = field(default_factory=list)   # LLM 流式输出的 token 片段列表
     sources: list[dict[str, Any]] = field(default_factory=list)   # 引用来源列表（供前端展示）
-    hit_type: str = "unknown"                       # 命中类型: unknown/faq_direct/scenario_boundary/rag/insufficient_context
+    hit_type: str = "unknown"                       # 命中类型: unknown/faq_direct/source_boundary/rag/insufficient_context
     rewritten_query: str | None = None              # 追问改写后的独立检索问题
     intent_payload: dict[str, Any] = field(default_factory=dict)  # 意图识别结果快照
     retrieval_info: dict[str, Any] = field(default_factory=dict)  # 检索诊断信息（耗时/分数/参数）

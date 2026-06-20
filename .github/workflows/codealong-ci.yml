@@ -1,0 +1,42 @@
+name: Codealong CI
+
+on:
+  push:
+    branches:
+      - main
+      - phase1-maintenance
+      - phase2-graphrag
+    paths:
+      - "codealong/**"
+      - "docs/**"
+      - "static/docs/**"
+      - "scripts/check_codealong_alignment.py"
+      - ".github/workflows/codealong-ci.yml"
+      - "pytest.ini"
+  pull_request:
+    paths:
+      - "codealong/**"
+      - "docs/**"
+      - "static/docs/**"
+      - "scripts/check_codealong_alignment.py"
+      - ".github/workflows/codealong-ci.yml"
+      - "pytest.ini"
+
+jobs:
+  codealong-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check codealong alignment
+        run: python scripts/check_codealong_alignment.py
+
+      - name: Run codealong tests
+        run: python codealong/run_all_tests.py

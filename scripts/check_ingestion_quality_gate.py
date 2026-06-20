@@ -22,7 +22,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.common import print_json, read_json_file, write_json_file, write_optional_json
+from scripts.common import print_json, read_json_file, write_optional_json
 from scripts.gate_utils import add_max_failure, add_required_failure, to_count
 from qa_core.quality.ingestion import build_ingestion_quality_report, save_ingestion_quality_report
 

@@ -1,7 +1,9 @@
+name: knowfoundry-rag-console
+
 services:
   mysql:
     image: mysql:8.4
-    container_name: knowforge-mysql
+    container_name: knowfoundry-mysql
     restart: unless-stopped
     command:
       - --character-set-server=utf8mb4
@@ -12,7 +14,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - knowfoundry-mysql-data:/var/lib/mysql
+    networks:
+      - knowfoundry-rag-console
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123"]
       interval: 10s
@@ -21,7 +25,7 @@ services:
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.18
-    container_name: knowforge-etcd
+    container_name: knowfoundry-etcd
     restart: unless-stopped
     environment:
       ETCD_AUTO_COMPACTION_MODE: revision
@@ -30,11 +34,13 @@ services:
       ETCD_SNAPSHOT_COUNT: "50000"
     command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
     volumes:
-      - etcd_data:/etcd
+      - knowfoundry-etcd-data:/etcd
+    networks:
+      - knowfoundry-rag-console
 
   minio:
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    container_name: knowforge-minio
+    container_name: knowfoundry-minio
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -44,7 +50,9 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/minio_data
+      - knowfoundry-minio-data:/minio_data
+    networks:
+      - knowfoundry-rag-console
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
       interval: 10s
@@ -53,7 +61,7 @@ services:
 
   milvus:
     image: milvusdb/milvus:v2.5.15
-    container_name: knowforge-milvus
+    container_name: knowfoundry-milvus
     restart: unless-stopped
     command: ["milvus", "run", "standalone"]
     security_opt:
@@ -65,10 +73,12 @@ services:
       MINIO_SECRET_ACCESS_KEY: minioadmin
       MINIO_REGION: us-east-1
     volumes:
-      - milvus_data:/var/lib/milvus
+      - knowfoundry-milvus-data:/var/lib/milvus
     ports:
       - "19530:19530"
       - "9091:9091"
+    networks:
+      - knowfoundry-rag-console
     depends_on:
       etcd:
         condition: service_started
@@ -83,26 +93,20 @@ services:
 
   api:
     build: .
-    container_name: knowforge-api
+    container_name: knowfoundry-api
     restart: unless-stopped
     env_file:
-      - ${ENV_FILE:-.env}
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_PORT: "3306"
-      MILVUS_URI: http://milvus:19530
-      EMBEDDING_MODEL_PATH: /app/models/bge-m3
-      RERANKER_MODEL_PATH: /app/models/bge-reranker-large
+      - ${ENV_FILE:-.env.compose}
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_BIND_HOST:-127.0.0.1}:${API_PORT:-8000}:8000"
     volumes:
-      - ./models:/app/models
+      - ./models:/app/models:ro
       - ./scenarios:/app/scenarios
       - ./reports:/app/reports
       - ./logs:/app/logs
-      - ./site:/app/site:ro
       - ./static:/app/static:ro
-      - ./.index_manifest:/app/.index_manifest
+    networks:
+      - knowfoundry-rag-console
     depends_on:
       mysql:
         condition: service_healthy
@@ -115,8 +119,16 @@ services:
       start_period: 120s
       retries: 5
 
+networks:
+  knowfoundry-rag-console:
+    name: knowfoundry-rag-console
+
 volumes:
-  mysql_data:
-  etcd_data:
-  minio_data:
-  milvus_data:
+  knowfoundry-mysql-data:
+    name: knowfoundry-mysql-data
+  knowfoundry-etcd-data:
+    name: knowfoundry-etcd-data
+  knowfoundry-minio-data:
+    name: knowfoundry-minio-data
+  knowfoundry-milvus-data:
+    name: knowfoundry-milvus-data

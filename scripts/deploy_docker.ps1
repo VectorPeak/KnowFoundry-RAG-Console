@@ -20,6 +20,19 @@ function Resolve-RepoPath {
     return Join-Path $RepoRoot $Path
 }
 
+function Ensure-Directory {
+    param([string]$Path)
+    $resolvedPath = Resolve-RepoPath $Path
+    if (Test-Path -LiteralPath $resolvedPath) {
+        $item = Get-Item -LiteralPath $resolvedPath
+        if (-not $item.PSIsContainer) {
+            throw "$Path must be a directory, but a file already exists at $resolvedPath."
+        }
+        return
+    }
+    New-Item -ItemType Directory -Path $resolvedPath -Force | Out-Null
+}
+
 function Get-EnvValue {
     param(
         [string]$Path,
@@ -92,6 +105,10 @@ Assert-ConfiguredValue -Path $EnvFilePath -Name "DASHSCOPE_API_KEY" -MinLength 1
 Assert-ConfiguredValue -Path $EnvFilePath -Name "ADMIN_API_TOKEN" -MinLength 12
 
 $env:ENV_FILE = $EnvFile
+
+foreach ($directory in @("logs", "reports")) {
+    Ensure-Directory -Path $directory
+}
 
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot "site\index.html"))) {
     Write-Warning "site/index.html was not found. Run 'python -m mkdocs build' before opening /docs in Docker."

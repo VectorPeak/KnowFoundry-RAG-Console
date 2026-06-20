@@ -1,5 +1,19 @@
 """MySQL 存储基类：延迟创建 SQLAlchemy 引擎。"""
+from __future__ import annotations
+
+import re
+
 from sqlalchemy import create_engine, text
+
+
+_SQL_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def safe_sql_identifier(value: str, *, label: str = "SQL identifier") -> str:
+    """校验可拼接到 SQL 中的表名/索引名，避免配置项注入 SQL。"""
+    if not _SQL_IDENTIFIER_RE.fullmatch(value or ""):
+        raise ValueError(f"{label} 不合法：{value!r}")
+    return value
 
 class _MySqlStore:
     """MySQL 存储的轻量基类。

@@ -1,11 +1,17 @@
 .git
+.claude/
 .idea
+.vscode/
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
 .env
 .env.*
-!.env.example
 !.env.local.example
 !.env.compose.example
 
@@ -16,8 +22,10 @@ reports/
 .jbeval/
 
 site/
+codealong/
 docs/archive/
 
 *.log
 *.tmp
 *.bak
+repro_*.py
