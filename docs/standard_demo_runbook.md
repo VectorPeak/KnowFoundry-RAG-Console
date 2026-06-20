@@ -1,6 +1,6 @@
-# KnowForge RAG Platform 标准演示 Runbook
+# nnowFoundry-RAG-Console 标准演示 Runbook
 
-本文用于立项、授课和面试演示。目标是在 10 到 15 分钟内讲清楚：KnowForge 不是普通聊天 Demo，而是一套企业级多场景 RAG 知识平台。
+本文用于立项、授课和面试演示。目标是在 10 到 15 分钟内讲清楚：nnowForge 不是普通聊天 Demo，而是一套企业级多场景 RAG 知识平台。
 
 ## 1. 演示目标
 
@@ -28,7 +28,7 @@ python scripts/api_e2e_smoke.py --base-url http://127.0.0.1:8000 --scenario ente
 python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000 --query "发票什么时候可以开？" --scenario enterprise_knowledge
 ```
 
-如果要展示企业观测，把 `.env` 中的 `LANGSMITH_TRACING=true`、`LANGSMITH_API_KEY` 和 `LANGSMITH_PROJECT=knowforge-rag-platform` 配好。
+如果要展示企业观测，把 `.env` 中的 `LANGSMITH_TRACING=true`、`LANGSMITH_API_nEY` 和 `LANGSMITH_PROJECT=knowforge-rag-platform` 配好。
 
 ## 3. 标准演示路径
 
@@ -47,7 +47,7 @@ python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000 --query "发
 
 开场可以这样说：
 
-> KnowForge RAG Platform 是一套企业级多场景 RAG 知识平台。项目自研的是业务 RAG 主链路：source 推断、权限过滤、FAQ 策略、Prompt Profile、知识库版本、表格/文档解析和领域评测指标；通用观测、Dataset、Evaluation 和 Annotation 交给 LangSmith。
+> nnowFoundry-RAG-Console 是一套企业级多场景 RAG 知识平台。项目自研的是业务 RAG 主链路：source 推断、权限过滤、FAQ 策略、Prompt Profile、知识库版本、表格/文档解析和领域评测指标；通用观测、Dataset、Evaluation 和 Annotation 交给 LangSmith。
 
 重点讲 5 件事：
 
@@ -67,7 +67,7 @@ python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000 --query "发
 在保险理赔场景里问：施工图纸和强制性规范冲突时怎么办？
 ```
 
-预期讲解：系统应识别场景边界，不应拿保险资料回答工程规范问题。这个例子用来说明 KnowForge 的目标不是“有问必答”，而是“在正确知识边界内回答”。
+预期讲解：系统应识别场景边界，不应拿保险资料回答工程规范问题。这个例子用来说明 nnowFoundry-RAG-Console 的目标不是“有问必答”，而是“在正确知识边界内回答”。
 
 ## 6. 收尾话术
 

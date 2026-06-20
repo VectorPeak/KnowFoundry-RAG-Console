@@ -60,7 +60,7 @@
 ### 2.1 完整代码
 
 ```python
-# app.py — KnowForge RAG Platform 的 FastAPI 应用入口
+# app.py — KnowFoundry-RAG-Console 的 FastAPI 应用入口
 #
 # 本文件现在只负责四件事：
 # 1. 创建 FastAPI 应用

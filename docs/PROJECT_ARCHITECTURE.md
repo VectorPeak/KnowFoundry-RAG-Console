@@ -1,8 +1,8 @@
-# KnowForge RAG Platform - 当前架构文档
+# KnowFoundry-RAG-Console - 当前架构文档
 
 ## 1. 项目定位
 
-当前项目已经从旧版教育问答实现，收敛为基于 `qa_core` 的 KnowForge RAG Platform。
+当前项目已经从旧版教育问答实现，收敛为基于 `qa_core` 的 KnowFoundry-RAG-Console。
 
 运行时默认不包含课程咨询场景，当前场景包包括：
 

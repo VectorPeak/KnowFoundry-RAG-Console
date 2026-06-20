@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Start KnowForge RAG Platform under WSL/Docker with a dedicated Docker Compose project named `rag-platform`.
+**Goal:** Start KnowFoundry-RAG-Console under WSL/Docker with a dedicated Docker Compose project named `rag-platform`.
 
 **Architecture:** Use the existing `docker-compose.yml` as the source of truth for MySQL, etcd, MinIO, Milvus, and FastAPI. Add a small optional override file only if container names must also use the `rag-platform-*` prefix, because the base compose file currently hardcodes `knowforge-*` container names.
 

@@ -1,4 +1,4 @@
-# KnowForge RAG Platform 当前架构详细流程图
+# KnowFoundry-RAG-Console 当前架构详细流程图
 
 本文档只描述优化后架构。边界是：`app.py + qa_core/api + qa_core` 是当前主链路；
 旧版 `mysql_qa`、`rag_qa` 代码已经从工程中移除，只在文档中保留迁移前实现对照，

@@ -156,7 +156,7 @@
 可以直接放到简历的版本：
 
 ```text
-KnowForge RAG Platform
+KnowFoundry-RAG-Console
 - 基于 LangChain + Milvus Hybrid Search + FastAPI 构建多场景 RAG 系统，覆盖跨境贸易风控、招投标履约、保险理赔、工程项目资料等 8 类业务场景。
 - 设计 FAQ + 文档混合检索链路，使用 Milvus dense 向量与内置 BM25 sparse 召回，结合 BGE reranker、query variants 和 Prompt Profile 提升答案准确性与风险口径稳定性。
 - 实现知识库多版本、tenant/dataset/role 数据隔离、WebSocket 流式输出、MySQL 聊天历史、LangSmith trace 和入库质量检查。

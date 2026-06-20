@@ -4,7 +4,7 @@
 
 ## 1. 这个项目一句话怎么介绍？
 
-这是一个基于 LangChain + Milvus Hybrid Search 的 KnowForge RAG Platform。它不仅能问答，还包含 FAQ + 文档混合检索、知识库多版本、数据隔离、Prompt 路由、流式输出、入库质量检查、评测回归和状态页可观测。
+这是一个基于 LangChain + Milvus Hybrid Search 的 KnowFoundry-RAG-Console。它不仅能问答，还包含 FAQ + 文档混合检索、知识库多版本、数据隔离、Prompt 路由、流式输出、入库质量检查、评测回归和状态页可观测。
 
 ## 2. 项目里哪里用到了 LangChain？
 

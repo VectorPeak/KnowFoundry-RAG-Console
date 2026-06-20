@@ -4,7 +4,7 @@
 
 ## 定位
 
-KnowForge RAG Platform 当前定位是企业级多场景 RAG 教学与作品集项目。核心目标是展示：
+KnowFoundry-RAG-Console 当前定位是企业级多场景 RAG 教学与作品集项目。核心目标是展示：
 
 - LangChain + Milvus Hybrid Search 的 RAG 主链路；
 - 多场景、多 source、知识库版本和数据隔离；

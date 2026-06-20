@@ -7,7 +7,7 @@ import subprocess
 import importlib
 
 print("=" * 50)
-print("KnowForge RAG Platform — 环境验证")
+print("KnowFoundry-RAG-Console — 环境验证")
 print("=" * 50)
 
 # ---- 1. Python 版本 ----

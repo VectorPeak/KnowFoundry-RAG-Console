@@ -1,4 +1,4 @@
-# KnowForge RAG Platform — 授课讲义
+# KnowFoundry-RAG-Console — 授课讲义
 
 > **本文档定位**：教师备课速查手册（13 章凝练版），以代码片段 + 教学要点为主，适合有经验的开发者快速浏览全貌。
 >
