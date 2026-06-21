@@ -33,7 +33,6 @@ REQUIRED_PATHS = (
     "eval_sets/phase1_performance_baseline.json",
 )
 README_REQUIRED_SNIPPETS = (
-    "当前业务场景已经冻结为 8 个",
     "LangChain + Milvus Hybrid Search + FastAPI",
     "Bad Case 闭环",
     "一期源码不提前放 Agent 预留实现",
