@@ -34,8 +34,8 @@ notepad .env.compose
 
 ## 讲义站点
 
-讲义只保留一条发布链路：`docs/` Markdown 通过 MkDocs 构建到 `site/`，FastAPI 的 `/docs`
-也只读取 `site/`。不要再恢复 `static/docs/`、`scripts/build_docs.py` 或根目录独立 Markdown 转 HTML
+讲义只保留一条发布链路：`docs/` Markdown 通过 MkDocs 构建到 `site/`，FastAPI 的 `/project-docs`
+只读取 `site/`；`/docs` 保留给 Swagger API 文档。不要再恢复 `static/docs/`、`scripts/build_docs.py` 或根目录独立 Markdown 转 HTML
 脚本，避免同一份讲义出现两套 HTML 输出。
 
 ## 子目录专项脚本

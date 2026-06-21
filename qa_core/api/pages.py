@@ -51,10 +51,10 @@ async def create_session(scenario_id: str | None = None):
     return {"session_id": f"{scenario.scenario_id}:{uuid.uuid4()}", "scenario_id": scenario.scenario_id}
 
 
-@router.get("/docs")
-@router.get("/docs/{full_path:path}")
+@router.get("/project-docs")
+@router.get("/project-docs/{full_path:path}")
 async def read_docs(full_path: str = ""):
-    """提供 mkdocs 构建的文档页面（site/ 目录）。"""
+    """提供 MkDocs 构建的项目讲义页面（site/ 目录）。"""
     docs_dir = Path("site")
     if not full_path or full_path.endswith("/"):
         full_path = os.path.join(full_path, "index.html")

@@ -869,7 +869,8 @@ docker compose run --rm api python scripts/rebuild_kb_version.py \
 
 - 问答页：http://192.168.88.100:8000/
 - 状态页：http://192.168.88.100:8000/admin
-- 文档页：http://192.168.88.100:8000/docs
+- API 文档：http://192.168.88.100:8000/docs
+- 讲义页：http://192.168.88.100:8000/project-docs
 - 健康检查：http://192.168.88.100:8000/health
 
 在虚拟机上执行冒烟测试：

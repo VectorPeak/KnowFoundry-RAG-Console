@@ -111,7 +111,7 @@ foreach ($directory in @("logs", "reports")) {
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot "site\index.html"))) {
-    Write-Warning "site/index.html was not found. Run 'python -m mkdocs build' before opening /docs in Docker."
+    Write-Warning "site/index.html was not found. Run 'python -m mkdocs build' before opening /project-docs in Docker."
 }
 
 Write-Host "Validating docker compose config..."

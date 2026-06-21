@@ -278,10 +278,11 @@ docker compose --env-file .env.compose ps
 
 - 问答页：http://127.0.0.1:8000/
 - 状态页：http://127.0.0.1:8000/admin
-- 讲义页：http://127.0.0.1:8000/docs
+- Swagger API 文档：http://127.0.0.1:8000/docs
+- 讲义页：http://127.0.0.1:8000/project-docs
 
 讲义和流程动画由宿主机 `./site` 挂载到容器 `/app/site`。修改 `docs/` 或
-`docs/animation/` 后，先执行 `python -m mkdocs build`，刷新 `/docs/...` 即可看到更新；
+`docs/animation/` 后，先执行 `python -m mkdocs build`，刷新 `/project-docs/...` 即可看到更新；
 不需要为了讲义内容重建 API 镜像。
 
 ### 6.2 本机 API 调试
