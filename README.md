@@ -22,7 +22,7 @@
 
 ### 这个项目是什么?
 
-本项目将 RAG 面试和真实工程中最常见的核心环节串联成一个完整、可运行、可验收的通用 RAG 工程项目：检索（Hybrid Search + Rerank）、多格式资料处理与可扩展的多模态视觉处理（Image Captioning）、RAG 评估（Ragas + Custom）、生成（LLM Response）、知识库治理、接口验收和部署文档。
+本项目将 RAG 面试和真实工程中最常见的核心环节串联成一个通用 RAG 工程项目：检索（Hybrid Search + Rerank）、多格式资料处理与可扩展的多模态视觉处理（Image Captioning）、RAG 评估（Ragas + Custom）、生成（LLM Response）、知识库治理、接口验收和部署文档。
 
 技术主线是 `LangChain + Milvus Hybrid Search + FastAPI`。
 
