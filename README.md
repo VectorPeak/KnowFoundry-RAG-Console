@@ -52,6 +52,17 @@
 | Dashboard | Vue 页面管理平台 / 静态管理页 | 提供状态页、问答页、链路解析页和治理摘要入口，用于演示、验收和排障 |
 | Skill 驱动全流程 | auto-coder / qa-tester / package / setup 等 Skill | 从编写、测试、打包到环境配置形成可复用工作流，覆盖开发生命周期中的重复性工程动作 |
 
+### 技术亮点
+
+- **全链路可插拔架构**：LLM、Embedding、Reranker、Splitter、VectorStore、Evaluator 等核心环节都通过清晰接口组织，便于替换模型、调整检索策略或迁移到新的业务资料集。
+- **混合检索 + 重排**：使用 Milvus dense vector 与 BM25 sparse 检索进行候选召回，再通过 rerank 精排进入最终上下文，兼顾语义匹配、关键词命中和答案引用质量。
+- **多格式资料摄取**：围绕 Markdown、PDF、Word、PPT、Excel、CSV 等企业常见资料建立入库链路，配合 OCR 复核流和 chunk 质量检查，把非结构化资料转成可检索知识。
+- **知识库治理闭环**：支持知识库多版本、active 版本切换、数据隔离 metadata、质量报告和回归验收，避免资料更新后直接污染线上检索效果。
+- **可观测与 Bad Case 沉淀**：接入 LangSmith Trace，并在本地保留检索诊断、阶段耗时、来源引用和评测报告，让 Query 链路的问题可以被定位、复盘和回归。
+- **评估驱动调优**：结合 Ragas 与自定义指标，围绕 golden test set、Recall@K、MRR、关键词覆盖、Prompt 命中和场景隔离做回归测试，减少“凭感觉”调参。
+- **Dashboard 与链路解析**：提供问答页、状态页、管理页和架构链路解析页，把检索、生成、治理和验收结果转成可演示、可排障的界面入口。
+- **面向扩展的二期方向**：MCP、Agent、GraphRAG、SQL 查询和业务工作流编排保留为后续扩展层，当前主线先把通用 RAG 的入库、检索、生成、评估和观测闭环打稳。
+
 建议先从 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md)、[学习与演示总入口](docs/learning_demo_guide.md)、[标准演示 Runbook](docs/standard_demo_runbook.md) 和 [当前项目状态](docs/current_project_status.md) 进入。它们分别回答“先学什么”“怎么演示”“怎么验收”和“当前边界在哪里”。
 
 如果需要从第 05 章开始按章节跟敲项目代码，进入 [codealong/](codealong/README.md)。该目录和主项目源码分开，按章节提供可运行、可测试的小闭环。
