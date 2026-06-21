@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     app_name: str = "KnowForgeRAGPlatform"
     env: str = Field(default="dev", validation_alias="APP_ENV")
+    app_root_path: str = Field(default="", validation_alias="APP_ROOT_PATH")
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
     active_scenario_id: str = Field(default="enterprise_knowledge", validation_alias="ACTIVE_SCENARIO_ID")
     scenario_config_dir: str = Field(default=str(PROJECT_ROOT / "scenarios"), validation_alias="SCENARIO_CONFIG_DIR")
@@ -143,6 +144,15 @@ class Settings(BaseSettings):
             except json.JSONDecodeError:
                 return [item.strip() for item in value.split(",") if item.strip()]
         return value
+
+    @field_validator("app_root_path", mode="after")
+    @classmethod
+    def normalize_app_root_path(cls, value: str) -> str:
+        """规范化反向代理路径前缀，供 FastAPI 生成 Swagger/OpenAPI 地址。"""
+        normalized = value.strip()
+        if not normalized or normalized == "/":
+            return ""
+        return "/" + normalized.strip("/")
 
     @field_validator(
         "scenario_config_dir",

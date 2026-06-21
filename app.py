@@ -37,11 +37,12 @@ settings = get_settings()
 configure_langsmith_environment()
 logger = get_logger(__name__)
 app = FastAPI(
-    title="KnowForge RAG Platform API",
+    title="KnowFoundry-RAG-Console API",
     description="LangChain + Milvus Hybrid 企业级多场景 RAG 知识平台",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    root_path=settings.app_root_path,
 )
 register_api_exception_handlers(app)
 
