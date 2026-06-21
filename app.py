@@ -23,6 +23,7 @@ import asyncio
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from qa_core.api import admin, chat, kb_versions, pages
@@ -39,12 +40,40 @@ logger = get_logger(__name__)
 app = FastAPI(
     title="KnowFoundry-RAG-Console API",
     description="LangChain + Milvus Hybrid 企业级多场景 RAG 知识平台",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None,
+    redoc_url=None,
     openapi_url="/openapi.json",
     root_path=settings.app_root_path,
 )
 register_api_exception_handlers(app)
+
+
+def _proxied_path(path: str) -> str:
+    """生成兼容反向代理路径前缀的文档资源地址。"""
+    root_path = settings.app_root_path.rstrip("/")
+    return f"{root_path}{path}" if root_path else path
+
+
+@app.get("/docs", include_in_schema=False)
+@app.get("/docs/", include_in_schema=False)
+@app.get("/docs/index.html", include_in_schema=False)
+async def swagger_docs():
+    """Swagger UI 入口；兼容 Nginx 把 /docs 重写到 /docs/index.html 的情况。"""
+    return get_swagger_ui_html(
+        openapi_url=_proxied_path(app.openapi_url),
+        title=f"{app.title} - Swagger UI",
+    )
+
+
+@app.get("/redoc", include_in_schema=False)
+@app.get("/redoc/", include_in_schema=False)
+@app.get("/redoc/index.html", include_in_schema=False)
+async def redoc_docs():
+    """ReDoc UI 入口；兼容反向代理路径前缀。"""
+    return get_redoc_html(
+        openapi_url=_proxied_path(app.openapi_url),
+        title=f"{app.title} - ReDoc",
+    )
 
 # 当前前端和 API 默认同源部署，但保留 CORS 配置是为了方便本地调试：
 # 例如单独启动 Vite/React 页面时，只需要在当前运行配置中追加允许来源即可。
