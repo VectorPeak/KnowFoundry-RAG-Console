@@ -36,9 +36,7 @@
 
 - 如何把 RAG 从聊天 Demo 拆成可维护的检索、重排、生成、引用和评测模块；
 - 如何用 `DEV_SPEC` 式的开发规格约束功能边界、目录结构和验收口径；
-- 如何用脚本、测试、guardrail 和 smoke check 保证每次修改后系统仍然可交付；
 - 如何把知识库版本、场景隔离、权限 metadata 和评测报告串成上线前的治理闭环；
-- 如何在一期 RAG 主链路稳定后，继续向 Agent、GraphRAG、SQL 查询和业务工作流扩展。
 
 学会这套思路后，你可以自己做全新的项目，也可以把它拆成模块迁移到已有业务系统里。上手建议从 [第 1 讲：项目概述](docs/01-project-overview.md) 开始，再按 [最小学习路径](docs/TEACHING_MINIMAL_PATH.md) 和 [标准演示 Runbook](docs/standard_demo_runbook.md) 逐步跑通。
 
