@@ -427,6 +427,20 @@ def _check_scenario_faq(path: Path, valid_sources: list[str]) -> list[GuardrailI
     return issues
 
 
+def check_static_proxy_smoke_contract() -> list[GuardrailIssue]:
+    """确保公网前缀下的静态资源代理验收脚本被保留并写入脚本说明。"""
+    issues: list[GuardrailIssue] = []
+    smoke_script = PROJECT_ROOT / "scripts" / "check_static_proxy_smoke.py"
+    scripts_readme = PROJECT_ROOT / "scripts" / "README.md"
+    if not smoke_script.exists():
+        issues.append(GuardrailIssue(smoke_script, 1, "必须保留静态资源代理 smoke check，避免 /static/ 转发回归。"))
+    if not scripts_readme.exists():
+        issues.append(GuardrailIssue(scripts_readme, 1, "scripts/README.md 不存在，无法记录静态资源代理 smoke check。"))
+    elif "check_static_proxy_smoke.py" not in scripts_readme.read_text(encoding="utf-8"):
+        issues.append(GuardrailIssue(scripts_readme, 1, "scripts/README.md 必须记录 check_static_proxy_smoke.py 的使用方式。"))
+    return issues
+
+
 def main() -> None:
     """执行全部守护检查。"""
     issues: list[GuardrailIssue] = []
@@ -435,6 +449,7 @@ def main() -> None:
     issues.extend(check_secret_hygiene())
     issues.extend(check_env_file_contract())
     issues.extend(check_scenario_packages())
+    issues.extend(check_static_proxy_smoke_contract())
     for path in iter_python_files():
         issues.extend(check_python_file(path))
 

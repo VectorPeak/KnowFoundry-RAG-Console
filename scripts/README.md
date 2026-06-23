@@ -62,6 +62,7 @@ python scripts/evaluate_core_chain.py --dataset eval_sets/multi_scenario_smoke.j
 python scripts/check_evaluation_gate.py --dataset eval_sets/multi_scenario_smoke.json --limit 20
 python scripts/api_e2e_smoke.py --base-url http://127.0.0.1:8000
 python scripts/acceptance_smoke.py --base-url http://127.0.0.1:8000
+python scripts/check_static_proxy_smoke.py --base-url http://117.72.244.79/projects/knowfoundry-rag-console
 ```
 
 章节跟敲代码验收使用目标 Conda 环境运行。第 08 章之后会加载真实
